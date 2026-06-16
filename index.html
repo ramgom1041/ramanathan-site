@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. S. Ramanathan — Control Systems · Power Electronics · Machine Vision</title>
+<meta name="description" content="Dr. S. Ramanathan — Ph.D. in Electrical Engineering (Control Systems). Team Lead, Machine Vision at Manatec Electronics. Researcher in power electronics & renewable energy. IEEE author.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0a1930; --navy2:#0f2a43; --teal:#0f5c70; --teal2:#14738c;
+    --cyan:#3fc4dc; --ink:#1b2733; --grey:#5c6b78; --line:#e3e9ee;
+    --bg:#f7fafc; --white:#fff; --radius:14px;
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.65;font-size:16px}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{color:var(--cyan)}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  section{padding:74px 0}
+  h2.section-title{font-size:30px;font-weight:800;color:var(--navy);
+    letter-spacing:.4px;margin-bottom:6px}
+  .section-sub{color:var(--grey);margin-bottom:34px;font-size:15px}
+  .accent{height:4px;width:54px;background:linear-gradient(90deg,var(--teal),var(--cyan));
+    border-radius:3px;margin-top:10px}
+
+  /* NAV */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(10,25,48,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.08)}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{color:#fff;font-weight:700;letter-spacing:.5px;font-size:17px}
+  .brand span{color:var(--cyan)}
+  nav ul{list-style:none;display:flex;gap:26px}
+  nav a{color:#cfe0e8;font-weight:500;font-size:15px}
+  nav a:hover{color:#fff}
+  .nav-toggle{display:none;background:none;border:0;color:#fff;font-size:24px;cursor:pointer}
+
+  /* HERO */
+  .hero{position:relative;background:
+      radial-gradient(1200px 400px at 80% -10%,rgba(63,196,220,.18),transparent),
+      linear-gradient(120deg,var(--navy) 0%,var(--navy2) 45%,var(--teal) 120%);
+    color:#fff;overflow:hidden}
+  .hero::after{content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+    background-size:46px 46px;mask-image:linear-gradient(180deg,#000,transparent 80%)}
+  .hero .wrap{position:relative;z-index:2;padding:92px 22px 96px}
+  .eyebrow{color:var(--cyan);font-weight:600;letter-spacing:2px;font-size:13px;
+    text-transform:uppercase;margin-bottom:14px}
+  .hero h1{font-size:50px;line-height:1.08;font-weight:800;margin-bottom:16px}
+  .hero .role{font-size:20px;color:#d7e6ec;font-weight:500;margin-bottom:10px}
+  .hero p.lead{max-width:680px;color:#bcd0d9;font-size:16px;margin:18px 0 28px}
+  .badges{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px}
+  .badge{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+    padding:7px 14px;border-radius:30px;font-size:13.5px;color:#e8f2f6}
+  .cta{display:flex;flex-wrap:wrap;gap:14px}
+  .btn{display:inline-block;padding:12px 22px;border-radius:30px;font-weight:600;font-size:15px}
+  .btn-primary{background:var(--cyan);color:#06222b}
+  .btn-primary:hover{background:#5fd3e8;color:#06222b}
+  .btn-ghost{border:1.5px solid rgba(255,255,255,.4);color:#fff}
+  .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+
+  /* CARDS / GRID */
+  .grid{display:grid;gap:20px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1.3fr .7fr}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px;box-shadow:0 1px 2px rgba(16,42,67,.04)}
+  .card h3{color:var(--navy);font-size:18px;margin-bottom:6px}
+  .stat{text-align:center}
+  .stat .num{font-size:30px;font-weight:800;color:var(--teal)}
+  .stat .lbl{color:var(--grey);font-size:14px}
+
+  /* TIMELINE */
+  .tl{border-left:2px solid var(--line);margin-left:6px;padding-left:24px}
+  .tl-item{position:relative;padding-bottom:22px}
+  .tl-item::before{content:"";position:absolute;left:-31px;top:5px;width:12px;height:12px;
+    border-radius:50%;background:var(--teal);border:3px solid #fff;box-shadow:0 0 0 1px var(--teal)}
+  .tl-item .when{color:var(--cyan);font-weight:600;font-size:13.5px}
+  .tl-item .what{font-weight:700;color:var(--navy);font-size:16px}
+  .tl-item .where{color:var(--grey);font-size:14.5px}
+
+  /* CHIPS */
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{background:#eaf3f6;color:#0d4d5e;border:1px solid #d4e7ec;
+    padding:6px 13px;border-radius:8px;font-size:13.5px;font-weight:500}
+
+  /* PUBLICATIONS */
+  .pub{display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--line)}
+  .pub:last-child{border-bottom:0}
+  .pub .tag{flex:0 0 auto;height:fit-content;background:var(--navy);color:#fff;
+    font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px}
+  .pub .tag.j{background:linear-gradient(120deg,var(--teal),var(--teal2))}
+  .pub p{font-size:15px}
+  .pub .meta{color:var(--grey);font-size:13.5px;margin-top:3px}
+
+  /* CONTACT */
+  .contact{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff}
+  .contact h2{color:#fff}
+  .contact .section-sub{color:#bcd0d9}
+  .clinks{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:680px}
+  .clink{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:14px 16px;color:#eaf4f7}
+  .clink:hover{background:rgba(255,255,255,.16);color:#fff}
+  .clink .ic{font-size:20px}
+  .clink b{display:block;font-size:14px}
+  .clink small{color:#a9c4ce;font-size:12.5px}
+
+  footer{background:var(--navy);color:#9fb4c0;text-align:center;padding:26px;font-size:13.5px}
+
+  @media(max-width:860px){
+    .g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}
+    .clinks{grid-template-columns:1fr}
+    nav ul{position:absolute;top:62px;left:0;right:0;background:var(--navy);
+      flex-direction:column;gap:0;padding:8px 0;display:none}
+    nav ul.show{display:flex}
+    nav li{padding:10px 22px;border-top:1px solid rgba(255,255,255,.06)}
+    .nav-toggle{display:block}
+    .hero h1{font-size:36px}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap">
+    <div class="brand">Dr. S. <span>Ramanathan</span></div>
+    <button class="nav-toggle" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('show')">☰</button>
+    <nav><ul id="menu">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#research">Research</a></li>
+      <li><a href="#publications">Publications</a></li>
+      <li><a href="#teaching">Teaching</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul></nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="wrap">
+    <div class="eyebrow">Control Systems · Power Electronics · Machine Vision</div>
+    <h1>Dr. S. Ramanathan</h1>
+    <div class="role">Team Lead – Machine Vision @ Manatec Electronics · Ph.D. in Control Systems</div>
+    <p class="lead">Engineering professional and researcher turning rigorous research into reliable,
+      production-ready solutions across control systems, power electronics, instrumentation, and machine vision.
+      Published in IEEE Transactions on Industrial Electronics.</p>
+    <div class="badges">
+      <span class="badge">🎓 Ph.D. — Pondicherry University</span>
+      <span class="badge">📄 IEEE Transactions Author</span>
+      <span class="badge">⚙️ 8+ years across research, industry & teaching</span>
+    </div>
+    <div class="cta">
+      <a class="btn btn-primary" href="#research">Explore Research</a>
+      <a class="btn btn-ghost" href="#publications">Publications</a>
+      <a class="btn btn-ghost" href="#contact">Get in Touch</a>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <h2 class="section-title">About Me</h2>
+    <div class="accent"></div>
+    <p class="section-sub" style="margin-top:18px">Engineer · Researcher · Team Lead</p>
+
+    <div class="grid g2">
+      <div class="card">
+        <p>I am a Ph.D.-qualified engineer with 8+ years of combined industry, research, and academic
+        experience spanning machine vision, control systems, power electronics, instrumentation, and
+        renewable energy.</p>
+        <p style="margin-top:12px">As <b>Team Lead – Machine Vision</b> at Manatec Electronics Pvt. Ltd., I lead a team
+        developing a 3D geometry measurement system and vision-based inspection solutions. Earlier, as
+        <b>Lead – Product Development</b> at Lectronic Solutions, I designed instrumentation hardware including
+        a tank water-level controller and a pressure transmitter with a Windows calibration application. My
+        doctoral research developed a nonlinear controller for DC-link voltage stabilization in DFIG-based
+        wind turbines, validated from 0.75&nbsp;kW hardware to 2&nbsp;MW simulation.</p>
+
+        <h3 style="margin:22px 0 14px">Experience</h3>
+        <div class="tl">
+          <div class="tl-item"><div class="when">Sep 2025 – Present</div>
+            <div class="what">Team Lead – Machine Vision</div>
+            <div class="where">Manatec Electronics Pvt. Ltd., Puducherry</div></div>
+          <div class="tl-item"><div class="when">Oct 2024 – Aug 2025</div>
+            <div class="what">Lead – Product Development</div>
+            <div class="where">Lectronic Solutions Pvt. Ltd., Puducherry</div></div>
+          <div class="tl-item"><div class="when">2018 – 2024</div>
+            <div class="what">Doctoral Researcher</div>
+            <div class="where">Puducherry Technological University (PEC)</div></div>
+          <div class="tl-item"><div class="when">2019 – 2020</div>
+            <div class="what">Guest Faculty – Dept. of EIE</div>
+            <div class="where">Pondicherry Engineering College</div></div>
+          <div class="tl-item"><div class="when">2017 – 2018</div>
+            <div class="what">Assistant Professor – Biomedical Engg.</div>
+            <div class="where">Rajiv Gandhi College of Engineering &amp; Technology</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:20px">
+          <h3>Education</h3>
+          <p style="margin-top:10px"><b>Ph.D.</b>, Electrical Engineering (Control Systems)<br>
+            <small style="color:var(--grey)">Pondicherry University · 2018–2024</small></p>
+          <p style="margin-top:10px"><b>M.Tech</b>, Instrumentation Engineering<br>
+            <small style="color:var(--grey)">Pondicherry University · 2015–2017 · CGPA 8.19</small></p>
+          <p style="margin-top:10px"><b>B.Tech</b>, Electronics &amp; Instrumentation Engg.<br>
+            <small style="color:var(--grey)">Pondicherry University · 2012–2015</small></p>
+          <p style="margin-top:10px"><b>Diploma</b>, Instrumentation &amp; Control Engg.<br>
+            <small style="color:var(--grey)">MN Govt. Polytechnic · 2009–2012 · 83.21%</small></p>
+        </div>
+        <div class="card">
+          <h3>Skills</h3>
+          <div class="chips" style="margin-top:12px">
+            <span class="chip">Control Systems</span><span class="chip">Power Electronics</span>
+            <span class="chip">Machine Vision</span><span class="chip">PCB Design</span>
+            <span class="chip">MATLAB / Simulink</span><span class="chip">LabVIEW</span>
+            <span class="chip">PID & Nonlinear Control</span><span class="chip">KiCAD</span>
+            <span class="chip">PLC (Delta, Omron)</span><span class="chip">FPGA (Xilinx)</span>
+            <span class="chip">Instrumentation</span><span class="chip">Calibration</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-top:24px">
+      <div class="card stat"><div class="num">8+</div><div class="lbl">Years experience</div></div>
+      <div class="card stat"><div class="num">3</div><div class="lbl">Publications</div></div>
+      <div class="card stat"><div class="num">2 MW</div><div class="lbl">Validated control system</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH -->
+<section id="research" style="background:#eef4f7">
+  <div class="wrap">
+    <h2 class="section-title">Research</h2>
+    <div class="accent"></div>
+    <p class="section-sub" style="margin-top:18px">Power electronics · Renewable energy · Control · Machine vision</p>
+
+    <div class="grid g3">
+      <div class="card">
+        <h3>Research Interests</h3>
+        <p style="margin-top:10px;font-size:15px">Control of doubly-fed induction generators (DFIG); wind energy
+        conversion systems (WECS); power-electronics fault ride-through; nonlinear & closed-loop control; and
+        machine vision / 3D measurement.</p>
+      </div>
+      <div class="card">
+        <h3>Doctoral Research</h3>
+        <p style="margin-top:10px;font-size:15px"><i>Control of DFIG in Wind Energy Systems</i> — a nonlinear controller
+        to stabilize DC-link voltage and protect power electronics during grid faults; validated through 2&nbsp;MW
+        simulation and 0.75&nbsp;kW hardware.</p>
+      </div>
+      <div class="card">
+        <h3>Selected Projects</h3>
+        <p style="margin-top:10px;font-size:15px">3D geometry measurement system (Manatec); tank water-level controller
+        PCB &amp; pressure transmitter + Windows calibration app (Lectronic); Wiener-model nonlinear PI controller for a
+        pH process (M.Tech).</p>
+      </div>
+    </div>
+    <div class="cta" style="margin-top:24px">
+      <a class="btn btn-primary" href="https://scholar.google.com/citations?user=TmbVeDMAAAAJ" target="_blank" rel="noopener">Google Scholar</a>
+      <a class="btn btn-ghost" style="border-color:var(--teal);color:var(--teal)" href="https://orcid.org/0000-0002-2949-7650" target="_blank" rel="noopener">ORCID: 0000-0002-2949-7650</a>
+    </div>
+  </div>
+</section>
+
+<!-- PUBLICATIONS -->
+<section id="publications">
+  <div class="wrap">
+    <h2 class="section-title">Publications</h2>
+    <div class="accent"></div>
+    <p class="section-sub" style="margin-top:18px">Peer-reviewed journal &amp; conference papers</p>
+
+    <div class="card">
+      <div class="pub">
+        <span class="tag j">Journal</span>
+        <div>
+          <p>S. Ramanathan, D. K. Sakthivel, A. N. Ramaiah, S. Ramalingam,
+          “Nonlinear Control Strategy for DC-Link Voltage Control in a DFIG of WECS During 3φ Grid Faults.”</p>
+          <p class="meta"><i>IEEE Transactions on Industrial Electronics</i>, 2023 ·
+          <a href="https://doi.org/10.1109/TIE.2023.3344815" target="_blank" rel="noopener">doi:10.1109/TIE.2023.3344815</a></p>
+        </div>
+      </div>
+      <div class="pub">
+        <span class="tag">Conf.</span>
+        <div>
+          <p>S. Ramanathan et al., “Indirect Power Control MPPT Techniques for DFIG-based WEGS under Step and
+          Variable Speed Wind Characteristics: A Comparative Study.”</p>
+          <p class="meta">ICSECT-2022, Pandit Deendayal Energy University, Gandhinagar · Sep 2022</p>
+        </div>
+      </div>
+      <div class="pub">
+        <span class="tag">Conf.</span>
+        <div>
+          <p>S. Ramanathan et al., “Operation of DFIG-based Wind Energy Conversion System under Symmetrical
+          Voltage Dip using Crowbar.”</p>
+          <p class="meta">ICEEMR-2022, Chennai Institute of Technology · Jun 2022 · pp. 250–259 (ISBN 9789391930066)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEACHING -->
+<section id="teaching" style="background:#eef4f7">
+  <div class="wrap">
+    <h2 class="section-title">Teaching</h2>
+    <div class="accent"></div>
+    <p class="section-sub" style="margin-top:18px">Assistant Professor &amp; Guest Faculty experience</p>
+    <div class="card">
+      <p>I teach and mentor across the following areas, drawing on both research depth and hands-on industry practice:</p>
+      <div class="chips" style="margin-top:16px">
+        <span class="chip">Control Systems</span><span class="chip">Power Electronics</span>
+        <span class="chip">Electronic Instrumentation &amp; Measurements</span>
+        <span class="chip">Industrial Automation (PLC)</span>
+        <span class="chip">Electrical Machines</span><span class="chip">Renewable Energy</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact">
+  <div class="wrap">
+    <h2 class="section-title">Get in Touch</h2>
+    <div class="accent"></div>
+    <p class="section-sub" style="margin-top:18px">Open to collaboration, research, and professional connection.</p>
+    <div class="clinks">
+      <a class="clink" href="mailto:ramgom1041@gmail.com"><span class="ic">📧</span><span><b>Email</b><small>ramgom1041@gmail.com</small></span></a>
+      <a class="clink" href="https://wa.me/919843579367?text=Hi%20Dr.%20Ramanathan%2C%20I%20came%20across%20your%20website%20and%20would%20like%20to%20connect." target="_blank" rel="noopener"><span class="ic">💬</span><span><b>WhatsApp</b><small>+91 98435 79367</small></span></a>
+      <a class="clink" href="https://www.linkedin.com/in/ramanathan-s-8338a33b3" target="_blank" rel="noopener"><span class="ic">💼</span><span><b>LinkedIn</b><small>ramanathan-s</small></span></a>
+      <a class="clink" href="https://scholar.google.com/citations?user=TmbVeDMAAAAJ" target="_blank" rel="noopener"><span class="ic">🎓</span><span><b>Google Scholar</b><small>Publications & citations</small></span></a>
+      <a class="clink" href="https://orcid.org/0000-0002-2949-7650" target="_blank" rel="noopener"><span class="ic">🔬</span><span><b>ORCID</b><small>0000-0002-2949-7650</small></span></a>
+      <span class="clink"><span class="ic">📍</span><span><b>Location</b><small>Puducherry, India</small></span></span>
+    </div>
+  </div>
+</section>
+
+<footer>© <span id="yr"></span> Dr. S. Ramanathan · Control Systems · Power Electronics · Machine Vision</footer>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  // close mobile menu on link click
+  document.querySelectorAll('#menu a').forEach(a=>a.addEventListener('click',()=>{
+    document.getElementById('menu').classList.remove('show');
+  }));
+</script>
+</body>
+</html>
