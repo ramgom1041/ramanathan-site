@@ -60,6 +60,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#step">Step Response</a><a href="#poles">Pole &amp; Stability</a><a href="#leadlag">Lead / Lag</a>
 <a href="#phase">Phase Portrait</a><a href="#zplane">Z-Plane</a><a href="#senst">Sensitivity S/T</a>
 <a href="#margins">Stability Margins</a><a href="#nmp">Zeros / Non-Min-Phase</a><a href="#delay">Time Delay</a>
+<a href="#fo">First-Order</a><a href="#inputs">Step/Impulse/Ramp</a><a href="#sserr">Steady-State Error</a><a href="#domin">Dominant Poles</a>
 </div>
 </div></div>
 
@@ -514,6 +515,75 @@ padding:6px 12px;border-radius:30px;font-size:13px}
   </div></details>
 </div>
 
+<!-- FIRST ORDER -->
+<div class="sim" id="fo">
+  <span class="tag">MODULE 16</span><h2>First-Order System &amp; Time Constant</h2>
+  <p class="exp">The simplest dynamic system: \(G(s)=\dfrac{K}{\tau s+1}\). Its step response is a single exponential rise. The <b>time constant</b> τ is how long to reach 63.2% of the final value — the one number that characterises the speed.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>DC gain K <span class="v" id="fo_k_v">1.0</span></label><input type="range" id="fo_k" min="0.2" max="5" value="1" step="0.1"></div>
+    <div class="ctl"><label>Time constant τ <span class="v" id="fo_tau_v">1.0</span> s</label><input type="range" id="fo_tau" min="0.2" max="5" value="1" step="0.1"></div>
+    <div class="readout" id="fo_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>response</span><span><i class="dot" style="background:#f4b740"></i>63.2% @ τ</span></div>
+  </div><div class="plotwrap"><canvas id="fo_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: at t=τ the output is always 63.2% of final; at 4τ it's 98% (settled). Bigger τ → slower.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ y(t)=K\big(1-e^{-t/\tau}\big),\quad y(\tau)=0.632K,\quad t_s\approx4\tau,\quad t_r\approx2.2\tau \]</div>
+    <p>The pole sits at \(s=-1/\tau\): the further left, the faster. There is no overshoot in a true first-order system.</p>
+  </div></details>
+</div>
+
+<!-- STEP/IMPULSE/RAMP -->
+<div class="sim" id="inputs">
+  <span class="tag">MODULE 17</span><h2>Step · Impulse · Ramp Response</h2>
+  <p class="exp">The same system responds differently to different test inputs. The <b>impulse</b> response is the system's fingerprint (its inverse-Laplace); the <b>step</b> integrates it; the <b>ramp</b> integrates again. Switch the input and compare.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Input</label><select id="in_type"><option value="step" selected>Step</option><option value="impulse">Impulse</option><option value="ramp">Ramp</option></select></div>
+    <div class="ctl"><label>ω<sub>n</sub> <span class="v" id="in_wn_v">3</span></label><input type="range" id="in_wn" min="1" max="8" value="3" step="0.5"></div>
+    <div class="ctl"><label>Damping ζ <span class="v" id="in_z_v">0.4</span></label><input type="range" id="in_z" min="0.1" max="1.5" value="0.4" step="0.05"></div>
+    <div class="readout" id="in_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>output</span><span><i class="dot" style="background:#f4b740"></i>input</span></div>
+  </div><div class="plotwrap"><canvas id="in_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: switch to Ramp — an underdamped system lags the ramp with a steady error. Switch to Impulse — pure ringing that decays.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>For \(G(s)=\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}\): impulse \(h(t)=\dfrac{\omega_n}{\sqrt{1-\zeta^2}}e^{-\zeta\omega_n t}\sin\omega_d t\). The step is \(\int h\), the ramp is \(\iint h\). Each integration adds a pole at the origin to the input.</p>
+  </div></details>
+</div>
+
+<!-- STEADY STATE ERROR -->
+<div class="sim" id="sserr">
+  <span class="tag">MODULE 18</span><h2>Steady-State Error &amp; System Type</h2>
+  <p class="exp">How accurately a unity-feedback loop tracks an input depends on its <b>type</b> (number of integrators in the open loop). A type-0 system has a finite step error; adding an integrator (type 1) kills the step error but leaves a ramp error. The <b>error constants</b> quantify it.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>System type</label><select id="se_type"><option value="0">Type 0 (no integrator)</option><option value="1" selected>Type 1 (one integrator)</option></select></div>
+    <div class="ctl"><label>Input</label><select id="se_in"><option value="step" selected>Step</option><option value="ramp">Ramp</option></select></div>
+    <div class="ctl"><label>Gain K <span class="v" id="se_k_v">5</span></label><input type="range" id="se_k" min="0.5" max="20" value="5" step="0.5"></div>
+    <div class="ctl"><label>Plant τ <span class="v" id="se_t_v">0.5</span></label><input type="range" id="se_t" min="0.1" max="2" value="0.5" step="0.1"></div>
+    <div class="readout" id="se_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>output</span><span><i class="dot" style="background:#f4b740"></i>reference</span></div>
+  </div><div class="plotwrap"><canvas id="se_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: Type 0 + Step → visible gap (error = 1/(1+K)). Switch to Type 1 → gap vanishes for a step, but a Ramp now leaves a constant error = 1/K.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ K_p=\lim_{s\to0}L(s),\ K_v=\lim_{s\to0}sL(s),\ K_a=\lim_{s\to0}s^2L(s) \]</div>
+    <p>Steady-state error: step → \(\dfrac{1}{1+K_p}\); ramp → \(\dfrac{1}{K_v}\); parabola → \(\dfrac{1}{K_a}\). Each extra integrator (higher type) drives one more of these errors to zero.</p>
+  </div></details>
+</div>
+
+<!-- DOMINANT POLES -->
+<div class="sim" id="domin">
+  <span class="tag">MODULE 19</span><h2>Dominant Poles &amp; Model Reduction</h2>
+  <p class="exp">A high-order system often behaves almost like a low-order one, because the <b>poles closest to the imaginary axis dominate</b> the slow response and far-left poles die out fast. Here a 3rd pole is added to a 2nd-order system — push it far left and the response collapses onto the 2nd-order model.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Extra pole at −p <span class="v" id="dm_p_v">3</span></label><input type="range" id="dm_p" min="0.5" max="20" value="3" step="0.5"></div>
+    <div class="ctl"><label>Damping ζ <span class="v" id="dm_z_v">0.5</span></label><input type="range" id="dm_z" min="0.2" max="1" value="0.5" step="0.05"></div>
+    <div class="readout" id="dm_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>full 3rd-order</span><span><i class="dot" style="background:#f4b740"></i>2nd-order model</span></div>
+  </div><div class="plotwrap"><canvas id="dm_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: p=1 (near ωn=3) → the 3rd pole noticeably slows the response. p=15 (far left) → the curves overlap; the reduced 2nd-order model is accurate.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>A pole at \(-p\) contributes a mode \(e^{-pt}\). If \(p\) is ≳ 5× the real part of the dominant poles, that mode decays before it matters, so it can be dropped (keeping DC gain). This is the basis of <b>model-order reduction</b> and the "dominant second-order" approximation used throughout design.</p>
+  </div></details>
+</div>
+
 </div></section>
 <footer>© Dr. S. Ramanathan · Control Systems Interactive Lab · All simulations run in your browser</footer>
 
@@ -958,5 +1028,67 @@ function delayf(){
 wire(['m_k','m_p1','m_p2'],margins);
 wire(['zz_loc','zz_z'],nmp);
 wire(['dl_k','dl_tau','dl_T'],delayf);
+
+// ============ MODULE 16: FIRST ORDER ============
+function firstorder(){
+  const K=+$('fo_k').value,tau=+$('fo_tau').value;$('fo_k_v').textContent=fmt(K,1);$('fo_tau_v').textContent=fmt(tau,1);
+  const Te=6*tau,pts=[];for(let t=0;t<=Te;t+=Te/300){pts.push({x:t,y:K*(1-Math.exp(-t/tau))});}
+  Plot($('fo_cv'),{xmin:0,xmax:Te,ymin:0,ymax:K*1.15,xlabel:'time (s)',ylabel:'output',
+    series:[{points:pts,color:C.cyan,w:2},{points:[{x:tau,y:0},{x:tau,y:0.632*K}],color:C.gold,w:1.5},{marks:[{x:tau,y:0.632*K}],color:C.gold,r:4}]});
+  $('fo_out').innerHTML=`At t=τ: <b>${fmt(0.632*K,2)}</b> (63.2%)<br>Settling (4τ): <b>${fmt(4*tau,1)} s</b><br>Rise (2.2τ): <b>${fmt(2.2*tau,1)} s</b>`;
+}
+// ============ MODULE 17: STEP/IMPULSE/RAMP ============
+function inputs(){
+  const ty=$('in_type').value,wn=+$('in_wn').value,ze=+$('in_z').value;$('in_wn_v').textContent=fmt(wn,1);$('in_z_v').textContent=fmt(ze,2);
+  const dt=0.005,Te=8;let x1=0,x2=0;const yo=[],ui=[];let mx=0.1,mn=0;
+  for(let t=0;t<=Te;t+=dt){
+    let u=ty==='step'?1:ty==='ramp'?t:(t<dt?1/dt:0);
+    const a=-2*ze*wn*x2-wn*wn*x1+wn*wn*u;x2+=a*dt;x1+=x2*dt;
+    let rin=ty==='step'?1:ty==='ramp'?t:(t<dt?1:0);
+    yo.push({x:t,y:x1});ui.push({x:t,y:rin});mx=Math.max(mx,x1,rin);mn=Math.min(mn,x1);
+  }
+  Plot($('in_cv'),{xmin:0,xmax:Te,ymin:Math.min(-0.3,mn*1.1),ymax:mx*1.1,xlabel:'time (s)',ylabel:'amplitude',
+    series:[{points:ui,color:C.gold,w:1.5},{points:yo,color:C.cyan,w:2}]});
+  $('in_out').innerHTML=`Input: <b>${ty}</b><br>System: 2nd-order, ζ=${fmt(ze,2)}, ω<sub>n</sub>=${fmt(wn,1)}`;
+}
+// ============ MODULE 18: STEADY-STATE ERROR ============
+function sserr(){
+  const ty=+$('se_type').value,inp=$('se_in').value,K=+$('se_k').value,tau=+$('se_t').value;
+  $('se_k_v').textContent=fmt(K,1);$('se_t_v').textContent=fmt(tau,1);
+  const dt=0.004,Te=12;let s1=0,yi=0,y=0;const yo=[],ro=[];let mx=1;
+  for(let t=0;t<=Te;t+=dt){
+    const r=inp==='step'?1:t;
+    const e=r-y;
+    s1+=((K*e - s1)/tau)*dt;          // lag K/(tau s+1) applied to e
+    if(ty===1){yi+=s1*dt;y=yi;} else {y=s1;}
+    yo.push({x:t,y:y});ro.push({x:t,y:r});mx=Math.max(mx,r,y);
+  }
+  Plot($('se_cv'),{xmin:0,xmax:Te,ymin:0,ymax:mx*1.1,xlabel:'time (s)',ylabel:'amplitude',
+    series:[{points:ro,color:C.gold,w:1.5},{points:yo,color:C.cyan,w:2}]});
+  const Kp=ty===0?K:Infinity, Kv=ty===1?K:0;
+  let ess;if(inp==='step')ess=ty===0?1/(1+K):0; else ess=ty===1?1/K:Infinity;
+  $('se_out').innerHTML=`K<sub>p</sub>=<b>${Kp===Infinity?'∞':fmt(Kp,1)}</b>, K<sub>v</sub>=<b>${ty===1?fmt(Kv,1):(ty===0?'0':'∞')}</b><br>Steady-state error: <b>${ess===Infinity?'∞ (diverges)':fmt(ess,3)}</b>`;
+}
+// ============ MODULE 19: DOMINANT POLES ============
+function dominant(){
+  const p=+$('dm_p').value,ze=+$('dm_z').value,wn=3;$('dm_p_v').textContent=fmt(p,1);$('dm_z_v').textContent=fmt(ze,2);
+  const a1=2*ze*wn,a0=wn*wn;
+  // full 3rd order: (s^2+a1 s+a0)(s+p); ccf
+  const c2=a1+p,c1=a0+a1*p,c0=a0*p,Kf=a0*p;
+  const dt=0.004,Te=6;let x1=0,x2=0,x3=0,z1=0,z2=0;const full=[],red=[];let mx=1.2;
+  for(let t=0;t<=Te;t+=dt){
+    const yf=Kf*x1;full.push({x:t,y:yf});mx=Math.max(mx,yf);
+    const x1d=x2,x2d=x3,x3d=-c0*x1-c1*x2-c2*x3+1;x1+=x1d*dt;x2+=x2d*dt;x3+=x3d*dt;
+    const yr=a0*z1;red.push({x:t,y:yr});                 // 2nd-order ref
+    const z1d=z2,z2d=-a0*z1-a1*z2+1;z1+=z1d*dt;z2+=z2d*dt;
+  }
+  Plot($('dm_cv'),{xmin:0,xmax:Te,ymin:0,ymax:mx*1.1,xlabel:'time (s)',ylabel:'output',
+    series:[{points:red,color:C.gold,w:1.5},{points:full,color:C.cyan,w:2}]});
+  $('dm_out').innerHTML=`Extra pole: −${fmt(p,1)} (dominant pair real part −${fmt(ze*wn,2)})<br>Ratio p/ζω<sub>n</sub>: <b>${fmt(p/(ze*wn),1)}</b> ${p/(ze*wn)>5?'→ <b>2nd-order model valid</b>':'→ 3rd pole matters'}`;
+}
+wire(['fo_k','fo_tau'],firstorder);
+wire(['in_type','in_wn','in_z'],inputs);
+wire(['se_type','se_in','se_k','se_t'],sserr);
+wire(['dm_p','dm_z'],dominant);
 </script>
 </body></html>
