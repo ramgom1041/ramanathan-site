@@ -58,6 +58,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#onoff">On-Off Control</a><a href="#pid">PID Control</a><a href="#bode">Bode Plot</a>
 <a href="#polar">Polar / Nyquist</a><a href="#routh">Routh Array</a><a href="#rlocus">Root Locus</a>
 <a href="#step">Step Response</a><a href="#poles">Pole &amp; Stability</a><a href="#leadlag">Lead / Lag</a>
+<a href="#phase">Phase Portrait</a><a href="#zplane">Z-Plane</a><a href="#senst">Sensitivity S/T</a>
 </div>
 </div></div>
 
@@ -340,6 +341,93 @@ padding:6px 12px;border-radius:30px;font-size:13px}
   </div></details>
 </div>
 
+<!-- PHASE PORTRAIT -->
+<div class="sim" id="phase">
+  <span class="tag">MODULE 10</span>
+  <h2>Phase Portrait (State-Space)</h2>
+  <p class="exp">Instead of plotting against time, plot the states against <i>each other</i>: position x vs velocity ẋ. The arrows show the flow field; trajectories spiral, circle, or diverge depending on the eigenvalues. This is how state-space &amp; nonlinear stability is visualised.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>ω<sub>n</sub> (rad/s) <span class="v" id="pp_wn_v">1.5</span></label><input type="range" id="pp_wn" min="0.5" max="3" value="1.5" step="0.1"></div>
+      <div class="ctl"><label>Damping ζ <span class="v" id="pp_z_v">0.20</span></label><input type="range" id="pp_z" min="-0.3" max="2" value="0.2" step="0.05"></div>
+      <div class="readout" id="pp_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>trajectories</span><span><i class="dot" style="background:#96aab4"></i>flow field</span><span><i class="dot" style="background:#f4b740"></i>equilibrium</span></div>
+    </div>
+    <div class="plotwrap"><canvas id="pp_cv" width="720" height="420"></canvas></div>
+  </div>
+  <div class="try">💡 Try: ζ=0 → closed orbits (a "center"). ζ=0.2 → spiral inward (stable focus). ζ=−0.2 → spiral outward (unstable). ζ=1.5 → straight-in (node).</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>Write the 2nd-order system as a state vector \(\mathbf{x}=[x,\dot{x}]^\top\):</p>
+    <div class="eqn">\[ \dot{\mathbf{x}}=A\mathbf{x},\quad A=\begin{bmatrix}0&1\\-\omega_n^2&-2\zeta\omega_n\end{bmatrix},\quad \lambda=-\zeta\omega_n\pm\omega_n\sqrt{\zeta^2-1} \]</div>
+    <p>The <b>eigenvalues</b> of \(A\) classify the equilibrium at the origin:</p>
+    <ul>
+      <li>Complex with negative real part (\(0<\zeta<1\)) → <b>stable focus</b> (inward spiral).</li>
+      <li>Purely imaginary (\(\zeta=0\)) → <b>center</b> (closed orbits).</li>
+      <li>Complex with positive real part (\(\zeta<0\)) → <b>unstable focus</b>.</li>
+      <li>Real, same sign (\(\zeta>1\)) → <b>node</b>. Real, opposite signs → <b>saddle</b> (unstable).</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- Z-PLANE -->
+<div class="sim" id="zplane">
+  <span class="tag">MODULE 11</span>
+  <h2>Discrete-Time &amp; the Z-Plane</h2>
+  <p class="exp">Digital controllers live in the z-domain. A discrete system is stable when its poles lie <b>inside the unit circle</b> — not the left-half-plane. Move the pole's radius and angle and watch the sampled step response settle, sustain, or blow up.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Pole radius r <span class="v" id="z_r_v">0.85</span></label><input type="range" id="z_r" min="0.1" max="1.3" value="0.85" step="0.01"></div>
+      <div class="ctl"><label>Pole angle θ <span class="v" id="z_th_v">45</span>°</label><input type="range" id="z_th" min="0" max="180" value="45" step="1"></div>
+      <div class="readout" id="z_out"></div>
+      <div class="legend"><span>× poles</span><span><i class="dot" style="background:#96aab4"></i>unit circle</span></div>
+    </div>
+    <div class="plotwrap">
+      <canvas id="z_pz" width="720" height="240"></canvas>
+      <canvas id="z_seq" width="720" height="170" style="margin-top:8px"></canvas>
+    </div>
+  </div>
+  <div class="try">💡 Try: r=0.85 → decaying ringing (stable). r=1 → sustained oscillation. r=1.1 → growing (unstable). Crossing the unit circle is the discrete stability boundary.</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>Sampling maps the s-plane to the z-plane via \(z=e^{sT}\). The stable left-half-plane maps to the <b>interior of the unit circle</b> \(|z|<1\).</p>
+    <p>A complex pole pair \(z=r e^{\pm j\theta}\) gives the difference equation</p>
+    <div class="eqn">\[ y[k]=2r\cos\theta\;y[k-1]-r^2\,y[k-2]+b\,u[k] \]</div>
+    <p>whose natural mode behaves like \(r^k\cos(k\theta)\):</p>
+    <ul>
+      <li>\(r<1\): decays → <b>stable</b>.</li>
+      <li>\(r=1\): sustained oscillation (marginal).</li>
+      <li>\(r>1\): grows → <b>unstable</b>.</li>
+      <li>\(\theta\) sets the oscillation frequency (samples per cycle \(=2\pi/\theta\)).</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- SENSITIVITY -->
+<div class="sim" id="senst">
+  <span class="tag">MODULE 12</span>
+  <h2>Sensitivity &amp; Disturbance Rejection (S &amp; T)</h2>
+  <p class="exp">Two transfer functions define closed-loop performance: the <b>sensitivity</b> S = 1/(1+L) (how disturbances leak through) and the <b>complementary sensitivity</b> T = L/(1+L) (reference tracking &amp; noise). They always satisfy <b>S + T = 1</b> — you cannot make both small at every frequency. That is a fundamental design trade-off.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Loop gain K <span class="v" id="st_k_v">5.0</span></label><input type="range" id="st_k" min="0.2" max="30" value="5" step="0.2"></div>
+      <div class="ctl"><label>Plant τ <span class="v" id="st_t_v">0.50</span></label><input type="range" id="st_t" min="0.05" max="2" value="0.5" step="0.05"></div>
+      <div class="readout" id="st_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#f4b740"></i>|S| sensitivity</span><span><i class="dot" style="background:#3fc4dc"></i>|T| complementary</span></div>
+    </div>
+    <div class="plotwrap"><canvas id="st_cv" width="720" height="320"></canvas></div>
+  </div>
+  <div class="try">💡 Try: raise K → |S| pushes down at low frequency (better disturbance rejection) but its peak M<sub>s</sub> grows (less robust). That's the "waterbed effect".</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>For a loop transfer function \(L(s)=C(s)G(s)\) (here \(L=\dfrac{K}{s(\tau s+1)}\)):</p>
+    <div class="eqn">\[ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)},\qquad S(s)+T(s)=1 \]</div>
+    <ul>
+      <li><b>Low frequency:</b> \(|L|\gg1\) → \(|S|\approx0\) (good disturbance rejection, accurate tracking).</li>
+      <li><b>High frequency:</b> \(|L|\ll1\) → \(|T|\approx0\) (noise rejected).</li>
+      <li><b>Peak sensitivity</b> \(M_s=\max_\omega|S(j\omega)|\) measures robustness — keep it small (≈ 1.3–2, i.e. &lt; 6 dB).</li>
+      <li>The Bode sensitivity integral (\(\int\ln|S|\,d\omega=0\)) means pushing \(|S|\) down somewhere forces it <b>up</b> elsewhere — the waterbed effect.</li>
+    </ul>
+  </div></details>
+</div>
+
 </div></section>
 <footer>© Dr. S. Ramanathan · Control Systems Interactive Lab · All simulations run in your browser</footer>
 
@@ -405,6 +493,7 @@ function Plot(cv,o){
       ctx.strokeStyle=s.color;ctx.lineWidth=2;s.xmarks.forEach(p=>{const a=X(p.x),b=Y(p.y),d=5;
         ctx.beginPath();ctx.moveTo(a-d,b-d);ctx.lineTo(a+d,b+d);ctx.moveTo(a+d,b-d);ctx.lineTo(a-d,b+d);ctx.stroke();});}
     if(s.omarks){ctx.strokeStyle=s.color;ctx.lineWidth=2;s.omarks.forEach(p=>{ctx.beginPath();ctx.arc(X(p.x),Y(p.y),5,0,7);ctx.stroke();});}
+    if(s.segs){ctx.strokeStyle=s.color;ctx.lineWidth=s.w||1;s.segs.forEach(g=>{ctx.beginPath();ctx.moveTo(X(g.x1),Y(g.y1));ctx.lineTo(X(g.x2),Y(g.y2));ctx.stroke();});}
   });
   ctx.restore();
   return {X,Y};
@@ -654,5 +743,67 @@ function leadlag(){
 wire(['s2_wn','s2_z'],step2);
 wire(['pl_re','pl_im'],poleloc);
 wire(['ll_wz','ll_wp','ll_k'],leadlag);
+
+// ============ MODULE 10: PHASE PORTRAIT ============
+function phaseportrait(){
+  const wn=+$('pp_wn').value, ze=+$('pp_z').value;
+  $('pp_wn_v').textContent=fmt(wn,1);$('pp_z_v').textContent=fmt(ze,2);
+  const f=(x1,x2)=>[x2, -wn*wn*x1 - 2*ze*wn*x2];
+  const R=3, segs=[], N=13;
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    const x1=-R+2*R*i/(N-1), x2=-R+2*R*j/(N-1), d=f(x1,x2), m=Math.hypot(d[0],d[1])||1, L=0.24;
+    segs.push({x1,y1:x2,x2:x1+d[0]/m*L,y2:x2+d[1]/m*L});
+  }
+  const trajs=[];const starts=8;
+  for(let k=0;k<starts;k++){const a=2*Math.PI*k/starts;let x1=R*0.92*Math.cos(a),x2=R*0.92*Math.sin(a);
+    const pts=[],dt=0.008;for(let t=0;t<16;t+=dt){pts.push({x:x1,y:x2});const d=f(x1,x2);x1+=d[0]*dt;x2+=d[1]*dt;if(Math.abs(x1)>2.2*R||Math.abs(x2)>2.2*R)break;}
+    trajs.push({points:pts,color:'rgba(63,196,220,.85)',w:1.5});}
+  let type;if(ze<-0.001)type='unstable focus (spiral out)';else if(Math.abs(ze)<0.001)type='center (closed orbits)';else if(ze<1)type='stable focus (spiral in)';else type='stable node';
+  const lam = Math.abs(ze)<1? `−${fmt(ze*wn,2)} ± j${fmt(wn*Math.sqrt(Math.max(0,1-ze*ze)),2)}` : `${fmt(-ze*wn+wn*Math.sqrt(ze*ze-1),2)}, ${fmt(-ze*wn-wn*Math.sqrt(ze*ze-1),2)}`;
+  Plot($('pp_cv'),{xmin:-R,xmax:R,ymin:-R,ymax:R,equal:true,xlabel:'x  (position)',ylabel:'ẋ  (velocity)',
+    series:[{segs,color:'rgba(150,170,180,.55)'},...trajs,{marks:[{x:0,y:0}],color:C.gold,r:4}]});
+  $('pp_out').innerHTML=`Eigenvalues: <b>${lam}</b><br>Type: <b>${type}</b>`;
+}
+
+// ============ MODULE 11: Z-PLANE / DISCRETE ============
+function zplane(){
+  const r=+$('z_r').value, thd=+$('z_th').value, th=thd*Math.PI/180;
+  $('z_r_v').textContent=fmt(r,2);$('z_th_v').textContent=fmt(thd,0);
+  const a1=2*r*Math.cos(th), a2=r*r, b=1-a1+a2;
+  const Nn=40,seq=[];let y1=0,y2=0;
+  for(let k=0;k<=Nn;k++){const y=a1*y1-a2*y2+b*1;seq.push({x:k,y:y});y2=y1;y1=y;if(!isFinite(y)||Math.abs(y)>1e4)break;}
+  const uc=[];for(let i=0;i<=120;i++){const a=2*Math.PI*i/120;uc.push({x:Math.cos(a),y:Math.sin(a)});}
+  const poles=[{x:r*Math.cos(th),y:r*Math.sin(th)},{x:r*Math.cos(th),y:-r*Math.sin(th)}];
+  const col=r<0.999?C.cyan:(r>1.001?C.red:C.gold);
+  Plot($('z_pz'),{xmin:-1.5,xmax:1.5,ymin:-1.5,ymax:1.5,equal:true,xlabel:'Re(z)',ylabel:'Im(z)',
+    series:[{points:uc,color:'rgba(150,170,180,.7)',w:1.5},{xmarks:poles,color:col}]});
+  const ys=seq.map(p=>p.y);
+  Plot($('z_seq'),{xmin:0,xmax:Nn,ymin:Math.min(-0.5,...ys),ymax:Math.max(2,...ys),xlabel:'sample k',ylabel:'y[k]',
+    series:[{points:seq,color:col,w:1.3},{marks:seq,color:col,r:2.4}]});
+  $('z_out').innerHTML = r<0.999?'<span class="verdict ok">STABLE</span> poles inside unit circle'
+    : r>1.001?'<span class="verdict bad">UNSTABLE</span> poles outside unit circle'
+    : '<b>Marginally stable</b> — on the unit circle';
+}
+
+// ============ MODULE 12: SENSITIVITY S & T ============
+function senst(){
+  const K=+$('st_k').value, tau=+$('st_t').value;
+  $('st_k_v').textContent=fmt(K,1);$('st_t_v').textContent=fmt(tau,2);
+  const Sd=[],Td=[];let Ms=0;
+  for(let i=0;i<=240;i++){const w=Math.pow(10,-2+i/240*4);
+    const Ljw=cdiv(cx(K,0), cx(-w*w*tau, w));        // L=K/(s(τs+1)), s=jw
+    const opl=cx(1+Ljw.re,Ljw.im);
+    const Sj=cdiv(cx(1,0),opl), Tj=cdiv(Ljw,opl);
+    const sm=cabs(Sj);if(sm>Ms)Ms=sm;
+    Sd.push({x:w,y:20*Math.log10(sm)});Td.push({x:w,y:20*Math.log10(cabs(Tj))});
+  }
+  Plot($('st_cv'),{xmin:0.01,xmax:100,ymin:-40,ymax:20,xlog:true,xlabel:'ω (rad/s)',ylabel:'dB',
+    series:[{points:Sd,color:C.gold,w:2},{points:Td,color:C.cyan,w:2}]});
+  $('st_out').innerHTML=`Peak sensitivity M<sub>s</sub>: <b>${fmt(20*Math.log10(Ms),1)} dB</b><br>Constraint at all ω: <b>S + T = 1</b>`;
+}
+
+wire(['pp_wn','pp_z'],phaseportrait);
+wire(['z_r','z_th'],zplane);
+wire(['st_k','st_t'],senst);
 </script>
 </body></html>
