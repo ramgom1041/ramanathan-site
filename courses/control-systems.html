@@ -2,6 +2,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Control Systems — Interactive Simulation Lab | Dr. S. Ramanathan</title>
 <link rel="stylesheet" href="course.css">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
 :root{--navy:#0a1930;--teal:#0f5c70;--cyan:#3fc4dc;--ink:#1b2733;--grey:#5c6b78;--line:#e3e9ee;}
 .lab{max-width:980px;margin:0 auto;padding:0 22px}
@@ -37,6 +39,15 @@ table.routh td.lbl{background:#eaf3f6;color:#0d4d5e;font-weight:700;text-align:c
 .toc a{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#eaf4f7;
 padding:6px 12px;border-radius:30px;font-size:13px}
 .toc a:hover{background:rgba(255,255,255,.22);color:#fff}
+.theory{margin-top:16px;border-top:1px dashed var(--line);padding-top:4px}
+.theory summary{cursor:pointer;font-weight:700;color:var(--teal);font-size:14px;padding:8px 0;list-style:none}
+.theory summary::-webkit-details-marker{display:none}
+.theory summary:before{content:'▸  ';font-size:12px}
+.theory[open] summary:before{content:'▾  '}
+.theory .tbody{font-size:14.5px;color:#2a3b46;line-height:1.75;padding:4px 2px 6px}
+.theory .tbody ul{margin:8px 0 8px 20px}.theory .tbody li{margin:5px 0}
+.theory .tbody h4{color:var(--navy);font-size:14.5px;margin:14px 0 4px}
+.eqn{background:#f3f9fb;border:1px solid #e0eef2;border-radius:8px;padding:6px 14px;margin:10px 0;overflow-x:auto}
 </style></head><body>
 
 <div class="top"><div class="wrap">
@@ -46,6 +57,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <div class="toc">
 <a href="#onoff">On-Off Control</a><a href="#pid">PID Control</a><a href="#bode">Bode Plot</a>
 <a href="#polar">Polar / Nyquist</a><a href="#routh">Routh Array</a><a href="#rlocus">Root Locus</a>
+<a href="#step">Step Response</a><a href="#poles">Pole &amp; Stability</a><a href="#leadlag">Lead / Lag</a>
 </div>
 </div></div>
 
@@ -67,6 +79,20 @@ padding:6px 12px;border-radius:30px;font-size:13px}
     <div class="plotwrap"><canvas id="oo_cv" width="720" height="300"></canvas></div>
   </div>
   <div class="try">💡 Try: shrink the band to 1 — see the rapid "chattering". Widen it to 20 — bigger ripple, fewer switches. That trade-off is the whole story of on-off control.</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>Model the plant as a first-order thermal system with ambient \(T_{amb}\), gain \(K\), and time constant \(\tau\):</p>
+    <div class="eqn">\[ \tau\,\frac{dT}{dt} = -\,(T - T_{amb}) + K\,u, \qquad u \in \{0,1\} \]</div>
+    <p>The relay controller with hysteresis band \(h\) is:</p>
+    <div class="eqn">\[ u = \begin{cases} 1 & \text{if } T < T_{sp} - h/2 \\ 0 & \text{if } T > T_{sp} + h/2 \\ \text{hold} & \text{otherwise} \end{cases} \]</div>
+    <h4>Why it never settles</h4>
+    <p>There is no value of \(u\) that holds \(T=T_{sp}\) exactly (\(u\) is discrete), so the system cannot reach equilibrium — it enters a <b>limit cycle</b>, oscillating between the band edges. The steady ripple amplitude is approximately \(h\).</p>
+    <h4>The fundamental trade-off</h4>
+    <ul>
+      <li><b>Small \(h\)</b> → tight regulation but high switching frequency (relay wear, "chatter").</li>
+      <li><b>Large \(h\)</b> → fewer switches but larger ripple.</li>
+      <li>Switching period grows with \(\tau\) and \(h\); each half-cycle is an exponential charge/discharge toward \(T_{amb}{+}K\) or \(T_{amb}\).</li>
+    </ul>
+  </div></details>
 </div>
 
 <!-- PID -->
@@ -85,6 +111,19 @@ padding:6px 12px;border-radius:30px;font-size:13px}
     <div class="plotwrap"><canvas id="p_cv" width="720" height="300"></canvas></div>
   </div>
   <div class="try">💡 Try: start with only K<sub>p</sub>=4 (note the steady-state gap). Add K<sub>i</sub>=1 to close the gap. Then add K<sub>d</sub>=0.3 to tame the overshoot. That's manual PID tuning.</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>The PID control law and its transfer function:</p>
+    <div class="eqn">\[ u(t) = K_p\,e(t) + K_i\!\int_0^t\! e(\tau)\,d\tau + K_d\,\frac{de(t)}{dt}, \qquad C(s) = K_p + \frac{K_i}{s} + K_d\,s \]</div>
+    <p>Here \(e = r - y\). The simulated plant is a 2nd-order system with unity DC gain:</p>
+    <div class="eqn">\[ G(s) = \frac{\omega_n^2}{s^2 + 2\zeta\omega_n s + \omega_n^2} \]</div>
+    <h4>What each term does</h4>
+    <ul>
+      <li><b>Proportional \(K_p\):</b> speeds up response, but a type-0 loop keeps a steady-state error \(e_{ss}=\dfrac{1}{1+K_p\,G(0)}\). Too high → oscillation.</li>
+      <li><b>Integral \(K_i\):</b> adds a pole at the origin (raises system type), driving step steady-state error to <b>zero</b> — at the cost of added phase lag and overshoot.</li>
+      <li><b>Derivative \(K_d\):</b> adds phase lead → damping, reducing overshoot. Amplifies measurement noise, so it is usually filtered.</li>
+    </ul>
+    <p>Closed-loop transfer function: \( \dfrac{Y(s)}{R(s)} = \dfrac{C(s)G(s)}{1+C(s)G(s)} \).</p>
+  </div></details>
 </div>
 
 <!-- BODE -->
@@ -105,6 +144,18 @@ padding:6px 12px;border-radius:30px;font-size:13px}
     </div>
   </div>
   <div class="try">💡 Try: drop ζ to 0.05 — a sharp resonant peak appears in the magnitude plot. Raise ζ above 0.7 — the peak disappears (well-damped).</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>Substitute \(s = j\omega\) into \(G(s)\) and split into magnitude and phase:</p>
+    <div class="eqn">\[ |G(j\omega)|_{\text{dB}} = 20\log_{10}|G(j\omega)|, \qquad \phi(\omega) = \angle G(j\omega) \]</div>
+    <p>For the 2nd-order system \(G(s)=\dfrac{K\,\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}\):</p>
+    <div class="eqn">\[ |G| = \frac{K\,\omega_n^2}{\sqrt{(\omega_n^2-\omega^2)^2 + (2\zeta\omega_n\omega)^2}},\qquad \phi = -\tan^{-1}\!\frac{2\zeta\omega_n\omega}{\omega_n^2-\omega^2} \]</div>
+    <h4>Resonance &amp; asymptotes</h4>
+    <ul>
+      <li>For \(\zeta < \tfrac{1}{\sqrt2}\approx0.707\) there is a <b>resonant peak</b> at \(\omega_r=\omega_n\sqrt{1-2\zeta^2}\) of height \(M_r=\dfrac{1}{2\zeta\sqrt{1-\zeta^2}}\).</li>
+      <li>Low-frequency gain \(\to 20\log_{10}K\) dB; high-frequency roll-off \(-40\) dB/decade.</li>
+      <li>Phase sweeps from \(0^\circ\) to \(-180^\circ\), passing \(-90^\circ\) at \(\omega=\omega_n\).</li>
+    </ul>
+  </div></details>
 </div>
 
 <!-- POLAR -->
@@ -123,6 +174,19 @@ padding:6px 12px;border-radius:30px;font-size:13px}
     <div class="plotwrap"><canvas id="n_cv" width="720" height="380"></canvas></div>
   </div>
   <div class="try">💡 Try: increase K and watch the curve swell toward the −1 point — that's the system marching toward instability.</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>The polar plot is \(G(j\omega)\) traced parametrically in the complex plane as \(\omega\) goes \(0\to\infty\) (the mirror image gives \(-\infty\to0\), completing the Nyquist contour).</p>
+    <h4>Nyquist stability criterion</h4>
+    <div class="eqn">\[ Z = N + P \]</div>
+    <ul>
+      <li>\(Z\) = number of closed-loop poles in the right-half-plane (we want \(Z=0\)).</li>
+      <li>\(N\) = clockwise encirclements of the critical point \(-1\) by \(G(j\omega)H(j\omega)\).</li>
+      <li>\(P\) = open-loop poles in the right-half-plane.</li>
+    </ul>
+    <h4>Stability margins</h4>
+    <div class="eqn">\[ \text{Gain margin} = \frac{1}{|G(j\omega_{pc})|}, \qquad \text{Phase margin} = 180^\circ + \angle G(j\omega_{gc}) \]</div>
+    <p>where \(\omega_{pc}\) is the phase-crossover (\(\angle G=-180^\circ\)) and \(\omega_{gc}\) the gain-crossover (\(|G|=1\)). The closer the curve passes to \(-1\), the smaller the margins.</p>
+  </div></details>
 </div>
 
 <!-- ROUTH -->
@@ -140,6 +204,21 @@ padding:6px 12px;border-radius:30px;font-size:13px}
     <div class="plotwrap"><div id="r_table"></div></div>
   </div>
   <div class="try">💡 Try: <code>1 1 2 24 1</code> (unstable — sign changes). Then <code>1 6 11 6</code> (stable). Edit and watch the verdict flip.</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>For the characteristic polynomial \(a_0 s^n + a_1 s^{n-1} + \cdots + a_n\):</p>
+    <h4>Necessary condition</h4>
+    <p>All coefficients must be present and have the <b>same sign</b>. If any is missing or sign-flipped, the system is already unstable.</p>
+    <h4>Building the array</h4>
+    <p>The first two rows are the coefficients interleaved; each later element is</p>
+    <div class="eqn">\[ r_{i,j} = \frac{r_{i-1,1}\,r_{i-2,j+1} - r_{i-2,1}\,r_{i-1,j+1}}{r_{i-1,1}} \]</div>
+    <h4>The verdict</h4>
+    <p>The number of <b>sign changes in the first column</b> equals the number of roots in the right-half-plane. Zero sign changes ⟺ all roots have negative real parts ⟺ <b>stable</b>.</p>
+    <h4>Special cases</h4>
+    <ul>
+      <li><b>Zero in the first column</b> (rest of row nonzero): replace with a small \(\varepsilon\) and continue (handled here).</li>
+      <li><b>An entire row of zeros</b>: symmetric roots — form an auxiliary polynomial from the row above and differentiate.</li>
+    </ul>
+  </div></details>
 </div>
 
 <!-- ROOT LOCUS -->
@@ -158,6 +237,107 @@ padding:6px 12px;border-radius:30px;font-size:13px}
     <div class="plotwrap"><canvas id="rl_cv" width="720" height="420"></canvas></div>
   </div>
   <div class="try">💡 Try the classic <code>0, -2, -4</code>: raise K and watch two branches bend toward the right-half-plane and cross the imaginary axis — that gain is the stability limit.</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>Closed-loop poles satisfy the characteristic equation</p>
+    <div class="eqn">\[ 1 + K\,G(s)H(s) = 0 \quad\Longleftrightarrow\quad G(s)H(s) = -\frac{1}{K} \]</div>
+    <p>A point \(s\) is on the locus when it meets both conditions:</p>
+    <div class="eqn">\[ \text{Magnitude: } |K\,G(s)H(s)| = 1, \qquad \text{Angle: } \angle G(s)H(s) = \pm 180^\circ(2k+1) \]</div>
+    <h4>Construction rules (n poles, m zeros)</h4>
+    <ul>
+      <li>There are \(n\) branches; they <b>start at the open-loop poles</b> (\(K=0\)) and end at the \(m\) zeros, with \(n-m\) branches going to infinity.</li>
+      <li>Asymptote angles: \(\dfrac{\pm180^\circ(2k+1)}{\,n-m\,}\), meeting the real axis at the centroid \(\sigma_a = \dfrac{\sum p_i - \sum z_i}{n-m}\).</li>
+      <li><b>Breakaway points</b> occur where \(\dfrac{dK}{ds}=0\).</li>
+      <li>The <b>imaginary-axis crossing</b> (found via Routh) gives the critical gain \(K\) at which the system becomes unstable.</li>
+    </ul>
+    <p>This lab solves \(\det\)-free by finding the roots of \( \text{den}(s) + K\,\text{num}(s) \) numerically (Durand–Kerner) for each \(K\).</p>
+  </div></details>
+</div>
+
+<!-- STEP RESPONSE -->
+<div class="sim" id="step">
+  <span class="tag">MODULE 7</span>
+  <h2>Second-Order Step Response &amp; Time-Domain Specs</h2>
+  <p class="exp">Most systems behave like a 2nd-order system near their dominant poles. Damping ζ and natural frequency ω<sub>n</sub> set the entire step response — <b>overshoot, peak time, settling time</b>. Watch the spec numbers update as you tune them.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>ω<sub>n</sub> (rad/s) <span class="v" id="s2_wn_v">3</span></label><input type="range" id="s2_wn" min="0.5" max="10" value="3" step="0.5"></div>
+      <div class="ctl"><label>Damping ζ <span class="v" id="s2_z_v">0.30</span></label><input type="range" id="s2_z" min="0.05" max="2" value="0.3" step="0.05"></div>
+      <div class="readout" id="s2_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>response</span><span><i class="dot" style="background:#f4b740"></i>setpoint</span></div>
+    </div>
+    <div class="plotwrap"><canvas id="s2_cv" width="720" height="300"></canvas></div>
+  </div>
+  <div class="try">💡 Try: ζ=0.1 → big overshoot, long ringing. ζ=1 → no overshoot (critically damped). ζ=2 → sluggish (overdamped).</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>For \(G(s)=\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}\), the unit-step response of an underdamped system (\(\zeta<1\)) is</p>
+    <div class="eqn">\[ y(t)=1-\frac{e^{-\zeta\omega_n t}}{\sqrt{1-\zeta^2}}\sin\!\big(\omega_d t+\phi\big),\quad \omega_d=\omega_n\sqrt{1-\zeta^2},\ \ \phi=\cos^{-1}\zeta \]</div>
+    <h4>Time-domain specifications</h4>
+    <div class="eqn">\[ \%OS=100\,e^{-\zeta\pi/\sqrt{1-\zeta^2}},\quad t_p=\frac{\pi}{\omega_d},\quad t_s\approx\frac{4}{\zeta\omega_n}\,(2\%),\quad t_r\approx\frac{1.8}{\omega_n} \]</div>
+    <ul>
+      <li>Overshoot depends <b>only on ζ</b>; speed (peak &amp; settling time) scales with \(\omega_n\).</li>
+      <li>\(\zeta=1\): critically damped (fastest with no overshoot). \(\zeta>1\): overdamped.</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- POLE LOCATION -->
+<div class="sim" id="poles">
+  <span class="tag">MODULE 8</span>
+  <h2>Pole Location &amp; Stability</h2>
+  <p class="exp">Where the poles sit in the s-plane <b>is</b> the behaviour. Move a complex pole pair around: left-half-plane → decaying (stable), on the imaginary axis → sustained oscillation, right-half-plane → growing (unstable). The response panel updates live.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Real part σ <span class="v" id="pl_re_v">-0.50</span></label><input type="range" id="pl_re" min="-3" max="1" value="-0.5" step="0.05"></div>
+      <div class="ctl"><label>Imag part ω <span class="v" id="pl_im_v">2.0</span></label><input type="range" id="pl_im" min="0" max="5" value="2" step="0.1"></div>
+      <div class="readout" id="pl_out"></div>
+      <div class="legend"><span>× pole pair</span></div>
+    </div>
+    <div class="plotwrap">
+      <canvas id="pl_sp" width="720" height="200"></canvas>
+      <canvas id="pl_resp" width="720" height="180" style="margin-top:8px"></canvas>
+    </div>
+  </div>
+  <div class="try">💡 Try: set σ to exactly 0 → undamped oscillation forever. Push σ positive → the response blows up (right-half-plane = unstable).</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>A complex pole pair at \(s=\sigma\pm j\omega\) gives the characteristic denominator</p>
+    <div class="eqn">\[ (s-\sigma)^2+\omega^2 = s^2-2\sigma s+(\sigma^2+\omega^2) \]</div>
+    <p>The natural response contains \(e^{\sigma t}\cos(\omega t+\theta)\):</p>
+    <ul>
+      <li>\(\sigma<0\): exponential <b>decay</b> → stable (more negative = faster settling).</li>
+      <li>\(\sigma=0\): constant-amplitude oscillation (marginally stable).</li>
+      <li>\(\sigma>0\): exponential <b>growth</b> → unstable.</li>
+      <li>\(\omega\) sets the oscillation frequency; angle from the origin gives damping, \(\zeta=\cos\theta\).</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- LEAD/LAG -->
+<div class="sim" id="leadlag">
+  <span class="tag">MODULE 9</span>
+  <h2>Lead / Lag Compensator</h2>
+  <p class="exp">Compensators reshape the frequency response. A <b>lead</b> network (zero below pole) adds phase → more stability margin &amp; speed. A <b>lag</b> network (pole below zero) boosts low-frequency gain → less steady-state error. Set the corner frequencies and watch the Bode plot.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Zero ω<sub>z</sub> <span class="v" id="ll_wz_v">1.0</span></label><input type="range" id="ll_wz" min="0.1" max="50" value="1" step="0.1"></div>
+      <div class="ctl"><label>Pole ω<sub>p</sub> <span class="v" id="ll_wp_v">10</span></label><input type="range" id="ll_wp" min="0.1" max="100" value="10" step="0.1"></div>
+      <div class="ctl"><label>Gain K<sub>c</sub> <span class="v" id="ll_k_v">1.0</span></label><input type="range" id="ll_k" min="0.1" max="10" value="1" step="0.1"></div>
+      <div class="readout" id="ll_out"></div>
+    </div>
+    <div class="plotwrap">
+      <canvas id="ll_mag" width="720" height="180"></canvas>
+      <canvas id="ll_ph" width="720" height="180" style="margin-top:8px"></canvas>
+    </div>
+  </div>
+  <div class="try">💡 Try: keep ω<sub>z</sub>=1, raise ω<sub>p</sub>=20 → a clear positive phase bump (lead). Swap them (ω<sub>z</sub>=20, ω<sub>p</sub>=1) → negative phase (lag).</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>The compensator transfer function:</p>
+    <div class="eqn">\[ C(s)=K_c\,\frac{1+s/\omega_z}{1+s/\omega_p} \]</div>
+    <ul>
+      <li><b>Lead</b> (\(\omega_z<\omega_p\)): adds positive phase, peaking at \(\omega_m=\sqrt{\omega_z\omega_p}\) with \(\sin\phi_m=\dfrac{\omega_p-\omega_z}{\omega_p+\omega_z}\). Improves phase margin &amp; transient speed.</li>
+      <li><b>Lag</b> (\(\omega_z>\omega_p\)): adds low-frequency gain to cut steady-state error, with a small phase penalty placed well below crossover.</li>
+    </ul>
+    <p>Maximum lead from one stage is just under \(90^\circ\); larger boosts use cascaded stages.</p>
+  </div></details>
 </div>
 
 </div></section>
@@ -410,5 +590,69 @@ wire(['b_wn','b_z','b_k'],bode);
 wire(['n_wn','n_z','n_k'],nyq);
 wire(['r_in'],routh);
 wire(['rl_p','rl_z','rl_k'],rlocus);
+
+// ============ MODULE 7: SECOND-ORDER STEP RESPONSE ============
+function step2(){
+  const wn=+$('s2_wn').value, ze=+$('s2_z').value;
+  $('s2_wn_v').textContent=fmt(wn,1);$('s2_z_v').textContent=fmt(ze,2);
+  const Te=Math.min(40,Math.max(6, 6/(ze*wn)));
+  const dt=Math.min(0.01, 0.15/wn);
+  let y=0,v=0;const pts=[],sp=[];let peak=0;
+  for(let t=0;t<=Te;t+=dt){
+    const a=-2*ze*wn*v-wn*wn*y+wn*wn*1; v+=a*dt; y+=v*dt;
+    if(y>peak)peak=y; pts.push({x:t,y:y}); sp.push({x:t,y:1});
+  }
+  const os = ze<1 ? Math.exp(-ze*Math.PI/Math.sqrt(1-ze*ze))*100 : 0;
+  const tp = ze<1 ? Math.PI/(wn*Math.sqrt(1-ze*ze)) : NaN;
+  const ts = 4/(ze*wn);
+  const kind = ze<0.999?'underdamped':(ze<1.001?'critically damped':'overdamped');
+  Plot($('s2_cv'),{xmin:0,xmax:Te,ymin:0,ymax:Math.max(1.8,peak*1.1),xlabel:'time (s)',ylabel:'output',
+    series:[{points:sp,color:C.gold,w:1.5},{points:pts,color:C.cyan,w:2}]});
+  $('s2_out').innerHTML=`%Overshoot: <b>${fmt(os,1)}%</b><br>Peak time t<sub>p</sub>: <b>${isNaN(tp)?'—':fmt(tp,2)+' s'}</b><br>Settling t<sub>s</sub> (2%): <b>${fmt(ts,2)} s</b><br>Regime: <b>${kind}</b>`;
+}
+
+// ============ MODULE 8: POLE LOCATION & STABILITY ============
+function poleloc(){
+  const sig=+$('pl_re').value, om=+$('pl_im').value;
+  $('pl_re_v').textContent=fmt(sig,2);$('pl_im_v').textContent=fmt(om,1);
+  const a1=-2*sig, a0=sig*sig+om*om;
+  const Te=Math.min(40, sig<-0.01? Math.max(8, 7/Math.abs(sig)) : 14);
+  const dt=0.01; let y=0,v=0;const pts=[];let ymax=1.6,ymin=-0.6;
+  for(let t=0;t<=Te;t+=dt){
+    const a=-a1*v-a0*y+a0*1; v+=a*dt; y+=v*dt;
+    if(!isFinite(y)||Math.abs(y)>1e5){break;}
+    pts.push({x:t,y:y}); ymax=Math.max(ymax,y); ymin=Math.min(ymin,y);
+  }
+  const col = sig>0.001?C.red:(sig<-0.001?C.cyan:C.gold);
+  Plot($('pl_sp'),{xmin:-3.5,xmax:1.5,ymin:-5.2,ymax:5.2,xlabel:'Re(s)',ylabel:'Im(s)',
+    series:[{xmarks:[{x:sig,y:om},{x:sig,y:-om}],color:col}]});
+  Plot($('pl_resp'),{xmin:0,xmax:Te,ymin:Math.min(-0.6,ymin),ymax:Math.max(2,ymax),xlabel:'time (s)',ylabel:'y(t)',
+    series:[{points:pts,color:col,w:2}]});
+  $('pl_out').innerHTML = sig<-0.001?'<span class="verdict ok">STABLE</span> poles in left-half-plane'
+    : sig>0.001?'<span class="verdict bad">UNSTABLE</span> poles in right-half-plane → grows'
+    : '<b>Marginally stable</b> — on the imaginary axis (sustained oscillation)';
+}
+
+// ============ MODULE 9: LEAD / LAG COMPENSATOR ============
+function leadlag(){
+  const wz=+$('ll_wz').value, wp=+$('ll_wp').value, Kc=+$('ll_k').value;
+  $('ll_wz_v').textContent=fmt(wz,1);$('ll_wp_v').textContent=fmt(wp,1);$('ll_k_v').textContent=fmt(Kc,1);
+  const mag=[],ph=[];
+  for(let i=0;i<=240;i++){
+    const w=Math.pow(10,-2+i/240*5); // 0.01 .. 1000
+    const Cv=cmul(cx(Kc,0), cdiv(cx(1,w/wz), cx(1,w/wp)));
+    mag.push({x:w,y:20*Math.log10(cabs(Cv))});
+    ph.push({x:w,y:Math.atan2(Cv.im,Cv.re)*180/Math.PI});
+  }
+  Plot($('ll_mag'),{xmin:0.01,xmax:1000,ymin:-30,ymax:40,xlog:true,xlabel:'ω (rad/s)',ylabel:'dB',series:[{points:mag,color:C.cyan,w:2}]});
+  Plot($('ll_ph'),{xmin:0.01,xmax:1000,ymin:-90,ymax:90,xlog:true,xlabel:'ω (rad/s)',ylabel:'phase °',series:[{points:ph,color:C.gold,w:2}]});
+  const wm=Math.sqrt(wz*wp), phim=(Math.atan(wm/wz)-Math.atan(wm/wp))*180/Math.PI;
+  const type = wz<wp?'Lead (adds phase)':(wz>wp?'Lag (cuts phase)':'Unity');
+  $('ll_out').innerHTML=`Type: <b>${type}</b><br>Peak phase: <b>${fmt(phim,1)}°</b> @ ω≈<b>${fmt(wm,2)}</b>`;
+}
+
+wire(['s2_wn','s2_z'],step2);
+wire(['pl_re','pl_im'],poleloc);
+wire(['ll_wz','ll_wp','ll_k'],leadlag);
 </script>
 </body></html>
