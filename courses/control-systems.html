@@ -61,6 +61,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#phase">Phase Portrait</a><a href="#zplane">Z-Plane</a><a href="#senst">Sensitivity S/T</a>
 <a href="#margins">Stability Margins</a><a href="#nmp">Zeros / Non-Min-Phase</a><a href="#delay">Time Delay</a>
 <a href="#fo">First-Order</a><a href="#inputs">Step/Impulse/Ramp</a><a href="#sserr">Steady-State Error</a><a href="#domin">Dominant Poles</a>
+<a href="#zn">Z–N Auto-Tune</a><a href="#lead">Lead Design</a><a href="#nichols">Nichols Chart</a><a href="#pzb">Pole-Zero Builder</a>
 </div>
 </div></div>
 
@@ -584,6 +585,72 @@ padding:6px 12px;border-radius:30px;font-size:13px}
   </div></details>
 </div>
 
+<!-- ZN AUTO-TUNE -->
+<div class="sim" id="zn">
+  <span class="tag">MODULE 20</span><h2>PID Auto-Tuning — Ziegler–Nichols</h2>
+  <p class="exp">A classic recipe: raise the proportional gain on the plant until it oscillates with constant amplitude. That gives the <b>ultimate gain</b> K<sub>u</sub> and <b>period</b> P<sub>u</sub>, from which a table sets the PID gains. Here the plant is \(1/(s+1)^3\).</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Proportional gain K<sub>c</sub> <span class="v" id="zn_kc_v">4.0</span></label><input type="range" id="zn_kc" min="0.5" max="12" value="4" step="0.1"></div>
+    <div class="ctl"><label style="justify-content:flex-start;gap:8px"><input type="checkbox" id="zn_pid" style="width:auto;accent-color:var(--teal)"> Apply Z–N tuned PID</label></div>
+    <div class="readout" id="zn_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>output</span><span><i class="dot" style="background:#f4b740"></i>setpoint</span></div>
+  </div><div class="plotwrap"><canvas id="zn_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: raise K<sub>c</sub> toward 8 → the oscillation stops decaying (sustained). That's K<sub>u</sub>=8. Now tick "Apply Z–N PID" to see the auto-tuned closed loop settle nicely.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>At the stability limit the loop oscillates at the phase-crossover frequency. For \(1/(s+1)^3\): phase = −180° at \(\omega=\sqrt3\), where \(|G|=1/8\) — so \(K_u=8\), \(P_u=2\pi/\sqrt3\approx3.63\) s.</p>
+    <div class="eqn">\[ \text{Classic Z–N PID:}\quad K_p=0.6K_u,\quad T_i=\tfrac{P_u}{2},\quad T_d=\tfrac{P_u}{8} \]</div>
+  </div></details>
+</div>
+
+<!-- LEAD DESIGN -->
+<div class="sim" id="lead">
+  <span class="tag">MODULE 21</span><h2>Lead Compensator Design on a Plant</h2>
+  <p class="exp">Design in action: add a lead compensator to the plant \(G=\dfrac{1}{s(s+2)}\) and shape the open-loop Bode to lift the <b>phase margin</b> at the gain-crossover. The lead's phase bump is placed near crossover for maximum benefit.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Zero ω<sub>z</sub> <span class="v" id="ld_wz_v">2.0</span></label><input type="range" id="ld_wz" min="0.2" max="20" value="2" step="0.1"></div>
+    <div class="ctl"><label>Pole ω<sub>p</sub> <span class="v" id="ld_wp_v">12</span></label><input type="range" id="ld_wp" min="0.5" max="60" value="12" step="0.5"></div>
+    <div class="ctl"><label>Gain K<sub>c</sub> <span class="v" id="ld_k_v">5.0</span></label><input type="range" id="ld_k" min="0.5" max="40" value="5" step="0.5"></div>
+    <div class="readout" id="ld_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>|L| dB</span><span><i class="dot" style="background:#f4b740"></i>phase</span><span><i class="dot" style="background:#ef5350"></i>−180°</span></div>
+  </div><div class="plotwrap"><canvas id="ld_mag" width="720" height="180"></canvas><canvas id="ld_ph" width="720" height="180" style="margin-top:8px"></canvas></div></div>
+  <div class="try">💡 Try: set ω<sub>z</sub>=2, ω<sub>p</sub>=12 → the phase lifts right where |L| crosses 0 dB, boosting PM. Without the lead (ω<sub>z</sub>=ω<sub>p</sub>) the margin is poor.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>\(L(s)=K_c\dfrac{1+s/\omega_z}{1+s/\omega_p}\cdot\dfrac{1}{s(s+2)}\). Pick the lead so its peak phase \(\omega_m=\sqrt{\omega_z\omega_p}\) lands at the desired gain-crossover, adding up to \(\sin\phi_m=\frac{\omega_p-\omega_z}{\omega_p+\omega_z}\) of phase margin.</p>
+  </div></details>
+</div>
+
+<!-- NICHOLS -->
+<div class="sim" id="nichols">
+  <span class="tag">MODULE 22</span><h2>Nichols Chart</h2>
+  <p class="exp">The Nichols chart plots open-loop <b>gain (dB) against phase (°)</b> on one set of axes, with frequency as the implicit parameter. The distance of the curve from the critical point <b>(−180°, 0 dB)</b> shows the stability margins at a glance.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Gain K <span class="v" id="ni_k_v">5.0</span></label><input type="range" id="ni_k" min="0.5" max="40" value="5" step="0.5"></div>
+    <div class="ctl"><label>Pole p <span class="v" id="ni_p_v">3</span></label><input type="range" id="ni_p" min="1" max="20" value="3" step="1"></div>
+    <div class="readout" id="ni_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>L(jω)</span><span><i class="dot" style="background:#ef5350"></i>(−180°, 0 dB)</span></div>
+  </div><div class="plotwrap"><canvas id="ni_cv" width="720" height="360"></canvas></div></div>
+  <div class="try">💡 Try: increase K → the whole curve slides up toward the 0 dB / −180° point. The vertical gap to it is the gain margin; the horizontal gap is the phase margin.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>For \(L=\dfrac{K}{s(1+s/p)}\): plot \(\big(\angle L,\ |L|_{dB}\big)\) as \(\omega\) sweeps. The point where the curve crosses 0 dB gives the phase margin (its horizontal distance to −180°); where it crosses −180° gives the gain margin (its vertical distance to 0 dB). Overlaid M-circles (not drawn here) read off the closed-loop peak.</p>
+  </div></details>
+</div>
+
+<!-- POLE-ZERO BUILDER -->
+<div class="sim" id="pzb">
+  <span class="tag">MODULE 23</span><h2>Pole-Zero Transfer-Function Builder</h2>
+  <p class="exp">Build any transfer function from its poles and zeros and instantly see both its <b>frequency response</b> (Bode magnitude) and its <b>step response</b>. Enter real values or complex pairs like <code>-1+2j</code> (DC gain is normalised to 1 when possible).</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Poles</label><input type="text" id="pz_p" value="-1, -2+3j, -2-3j"></div>
+    <div class="ctl"><label>Zeros</label><input type="text" id="pz_z" value="-4"></div>
+    <div class="readout" id="pz_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>Bode |G|</span><span><i class="dot" style="background:#f4b740"></i>step</span></div>
+  </div><div class="plotwrap"><canvas id="pz_bode" width="720" height="180"></canvas><canvas id="pz_step" width="720" height="180" style="margin-top:8px"></canvas></div></div>
+  <div class="try">💡 Try: poles <code>-1, -2+3j, -2-3j</code> with a zero at <code>-4</code>. Move a pole toward the imaginary axis (e.g. <code>-0.3</code>) → slower, more oscillatory. A positive pole → unstable.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>\(G(s)=k\dfrac{\prod_i (s-z_i)}{\prod_j (s-p_j)}\). Poles set stability &amp; speed (must be in the left-half-plane); zeros shape transient overshoot &amp; the high-frequency slope. The Bode magnitude bends −20 dB/dec down at each pole and +20 dB/dec up at each zero.</p>
+  </div></details>
+</div>
+
 </div></section>
 <footer>© Dr. S. Ramanathan · Control Systems Interactive Lab · All simulations run in your browser</footer>
 
@@ -1090,5 +1157,90 @@ wire(['fo_k','fo_tau'],firstorder);
 wire(['in_type','in_wn','in_z'],inputs);
 wire(['se_type','se_in','se_k','se_t'],sserr);
 wire(['dm_p','dm_z'],dominant);
+
+// ============ MODULE 20: ZIEGLER-NICHOLS ============
+function znTune(){
+  const Kc=+$('zn_kc').value, usePID=$('zn_pid').checked;$('zn_kc_v').textContent=fmt(Kc,1);
+  const Ku=8, Pu=2*Math.PI/Math.sqrt(3), Kp=0.6*Ku, Ti=Pu/2, Td=Pu/8, Ki=Kp/Ti, Kd=Kp*Td;
+  const dt=0.01,Te=30;let x1=0,x2=0,x3=0,I=0,eP=1;const pts=[],sp=[];let mx=1.5;
+  for(let t=0;t<=Te;t+=dt){
+    const y=x3,e=1-y;let u;
+    if(usePID){I+=e*dt;const de=(e-eP)/dt;eP=e;u=Kp*e+Ki*I+Kd*de;}else{u=Kc*e;}
+    if(u>40)u=40;if(u<-40)u=-40;
+    x1+=(-x1+u)*dt;x2+=(-x2+x1)*dt;x3+=(-x3+x2)*dt;
+    pts.push({x:t,y:y});sp.push({x:t,y:1});mx=Math.max(mx,y);
+  }
+  Plot($('zn_cv'),{xmin:0,xmax:Te,ymin:-0.5,ymax:Math.max(2.2,mx*1.05),xlabel:'time (s)',ylabel:'output',
+    series:[{points:sp,color:C.gold,w:1.5},{points:pts,color:C.cyan,w:2}]});
+  $('zn_out').innerHTML=`K<sub>u</sub>=<b>${fmt(Ku,1)}</b>, P<sub>u</sub>=<b>${fmt(Pu,2)} s</b><br>Z–N PID → K<sub>p</sub>=<b>${fmt(Kp,2)}</b>, K<sub>i</sub>=<b>${fmt(Ki,2)}</b>, K<sub>d</sub>=<b>${fmt(Kd,2)}</b>`;
+}
+// ============ MODULE 21: LEAD DESIGN ============
+function leadDesign(){
+  const wz=+$('ld_wz').value,wp=+$('ld_wp').value,Kc=+$('ld_k').value;
+  $('ld_wz_v').textContent=fmt(wz,1);$('ld_wp_v').textContent=fmt(wp,1);$('ld_k_v').textContent=fmt(Kc,1);
+  const w=[],mdb=[],phd=[];
+  for(let i=0;i<=320;i++){const W=Math.pow(10,-2+i/320*4);
+    const mag=Kc*Math.sqrt(1+(W/wz)**2)/Math.sqrt(1+(W/wp)**2)/(W*Math.sqrt(4+W*W));
+    const ph=Math.atan(W/wz)*180/Math.PI-Math.atan(W/wp)*180/Math.PI-90-Math.atan(W/2)*180/Math.PI;
+    w.push(W);mdb.push(20*Math.log10(mag));phd.push(ph);}
+  const gc=cross(mdb,0),pc=cross(phd,-180);
+  let PM=gc?180+interp(phd,gc):null,wgc=gc?interpW(w,gc):null,GM=pc?-interp(mdb,pc):null,wpc=pc?interpW(w,pc):null;
+  Plot($('ld_mag'),{xmin:0.01,xmax:100,ymin:-40,ymax:40,xlog:true,xlabel:'ω',ylabel:'|L| dB',
+    series:[{points:w.map((x,i)=>({x,y:mdb[i]})),color:C.cyan,w:2}].concat(wgc?[{marks:[{x:wgc,y:0}],color:C.gold,r:5}]:[])});
+  Plot($('ld_ph'),{xmin:0.01,xmax:100,ymin:-220,ymax:-40,xlog:true,xlabel:'ω',ylabel:'phase °',
+    series:[{points:[{x:0.01,y:-180},{x:100,y:-180}],color:'rgba(239,83,80,.55)',w:1.5},{points:w.map((x,i)=>({x,y:phd[i]})),color:C.gold,w:2}].concat(wpc?[{marks:[{x:wpc,y:-180}],color:C.cyan,r:5}]:[])});
+  const stable=(PM==null||PM>0)&&(GM==null||GM>0);
+  $('ld_out').innerHTML=`Phase margin: <b>${PM==null?'∞':fmt(PM,1)+'°'}</b>${wgc?' @ ω='+fmt(wgc,2):''}<br>${stable?'<span class="verdict ok">STABLE</span>':'<span class="verdict bad">UNSTABLE</span>'}`;
+}
+// ============ MODULE 22: NICHOLS ============
+function nichols(){
+  const K=+$('ni_k').value,p=+$('ni_p').value;$('ni_k_v').textContent=fmt(K,1);$('ni_p_v').textContent=fmt(p,0);
+  const pts=[];for(let i=0;i<=320;i++){const W=Math.pow(10,-1.5+i/320*3.5);
+    const mag=20*Math.log10(K/(W*Math.sqrt(1+(W/p)**2)));
+    const ph=-90-Math.atan(W/p)*180/Math.PI;
+    pts.push({x:ph,y:mag});}
+  Plot($('ni_cv'),{xmin:-280,xmax:-40,ymin:-40,ymax:40,xlabel:'phase (°)',ylabel:'gain (dB)',
+    series:[{points:pts,color:C.cyan,w:2},{marks:[{x:-180,y:0}],color:C.red,r:5}]});
+  $('ni_out').innerHTML=`Curve vs the (−180°, 0 dB) point:<br>vertical gap = gain margin, horizontal gap = phase margin.`;
+}
+// ============ MODULE 23: POLE-ZERO BUILDER ============
+function pzBuilder(){
+  const P=parseC($('pz_p').value),Z=parseC($('pz_z').value);
+  if(!P.length){$('pz_out').innerHTML='<span class="verdict bad">enter at least one pole</span>';return;}
+  const den=polyFromRoots(P).map(c=>c.re), num=polyFromRoots(Z).map(c=>c.re);
+  const evC=(co,s)=>{let r=cx(0,0);co.forEach(c=>{r=cadd(cmul(r,s),cx(c,0));});return r;};
+  const w=[],mdb=[];for(let i=0;i<=300;i++){const W=Math.pow(10,-2+i/300*4);const s=cx(0,W);
+    mdb.push(20*Math.log10(cabs(cdiv(evC(num,s),evC(den,s)))));w.push(W);}
+  Plot($('pz_bode'),{xmin:0.01,xmax:100,ymin:-80,ymax:40,xlog:true,xlabel:'ω (rad/s)',ylabel:'|G| dB',
+    series:[{points:w.map((x,i)=>({x,y:mdb[i]})),color:C.cyan,w:2}]});
+  // step: controllable canonical, low-to-high arrays
+  const n=den.length-1;
+  const denLH=den.slice().reverse(), numLH=num.slice().reverse();
+  const lead=denLH[n]; const a=denLH.map(v=>v/lead);          // monic, a[0..n], a[n]=1
+  const c=[];for(let i=0;i<n;i++)c[i]=(numLH[i]||0)/lead;
+  const unstable=P.some(pp=>pp.re>1e-6);
+  let stepPts=[];
+  if(!unstable){
+    // normalise DC to 1 if possible (a[0]!=0)
+    let scale=1; if(Math.abs(a[0])>1e-9 && Math.abs(c[0])>1e-12) scale=a[0]/c[0];
+    const dt=0.01,Te=12;let x=new Array(n).fill(0);
+    for(let t=0;t<=Te;t+=dt){
+      let y=0;for(let i=0;i<n;i++)y+=c[i]*scale*x[i];
+      stepPts.push({x:t,y:y});
+      const xd=new Array(n);for(let i=0;i<n-1;i++)xd[i]=x[i+1];
+      let s=0;for(let i=0;i<n;i++)s+=a[i]*x[i];xd[n-1]=-s+1;
+      for(let i=0;i<n;i++)x[i]+=xd[i]*dt;
+      if(!isFinite(y)||Math.abs(y)>1e5)break;
+    }
+  }
+  const ymax=stepPts.length?Math.max(1.6,...stepPts.map(p=>p.y)):2, ymin=stepPts.length?Math.min(-0.4,...stepPts.map(p=>p.y)):-0.4;
+  Plot($('pz_step'),{xmin:0,xmax:12,ymin:ymin,ymax:ymax,xlabel:'time (s)',ylabel:'step output',
+    series:[{points:stepPts,color:C.gold,w:2}]});
+  $('pz_out').innerHTML=`Order: <b>${n}</b> (${P.length} poles, ${Z.length} zeros)<br>${unstable?'<span class="verdict bad">UNSTABLE</span> (a pole is in the RHP)':'<span class="verdict ok">STABLE</span>'}`;
+}
+wire(['zn_kc','zn_pid'],znTune);
+wire(['ld_wz','ld_wp','ld_k'],leadDesign);
+wire(['ni_k','ni_p'],nichols);
+wire(['pz_p','pz_z'],pzBuilder);
 </script>
 </body></html>
