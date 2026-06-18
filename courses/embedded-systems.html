@@ -1,0 +1,298 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Embedded Systems & Microcontrollers — Interactive Lab | Dr. S. Ramanathan</title>
+<link rel="stylesheet" href="course.css">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{--navy:#0a1930;--teal:#0f5c70;--cyan:#3fc4dc;--ink:#1b2733;--grey:#5c6b78;--line:#e3e9ee;}
+.lab{max-width:980px;margin:0 auto;padding:0 22px}
+.sim{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin:22px 0;box-shadow:0 1px 3px rgba(16,42,67,.05)}
+.sim h2{font-size:21px;color:var(--navy);margin-bottom:4px}
+.sim .tag{display:inline-block;background:#eaf3f6;color:#0d4d5e;font-size:12px;font-weight:600;padding:3px 10px;border-radius:6px;margin-bottom:8px}
+.sim p.exp{color:#374a57;font-size:14.5px;margin:6px 0 14px}.sim p.exp b{color:var(--navy)}
+.try{background:#f3f9fb;border-left:3px solid var(--cyan);padding:8px 12px;border-radius:0 8px 8px 0;font-size:13.5px;color:#0d4d5e;margin-top:12px}
+.row{display:flex;gap:20px;flex-wrap:wrap}.controls{flex:1 1 240px;min-width:230px}.plotwrap{flex:2 1 460px;min-width:300px}
+canvas{width:100%;height:auto;background:#0c1f2e;border-radius:10px;display:block}
+.ctl{margin-bottom:12px}.ctl label{display:flex;justify-content:space-between;font-size:13px;color:var(--navy);font-weight:600;margin-bottom:3px}
+.ctl label .v{color:var(--teal);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--teal)}
+select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;font-size:14px}
+.readout{font-size:13px;color:#374a57;margin-top:10px;line-height:1.7}.readout b{color:var(--navy)}
+.bar{height:16px;background:#e3e9ee;border-radius:8px;overflow:hidden;margin-top:6px}.bar > div{height:100%;background:linear-gradient(90deg,#0f5c70,#3fc4dc)}
+.legend{font-size:12px;color:var(--grey);margin-top:6px}.legend span{display:inline-block;margin-right:14px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
+.mono{font-family:monospace}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
+.toc a{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#eaf4f7;padding:6px 12px;border-radius:30px;font-size:13px}
+.toc a:hover{background:rgba(255,255,255,.22);color:#fff}
+.theory{margin-top:16px;border-top:1px dashed var(--line);padding-top:4px}
+.theory summary{cursor:pointer;font-weight:700;color:var(--teal);font-size:14px;padding:8px 0;list-style:none}
+.theory summary::-webkit-details-marker{display:none}.theory summary:before{content:'▸  ';font-size:12px}.theory[open] summary:before{content:'▾  '}
+.theory .tbody{font-size:14.5px;color:#2a3b46;line-height:1.75;padding:4px 2px 6px}
+.theory .tbody ul{margin:8px 0 8px 20px}.theory .tbody li{margin:5px 0}.theory .tbody h4{color:var(--navy);font-size:14.5px;margin:14px 0 4px}
+.eqn{background:#f3f9fb;border:1px solid #e0eef2;border-radius:8px;padding:6px 14px;margin:10px 0;overflow-x:auto}
+</style></head><body>
+
+<div class="top"><div class="wrap">
+<a class="back" href="../index.html#courses">← Back to portfolio</a>
+<h1>Embedded Systems &amp; Microcontrollers — Interactive Lab</h1>
+<p>The core peripherals of every microcontroller, made tangible. Tune real parameters — duty cycle, prescaler, ADC bits, baud rate — and watch the waveforms. Built by Dr. S. Ramanathan.</p>
+<div class="toc">
+<a href="#gpio">GPIO / Blink</a><a href="#pwm">PWM</a><a href="#timer">Timer / Prescaler</a>
+<a href="#adc">ADC</a><a href="#uart">UART Frame</a><a href="#debounce">Switch Debounce</a>
+</div>
+</div></div>
+
+<section><div class="lab">
+
+<!-- GPIO -->
+<div class="sim" id="gpio">
+  <span class="tag">MODULE 1</span><h2>GPIO Output &amp; Blink Timing</h2>
+  <p class="exp">A digital output pin is just <b>HIGH</b> or <b>LOW</b>. Toggling it with on/off delays makes a square wave — the classic "blink". The on/off times set the <b>frequency</b> and <b>duty cycle</b>.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>ON time <span class="v" id="g_on_v">200</span> ms</label><input type="range" id="g_on" min="10" max="500" value="200" step="10"></div>
+    <div class="ctl"><label>OFF time <span class="v" id="g_off_v">200</span> ms</label><input type="range" id="g_off" min="10" max="500" value="200" step="10"></div>
+    <div class="readout" id="g_out"></div>
+  </div><div class="plotwrap"><canvas id="g_cv" width="720" height="220"></canvas></div></div>
+  <div class="try">💡 Try: equal ON/OFF → 50% duty square wave. Make ON ≫ OFF → mostly-on with a brief blink off.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>For a period \(T = t_{on}+t_{off}\):</p>
+    <div class="eqn">\[ f = \frac{1}{T},\qquad \text{Duty} = \frac{t_{on}}{t_{on}+t_{off}}\times100\% \]</div>
+    <p>In firmware this is a <span class="mono">while</span> loop with <span class="mono">digitalWrite(HIGH); delay(t_on); digitalWrite(LOW); delay(t_off);</span> — but using <span class="mono">delay()</span> blocks the CPU. Real designs use a timer (Module 3) instead.</p>
+  </div></details>
+</div>
+
+<!-- PWM -->
+<div class="sim" id="pwm">
+  <span class="tag">MODULE 2</span><h2>PWM &amp; Duty Cycle</h2>
+  <p class="exp">Pulse-Width Modulation switches a pin fast and varies the <b>fraction of time it is ON</b>. The load sees the <b>average</b> voltage — so PWM dims LEDs, sets motor speed, and synthesises analog levels from a digital pin.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Duty cycle <span class="v" id="w_d_v">50</span> %</label><input type="range" id="w_d" min="0" max="100" value="50" step="1"></div>
+    <div class="ctl"><label>Frequency <span class="v" id="w_f_v">1000</span> Hz</label><input type="range" id="w_f" min="100" max="5000" value="1000" step="100"></div>
+    <div class="readout" id="w_out"></div>
+    <div style="font-size:12px;color:var(--grey);margin-top:8px">LED brightness</div><div class="bar"><div id="w_bar" style="width:50%"></div></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>pin</span><span><i class="dot" style="background:#f4b740"></i>average V</span></div>
+  </div><div class="plotwrap"><canvas id="w_cv" width="720" height="220"></canvas></div></div>
+  <div class="try">💡 Try: 25% → dim, 75% → bright. Note the average-voltage line (gold) tracks the duty cycle, independent of frequency.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>With supply \(V_{cc}\) and duty \(D\), the average output voltage is</p>
+    <div class="eqn">\[ V_{avg} = D\cdot V_{cc} \]</div>
+    <p>A low-pass filter (or the inertia of a motor / persistence of vision of an LED) extracts this average. Higher PWM frequency → easier to filter, smoother result. The resolution of the duty cycle is set by the timer (e.g. 8-bit PWM = 256 steps).</p>
+  </div></details>
+</div>
+
+<!-- TIMER -->
+<div class="sim" id="timer">
+  <span class="tag">MODULE 3</span><h2>Timer / Counter &amp; Prescaler</h2>
+  <p class="exp">Timers count clock ticks. A <b>prescaler</b> divides the system clock down, and the <b>auto-reload (ARR)</b> value sets how many ticks before the timer resets — together they generate precise time bases &amp; interrupt rates without blocking the CPU.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>System clock <span class="v" id="t_clk_v">16</span> MHz</label><input type="range" id="t_clk" min="1" max="100" value="16" step="1"></div>
+    <div class="ctl"><label>Prescaler <span class="v" id="t_ps_v">16</span></label><input type="range" id="t_ps" min="1" max="1024" value="16" step="1"></div>
+    <div class="ctl"><label>Auto-reload (ARR) <span class="v" id="t_arr_v">999</span></label><input type="range" id="t_arr" min="0" max="9999" value="999" step="1"></div>
+    <div class="readout" id="t_out"></div>
+  </div><div class="plotwrap"><canvas id="t_cv" width="720" height="220"></canvas></div></div>
+  <div class="try">💡 Try: 16 MHz, prescaler 16, ARR 999 → exactly 1 kHz (1 ms tick). Halve the clock → halve the rate.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>The timer overflow (update) frequency is</p>
+    <div class="eqn">\[ f_{timer} = \frac{f_{clk}}{\text{Prescaler}\times(\text{ARR}+1)} \]</div>
+    <p>The <span class="mono">+1</span> is because the counter includes 0. On overflow the timer can fire an interrupt or toggle a pin in hardware — so timing is exact and the CPU stays free for other work (unlike <span class="mono">delay()</span>).</p>
+  </div></details>
+</div>
+
+<!-- ADC -->
+<div class="sim" id="adc">
+  <span class="tag">MODULE 4</span><h2>ADC — Sampling &amp; Quantization</h2>
+  <p class="exp">An Analog-to-Digital Converter measures a voltage and maps it to an integer <b>code</b>. With \(n\) bits there are \(2^n\) levels — more bits means finer steps. The smooth analog signal becomes a <b>staircase</b>; the step size is the quantization error.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Resolution <span class="v" id="a_b_v">4</span> bits</label><input type="range" id="a_b" min="2" max="12" value="4" step="1"></div>
+    <div class="ctl"><label>Samples / period <span class="v" id="a_s_v">24</span></label><input type="range" id="a_s" min="6" max="80" value="24" step="1"></div>
+    <div class="readout" id="a_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#f4b740"></i>analog</span><span><i class="dot" style="background:#3fc4dc"></i>quantized</span></div>
+  </div><div class="plotwrap"><canvas id="a_cv" width="720" height="260"></canvas></div></div>
+  <div class="try">💡 Try: 2 bits → coarse 4-level staircase. 12 bits → nearly perfect (4096 levels). Raise samples/period to see finer time sampling.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>The smallest voltage the ADC can resolve (1 LSB) is</p>
+    <div class="eqn">\[ \text{LSB} = \frac{V_{ref}}{2^{\,n}},\qquad \text{code} = \left\lfloor \frac{V_{in}}{\text{LSB}} \right\rceil,\ \ 0\le\text{code}\le 2^n-1 \]</div>
+    <ul>
+      <li>More bits → smaller LSB → less quantization error (but more data).</li>
+      <li>Sampling rate must satisfy <b>Nyquist</b>: \(f_s > 2 f_{max}\), or aliasing corrupts the signal.</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- UART -->
+<div class="sim" id="uart">
+  <span class="tag">MODULE 5</span><h2>UART Serial Frame</h2>
+  <p class="exp">UART sends a byte one bit at a time over a single line: an idle-high line, a <b>start</b> bit (low), 8 <b>data</b> bits (LSB first), an optional <b>parity</b> bit, then <b>stop</b> bit(s). Both ends must agree on the <b>baud rate</b> (bits/second).</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Data byte <span class="v" id="u_d_v">65</span> (0x<span id="u_h">41</span> 'A')</label><input type="range" id="u_d" min="0" max="255" value="65" step="1"></div>
+    <div class="ctl"><label>Baud rate</label><select id="u_baud"><option>9600</option><option selected>115200</option><option>57600</option><option>19200</option></select></div>
+    <div class="ctl"><label>Parity</label><select id="u_par"><option value="none" selected>None</option><option value="even">Even</option><option value="odd">Odd</option></select></div>
+    <div class="ctl"><label>Stop bits <span class="v" id="u_stop_v">1</span></label><input type="range" id="u_stop" min="1" max="2" value="1" step="1"></div>
+    <div class="readout" id="u_out"></div>
+  </div><div class="plotwrap"><canvas id="u_cv" width="720" height="220"></canvas></div></div>
+  <div class="try">💡 Try: byte 65 = 'A' = 0b01000001 (sent LSB-first). Switch parity to Even and watch the parity bit appear before the stop bit.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>Each bit lasts \(t_{bit} = 1/\text{baud}\). A 10-bit frame (1 start + 8 data + 1 stop) at 115200 baud takes \(\approx 86.8\,\mu s\).</p>
+    <div class="eqn">\[ t_{frame} = (1 + n_{data} + n_{parity} + n_{stop})\times\frac{1}{\text{baud}} \]</div>
+    <ul>
+      <li>Data is sent <b>LSB first</b>.</li>
+      <li><b>Even parity</b>: parity bit makes the total number of 1s even; <b>odd</b>: makes it odd. It catches single-bit errors.</li>
+      <li>UART is asynchronous — no clock line — so a baud mismatch &gt; ~2-3% garbles the data.</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- DEBOUNCE -->
+<div class="sim" id="debounce">
+  <span class="tag">MODULE 6</span><h2>Switch Debouncing</h2>
+  <p class="exp">A mechanical switch doesn't close cleanly — the contacts <b>bounce</b> for a few milliseconds, producing many fake edges. Debouncing waits until the signal is <b>stable</b> for a set time before accepting the new state, so one press = one event.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Bounce duration <span class="v" id="d_b_v">4</span> ms</label><input type="range" id="d_b" min="0" max="12" value="4" step="1"></div>
+    <div class="ctl"><label>Debounce time <span class="v" id="d_t_v">8</span> ms</label><input type="range" id="d_t" min="0" max="20" value="8" step="1"></div>
+    <button id="d_re" style="margin-top:6px;padding:7px 14px;border:0;border-radius:8px;background:var(--teal);color:#fff;font-weight:600;cursor:pointer">↻ New press</button>
+    <div class="readout" id="d_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#f4b740"></i>raw input</span><span><i class="dot" style="background:#3fc4dc"></i>debounced</span></div>
+  </div><div class="plotwrap"><canvas id="d_cv" width="720" height="240"></canvas></div></div>
+  <div class="try">💡 Try: set debounce time below the bounce duration → glitches leak through (multiple events). Set it above → one clean edge.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>The debounce rule: only accept a new level after the input has held that level continuously for \(t_{debounce}\). Choose \(t_{debounce}\) larger than the worst-case bounce (typically 5–20 ms).</p>
+    <ul>
+      <li><b>Software:</b> sample periodically; reset a timer on every change; commit when the timer exceeds \(t_{debounce}\).</li>
+      <li><b>Hardware:</b> an RC filter + Schmitt trigger, or an SR latch with a SPDT switch.</li>
+    </ul>
+  </div></details>
+</div>
+
+</div></section>
+<footer>© Dr. S. Ramanathan · Embedded Systems Interactive Lab · All simulations run in your browser</footer>
+
+<script>
+const C={navy:'#0a1930',teal:'#0f5c70',cyan:'#3fc4dc',gold:'#f4b740',grey:'#8b9aa6',red:'#ef5350'};
+function $(id){return document.getElementById(id);}
+function fmt(x,d){d=d==null?2:d;return (Math.abs(x)<1e-12?0:x).toFixed(d);}
+function niceN(x){if(Math.abs(x)>=1000||(Math.abs(x)<0.01&&x!==0))return x.toExponential(0);return (Math.round(x*100)/100).toString();}
+
+function Plot(cv,o){
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.fillStyle='#0c1f2e';ctx.fillRect(0,0,W,H);
+  const m={l:54,r:16,t:16,b:34},pw=W-m.l-m.r,ph=H-m.t-m.b;
+  const {xmin,xmax,ymin,ymax}=o;
+  const X=x=>m.l+(x-xmin)/(xmax-xmin)*pw, Y=y=>m.t+(1-(y-ymin)/(ymax-ymin))*ph;
+  ctx.strokeStyle='rgba(255,255,255,.09)';ctx.fillStyle='#7e93a1';ctx.font='11px monospace';ctx.lineWidth=1;
+  ctx.textAlign='center';ctx.textBaseline='top';
+  for(let i=0;i<=5;i++){const xv=xmin+i*(xmax-xmin)/5,px=X(xv);ctx.beginPath();ctx.moveTo(px,m.t);ctx.lineTo(px,m.t+ph);ctx.stroke();ctx.fillText(niceN(xv),px,m.t+ph+5);}
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  const yt=o.yticks||4;for(let i=0;i<=yt;i++){const yv=ymin+i*(ymax-ymin)/yt,py=Y(yv);ctx.beginPath();ctx.moveTo(m.l,py);ctx.lineTo(m.l+pw,py);ctx.stroke();ctx.fillText(o.ylabels?o.ylabels[i]:niceN(yv),m.l-6,py);}
+  ctx.fillStyle='#9fb4c0';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  if(o.xlabel)ctx.fillText(o.xlabel,m.l+pw/2,H-4);
+  ctx.save();ctx.translate(12,m.t+ph/2);ctx.rotate(-Math.PI/2);if(o.ylabel)ctx.fillText(o.ylabel,0,0);ctx.restore();
+  ctx.save();ctx.beginPath();ctx.rect(m.l,m.t,pw,ph);ctx.clip();
+  (o.series||[]).forEach(s=>{
+    if(s.points&&s.points.length){ctx.strokeStyle=s.color;ctx.lineWidth=s.w||2;ctx.beginPath();
+      s.points.forEach((p,i)=>{const px=X(p.x),py=Y(p.y);i?ctx.lineTo(px,py):ctx.moveTo(px,py);});ctx.stroke();}
+    if(s.dash&&s.y!=null){ctx.strokeStyle=s.color;ctx.setLineDash([6,5]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X(xmin),Y(s.y));ctx.lineTo(X(xmax),Y(s.y));ctx.stroke();ctx.setLineDash([]);}
+    if(s.marks){ctx.fillStyle=s.color;s.marks.forEach(p=>{ctx.beginPath();ctx.arc(X(p.x),Y(p.y),s.r||3,0,7);ctx.fill();});}
+  });
+  ctx.restore();
+}
+function stepPts(levels,dt,t0){ // levels: array of {dur, y}; returns step points
+  const pts=[];let t=t0||0;levels.forEach(l=>{pts.push({x:t,y:l.y});t+=l.dur;pts.push({x:t,y:l.y});});return pts;
+}
+
+// MODULE 1 GPIO
+function gpio(){
+  const on=+$('g_on').value,off=+$('g_off').value;$('g_on_v').textContent=on;$('g_off_v').textContent=off;
+  const T=on+off,f=1000/T,duty=on/T*100;
+  const lv=[];for(let i=0;i<4;i++){lv.push({dur:on,y:1});lv.push({dur:off,y:0});}
+  Plot($('g_cv'),{xmin:0,xmax:4*T,ymin:-0.2,ymax:1.4,yticks:1,ylabels:['LOW','HIGH'],xlabel:'time (ms)',ylabel:'pin',
+    series:[{points:stepPts(lv),color:C.cyan,w:2}]});
+  $('g_out').innerHTML=`Period: <b>${fmt(T,0)} ms</b><br>Frequency: <b>${fmt(f,2)} Hz</b><br>Duty cycle: <b>${fmt(duty,0)}%</b>`;
+}
+// MODULE 2 PWM
+function pwm(){
+  const d=+$('w_d').value,f=+$('w_f').value;$('w_d_v').textContent=d;$('w_f_v').textContent=f;
+  const Vcc=3.3,T=1000/f,on=T*d/100,off=T-on,avg=Vcc*d/100;
+  const lv=[];for(let i=0;i<5;i++){lv.push({dur:on,y:Vcc});lv.push({dur:off,y:0});}
+  Plot($('w_cv'),{xmin:0,xmax:5*T,ymin:-0.2,ymax:Vcc*1.25,yticks:3,xlabel:'time (ms)',ylabel:'volts',
+    series:[{points:stepPts(lv),color:C.cyan,w:2},{dash:true,y:avg,color:C.gold}]});
+  $('w_bar').style.width=d+'%';
+  $('w_out').innerHTML=`Supply: <b>3.3 V</b><br>Average voltage: <b>${fmt(avg,2)} V</b><br>Period: <b>${fmt(T,3)} ms</b>`;
+}
+// MODULE 3 TIMER
+function timer(){
+  const clk=+$('t_clk').value,ps=+$('t_ps').value,arr=+$('t_arr').value;
+  $('t_clk_v').textContent=clk;$('t_ps_v').textContent=ps;$('t_arr_v').textContent=arr;
+  const f=clk*1e6/(ps*(arr+1)),per=1/f;
+  // draw output toggling each overflow (square wave at f/2 visually -> just toggle each period)
+  let unit='s',scale=1;if(per<1e-3){unit='µs';scale=1e6;}else if(per<1){unit='ms';scale=1e3;}
+  const Tp=per*scale,lv=[];for(let i=0;i<4;i++){lv.push({dur:Tp,y:1});lv.push({dur:Tp,y:0});}
+  Plot($('t_cv'),{xmin:0,xmax:8*Tp,ymin:-0.2,ymax:1.4,yticks:1,ylabels:['0','1'],xlabel:'time ('+unit+')',ylabel:'overflow',
+    series:[{points:stepPts(lv),color:C.cyan,w:2}]});
+  const fs = f>=1e6?fmt(f/1e6,3)+' MHz':f>=1e3?fmt(f/1e3,3)+' kHz':fmt(f,2)+' Hz';
+  $('t_out').innerHTML=`Timer frequency: <b>${fs}</b><br>Period: <b>${per<1e-3?fmt(per*1e6,2)+' µs':per<1?fmt(per*1e3,3)+' ms':fmt(per,4)+' s'}</b>`;
+}
+// MODULE 4 ADC
+function adc(){
+  const bits=+$('a_b').value,ns=+$('a_s').value;$('a_b_v').textContent=bits;$('a_s_v').textContent=ns;
+  const Vref=3.3,levels=Math.pow(2,bits),lsb=Vref/levels;
+  const ana=[];for(let i=0;i<=300;i++){const t=i/300;ana.push({x:t,y:Vref/2+Vref/2*0.92*Math.sin(2*Math.PI*t)});}
+  const q=[];for(let k=0;k<ns;k++){const t=k/ns,v=Vref/2+Vref/2*0.92*Math.sin(2*Math.PI*t);let code=Math.round(v/lsb);if(code<0)code=0;if(code>levels-1)code=levels-1;const vq=code*lsb;q.push({x:t,y:vq});q.push({x:(k+1)/ns,y:vq});}
+  Plot($('a_cv'),{xmin:0,xmax:1,ymin:0,ymax:Vref,yticks:4,xlabel:'time (one period)',ylabel:'volts',
+    series:[{points:ana,color:C.gold,w:2},{points:q,color:C.cyan,w:2}]});
+  $('a_out').innerHTML=`Levels: <b>${levels}</b> (${bits}-bit)<br>LSB step: <b>${fmt(lsb*1000,1)} mV</b><br>V<sub>ref</sub>: <b>3.3 V</b>`;
+}
+// MODULE 5 UART
+function uart(){
+  const byte=+$('u_d').value,baud=+$('u_baud').value,par=$('u_par').value,stop=+$('u_stop').value;
+  $('u_d_v').textContent=byte;$('u_h').textContent=byte.toString(16).toUpperCase().padStart(2,'0');$('u_stop_v').textContent=stop;
+  const tbit=1e6/baud; // us
+  const databits=[];for(let i=0;i<8;i++)databits.push((byte>>i)&1); // LSB first
+  const ones=databits.reduce((a,b)=>a+b,0);
+  let frame=[{dur:tbit,y:1,lab:'idle'},{dur:tbit,y:0,lab:'start'}];
+  databits.forEach((b,i)=>frame.push({dur:tbit,y:b,lab:'D'+i}));
+  let parityBit=null;
+  if(par==='even')parityBit=ones%2; if(par==='odd')parityBit=1-(ones%2);
+  if(parityBit!==null)frame.push({dur:tbit,y:parityBit,lab:'P'});
+  for(let i=0;i<stop;i++)frame.push({dur:tbit,y:1,lab:'stop'});
+  const total=frame.reduce((a,l)=>a+l.dur,0);
+  Plot($('u_cv'),{xmin:0,xmax:total,ymin:-0.2,ymax:1.5,yticks:1,ylabels:['0','1'],xlabel:'time (µs)',ylabel:'TX line',
+    series:[{points:stepPts(frame),color:C.cyan,w:2}]});
+  const nbits=1+8+(parityBit!==null?1:0)+stop;
+  $('u_out').innerHTML=`Binary (LSB→MSB): <b class="mono">${databits.join('')}</b><br>Frame: <b>${nbits} bits</b>${parityBit!==null?' (parity '+parityBit+')':''}<br>Frame time: <b>${fmt(nbits*tbit,1)} µs</b> @ ${baud} baud`;
+}
+// MODULE 6 DEBOUNCE
+let bounceSeed=0;
+function debounce(){
+  const bdur=+$('d_b').value,dt=+$('d_t').value;$('d_b_v').textContent=bdur;$('d_t_v').textContent=dt;
+  const Tend=40,press=8,step=0.05;
+  // build raw signal: low before press, bouncing during [press, press+bdur], high after
+  function rnd(){bounceSeed=(bounceSeed*9301+49297)%233280;return bounceSeed/233280;}
+  const raw=[];let lvl=0;
+  for(let t=0;t<=Tend;t+=step){
+    if(t<press)lvl=0; else if(t<press+bdur){ if(rnd()<0.35)lvl=1-lvl; } else lvl=1;
+    raw.push({x:t,y:lvl});
+  }
+  // debounce: accept new level after stable for dt
+  const deb=[];let out=0,cand=0,since=0;
+  for(let i=0;i<raw.length;i++){const v=raw[i].y;if(v===cand){since+=step;}else{cand=v;since=0;}if(since>=dt&&out!==cand)out=cand;deb.push({x:raw[i].x,y:out*0.9+0.05});}
+  // raw drawn on upper band, debounced lower band offset
+  const rawShift=raw.map(p=>({x:p.x,y:p.y+1.3}));
+  Plot($('d_cv'),{xmin:0,xmax:Tend,ymin:-0.2,ymax:2.6,yticks:1,ylabels:['',''],xlabel:'time (ms)',ylabel:'',
+    series:[{points:rawShift,color:C.gold,w:1.6},{points:deb,color:C.cyan,w:2}]});
+  // count edges in raw after press
+  let edges=0;for(let i=1;i<raw.length;i++)if(raw[i].y!==raw[i-1].y&&raw[i].x>=press)edges++;
+  $('d_out').innerHTML=`Raw edges during bounce: <b>${edges}</b><br>Debounced events: <b>1</b> ${dt<bdur?'<span style="color:#b42020">(too short!)</span>':''}`;
+}
+
+function wire(ids,fn){ids.forEach(id=>{const e=$(id);if(e)e.addEventListener('input',fn);});fn();}
+wire(['g_on','g_off'],gpio);
+wire(['w_d','w_f'],pwm);
+wire(['t_clk','t_ps','t_arr'],timer);
+wire(['a_b','a_s'],adc);
+wire(['u_d','u_baud','u_par','u_stop'],uart);
+wire(['d_b','d_t'],debounce);
+$('d_re').addEventListener('click',()=>{bounceSeed=Math.floor((performance.now()*1000))%233280;debounce();});
+</script>
+</body></html>
