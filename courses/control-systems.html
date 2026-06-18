@@ -62,6 +62,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#margins">Stability Margins</a><a href="#nmp">Zeros / Non-Min-Phase</a><a href="#delay">Time Delay</a>
 <a href="#fo">First-Order</a><a href="#inputs">Step/Impulse/Ramp</a><a href="#sserr">Steady-State Error</a><a href="#domin">Dominant Poles</a>
 <a href="#zn">Z–N Auto-Tune</a><a href="#lead">Lead Design</a><a href="#nichols">Nichols Chart</a><a href="#pzb">Pole-Zero Builder</a>
+<a href="#pp2">Pole Placement</a><a href="#lqr">LQR</a><a href="#obs">Observer</a><a href="#kf">Kalman Filter</a><a href="#co">Controllability</a>
 </div>
 </div></div>
 
@@ -648,6 +649,85 @@ padding:6px 12px;border-radius:30px;font-size:13px}
   <div class="try">💡 Try: poles <code>-1, -2+3j, -2-3j</code> with a zero at <code>-4</code>. Move a pole toward the imaginary axis (e.g. <code>-0.3</code>) → slower, more oscillatory. A positive pole → unstable.</div>
   <details class="theory"><summary>Theory</summary><div class="tbody">
     <p>\(G(s)=k\dfrac{\prod_i (s-z_i)}{\prod_j (s-p_j)}\). Poles set stability &amp; speed (must be in the left-half-plane); zeros shape transient overshoot &amp; the high-frequency slope. The Bode magnitude bends −20 dB/dec down at each pole and +20 dB/dec up at each zero.</p>
+  </div></details>
+</div>
+
+<!-- POLE PLACEMENT -->
+<div class="sim" id="pp2">
+  <span class="tag">MODULE 24</span><h2>State Feedback &amp; Pole Placement</h2>
+  <p class="exp">With full-state feedback \(u=-Kx\) you can place the closed-loop poles <b>anywhere</b> (if the system is controllable). Choose the desired damping &amp; speed and the gain K is computed to put the poles there. Watch a lightly-damped plant get tamed.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Desired ζ <span class="v" id="pp2_z_v">0.7</span></label><input type="range" id="pp2_z" min="0.3" max="1.2" value="0.7" step="0.05"></div>
+    <div class="ctl"><label>Desired ω<sub>n</sub> <span class="v" id="pp2_w_v">3</span></label><input type="range" id="pp2_w" min="0.5" max="6" value="3" step="0.5"></div>
+    <div class="readout" id="pp2_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>closed-loop x₁</span><span><i class="dot" style="background:#8b9aa6"></i>open-loop</span></div>
+  </div><div class="plotwrap"><canvas id="pp2_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: the open-loop plant (grey) rings for ages (ζ=0.1). Raise the desired ω<sub>n</sub> → the controlled response (cyan) settles faster, and the feedback gains grow.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>For \(\dot x=Ax+Bu\), feedback \(u=-Kx\) gives closed-loop \(\dot x=(A-BK)x\). In controllable canonical form the gains follow directly by matching coefficients to the desired \(s^2+2\zeta\omega_n s+\omega_n^2\). Ackermann's formula generalises this to any order.</p>
+  </div></details>
+</div>
+
+<!-- LQR -->
+<div class="sim" id="lqr">
+  <span class="tag">MODULE 25</span><h2>LQR — Optimal Control</h2>
+  <p class="exp">The Linear-Quadratic Regulator picks K to minimise a cost \(\int(x^\top Qx + Ru^2)\,dt\) — a principled trade-off between <b>performance</b> (small state error) and <b>control effort</b>. Here a double integrator is regulated; the control penalty R is yours to tune.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Control penalty R = 10^<span class="v" id="lq_e_v">-1.0</span></label><input type="range" id="lq_e" min="-2" max="1" value="-1" step="0.1"></div>
+    <div class="readout" id="lq_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>position x₁</span></div>
+  </div><div class="plotwrap"><canvas id="lq_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: small R (cheap control, e.g. 10⁻²) → fast, aggressive. Large R (expensive control) → gentle &amp; slow. Note ζ stays ≈ 0.707 (the LQR "Butterworth" optimum) while only the speed changes.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>Minimise \(J=\int_0^\infty (x^\top Q x + R u^2)\,dt\). The optimal gain is \(K=R^{-1}B^\top P\), where \(P\) solves the algebraic Riccati equation \(A^\top P+PA-PBR^{-1}B^\top P+Q=0\). For a double integrator with \(Q=\text{diag}(1,0)\): \(K=[\,R^{-1/2},\ \sqrt2\,R^{-1/4}]\), giving \(\omega_n=R^{-1/4}\), \(\zeta=1/\sqrt2\).</p>
+  </div></details>
+</div>
+
+<!-- OBSERVER -->
+<div class="sim" id="obs">
+  <span class="tag">MODULE 26</span><h2>Luenberger State Observer</h2>
+  <p class="exp">Often you can only measure some outputs, not the full state. An <b>observer</b> runs a model of the plant and corrects it with the measurement error, so its estimate converges to the true (hidden) state. Here only position is measured; watch the estimated <b>velocity</b> lock onto the truth.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Observer bandwidth ω<sub>o</sub> <span class="v" id="ob_w_v">5</span></label><input type="range" id="ob_w" min="1" max="12" value="5" step="0.5"></div>
+    <div class="readout" id="ob_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>true velocity</span><span><i class="dot" style="background:#f4b740"></i>estimate</span></div>
+  </div><div class="plotwrap"><canvas id="ob_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: low ω<sub>o</sub> → the estimate (gold) crawls toward the true velocity. Raise ω<sub>o</sub> → it converges almost instantly (but a real observer would then amplify measurement noise).</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>\(\dot{\hat x}=A\hat x+Bu+L\,(y-C\hat x)\). The estimation error \(e=x-\hat x\) obeys \(\dot e=(A-LC)e\): choose \(L\) to place its poles fast (well into the LHP) and the error decays to zero regardless of the initial guess. Duality with pole placement: design \(L\) like \(K\) on \((A^\top,C^\top)\).</p>
+  </div></details>
+</div>
+
+<!-- KALMAN -->
+<div class="sim" id="kf">
+  <span class="tag">MODULE 27</span><h2>Kalman Filter — Estimation under Noise</h2>
+  <p class="exp">When both the model and the sensor are noisy, the Kalman filter optimally <b>blends prediction with measurement</b>, weighting each by how much you trust it. Tune the measurement noise R and process noise Q and watch it extract the signal from the noise.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Measurement noise R <span class="v" id="kf_r_v">1.0</span></label><input type="range" id="kf_r" min="0.05" max="4" value="1" step="0.05"></div>
+    <div class="ctl"><label>Process noise Q <span class="v" id="kf_q_v">0.02</span></label><input type="range" id="kf_q" min="0.001" max="0.5" value="0.02" step="0.001"></div>
+    <div class="readout" id="kf_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#f4b740"></i>true</span><span><i class="dot" style="background:#8b9aa6"></i>measured</span><span><i class="dot" style="background:#3fc4dc"></i>estimate</span></div>
+  </div><div class="plotwrap"><canvas id="kf_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: large R (don't trust the sensor) → smooth but laggy estimate. Small R → it chases the noisy measurements. Q controls how quickly it's allowed to change.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>Each step: <b>predict</b> \(P\leftarrow P+Q\); then <b>update</b> with Kalman gain \(K=\dfrac{P}{P+R}\), \(\hat x\leftarrow \hat x+K(z-\hat x)\), \(P\leftarrow(1-K)P\). The gain rises when the measurement is trusted (small R) and falls when the model is trusted (large R). It is the optimal (minimum-variance) linear estimator.</p>
+  </div></details>
+</div>
+
+<!-- CONTROLLABILITY / OBSERVABILITY -->
+<div class="sim" id="co">
+  <span class="tag">MODULE 28</span><h2>Controllability &amp; Observability</h2>
+  <p class="exp">Can the input actually move every state? Can the output reveal every state? <b>Controllability</b> needs the columns of \([B\ \ AB]\) to span the state space (here: the two vectors must not be collinear). Drag the input vector B and watch the test pass or fail geometrically.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>B₁ <span class="v" id="co_b1_v">0</span></label><input type="range" id="co_b1" min="-3" max="3" value="0" step="0.1"></div>
+    <div class="ctl"><label>B₂ <span class="v" id="co_b2_v">1</span></label><input type="range" id="co_b2" min="-3" max="3" value="1" step="0.1"></div>
+    <div class="readout" id="co_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>B</span><span><i class="dot" style="background:#f4b740"></i>AB</span></div>
+  </div><div class="plotwrap"><canvas id="co_cv" width="720" height="340"></canvas></div></div>
+  <div class="try">💡 Try: with A=[[0,1],[−2,−3]], set B=[1,−1] or [1,−2] → B and AB become collinear, the determinant hits 0, and the system loses controllability.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \mathcal{C}=[\,B\ \ AB\ \cdots\ A^{n-1}B\,],\qquad \mathcal{O}=\begin{bmatrix}C\\CA\\\vdots\\CA^{n-1}\end{bmatrix} \]</div>
+    <p>The system is <b>controllable</b> iff \(\text{rank}\,\mathcal{C}=n\), and <b>observable</b> iff \(\text{rank}\,\mathcal{O}=n\). For \(n=2\) that just means the two vectors are linearly independent (non-zero determinant). Loss of rank means some mode can't be driven (or can't be seen).</p>
   </div></details>
 </div>
 
@@ -1242,5 +1322,78 @@ wire(['zn_kc','zn_pid'],znTune);
 wire(['ld_wz','ld_wp','ld_k'],leadDesign);
 wire(['ni_k','ni_p'],nichols);
 wire(['pz_p','pz_z'],pzBuilder);
+
+// ============ MODULE 24: POLE PLACEMENT ============
+function polePlace(){
+  const zd=+$('pp2_z').value,wd=+$('pp2_w').value;$('pp2_z_v').textContent=fmt(zd,2);$('pp2_w_v').textContent=fmt(wd,1);
+  const a0=1,a1=0.2;                     // open-loop: ζ=0.1, ωn=1
+  const k1=wd*wd-a0,k2=2*zd*wd-a1;
+  const dt=0.004,Te=Math.min(25,12/(zd*wd));
+  function sim(K){let x1=1,x2=0;const p=[];for(let t=0;t<=Te;t+=dt){p.push({x:t,y:x1});const u=K?-(k1*x1+k2*x2):0;const x1d=x2,x2d=-a0*x1-a1*x2+u;x1+=x1d*dt;x2+=x2d*dt;}return p;}
+  Plot($('pp2_cv'),{xmin:0,xmax:Te,ymin:-1.2,ymax:1.3,xlabel:'time (s)',ylabel:'x₁',
+    series:[{points:sim(false),color:'rgba(139,154,166,.6)',w:1.5},{points:sim(true),color:C.cyan,w:2}]});
+  $('pp2_out').innerHTML=`Gains K = [<b>${fmt(k1,2)}</b>, <b>${fmt(k2,2)}</b>]<br>Closed-loop poles: <b>−${fmt(zd*wd,2)} ± j${fmt(wd*Math.sqrt(Math.max(0,1-zd*zd)),2)}</b>`;
+}
+// ============ MODULE 25: LQR ============
+function lqr(){
+  const e=+$('lq_e').value, R=Math.pow(10,e);$('lq_e_v').textContent=fmt(e,1);
+  const k1=1/Math.sqrt(R), k2=Math.SQRT2*Math.pow(R,-0.25), wn=Math.pow(R,-0.25);
+  const dt=0.004,Te=Math.min(30,14/wn+2);let x1=1,x2=0;const pts=[];let effort=0;
+  for(let t=0;t<=Te;t+=dt){pts.push({x:t,y:x1});const u=-(k1*x1+k2*x2);effort+=u*u*dt;const x1d=x2,x2d=u;x1+=x1d*dt;x2+=x2d*dt;}
+  Plot($('lq_cv'),{xmin:0,xmax:Te,ymin:-0.4,ymax:1.2,xlabel:'time (s)',ylabel:'position x₁',
+    series:[{points:pts,color:C.cyan,w:2}]});
+  $('lq_out').innerHTML=`R = <b>${fmt(R,3)}</b><br>Gains K = [<b>${fmt(k1,2)}</b>, <b>${fmt(k2,2)}</b>]<br>ω<sub>n</sub>=<b>${fmt(wn,2)}</b>, ζ=<b>0.71</b><br>Control effort ∫u²: <b>${fmt(effort,2)}</b>`;
+}
+// ============ MODULE 26: OBSERVER ============
+function observer(){
+  const wo=+$('ob_w').value;$('ob_w_v').textContent=fmt(wo,1);
+  const a0=1,a1=0.3,zo=0.7;
+  const l1=2*zo*wo-a1, l2=wo*wo-a0-l1*a1;
+  const dt=0.004,Te=12;let x1=1,x2=0,h1=0,h2=0;const tr=[],es=[];let mn=-1.4,mx=1.4;
+  for(let t=0;t<=Te;t+=dt){
+    tr.push({x:t,y:x2});es.push({x:t,y:h2});mn=Math.min(mn,x2,h2);mx=Math.max(mx,x2,h2);
+    const y=x1, inn=y-h1;
+    const x1d=x2,x2d=-a0*x1-a1*x2;
+    const h1d=h2+l1*inn,h2d=-a0*h1-a1*h2+l2*inn;
+    x1+=x1d*dt;x2+=x2d*dt;h1+=h1d*dt;h2+=h2d*dt;
+  }
+  Plot($('ob_cv'),{xmin:0,xmax:Te,ymin:mn*1.1,ymax:mx*1.1,xlabel:'time (s)',ylabel:'velocity x₂',
+    series:[{points:tr,color:C.cyan,w:2},{points:es,color:C.gold,w:2}]});
+  $('ob_out').innerHTML=`Observer gain L = [<b>${fmt(l1,2)}</b>, <b>${fmt(l2,2)}</b>]<br>Error poles: −${fmt(zo*wo,2)} ± j${fmt(wo*Math.sqrt(1-zo*zo),2)}`;
+}
+// ============ MODULE 27: KALMAN ============
+let kSeed=12345;
+function krand(){kSeed=(kSeed*1103515245+12345)&0x7fffffff;return kSeed/0x7fffffff;}
+function kgauss(){let s=0;for(let i=0;i<12;i++)s+=krand();return s-6;}
+function kalman(){
+  const R=+$('kf_r').value, Q=+$('kf_q').value;$('kf_r_v').textContent=fmt(R,2);$('kf_q_v').textContent=fmt(Q,3);
+  kSeed=12345;
+  const N=90;let x=0,P=1;const tru=[],mea=[],est=[];let lastK=0;
+  for(let k=0;k<N;k++){
+    const tv=1.6*Math.sin(k*0.13);
+    const z=tv+Math.sqrt(R)*kgauss();
+    P=P+Q; const K=P/(P+R); x=x+K*(z-x); P=(1-K)*P; lastK=K;
+    tru.push({x:k,y:tv});mea.push({x:k,y:z});est.push({x:k,y:x});
+  }
+  Plot($('kf_cv'),{xmin:0,xmax:N,ymin:-3.5,ymax:3.5,xlabel:'sample k',ylabel:'value',
+    series:[{marks:mea,color:'rgba(139,154,166,.7)',r:2},{points:tru,color:C.gold,w:1.5},{points:est,color:C.cyan,w:2}]});
+  $('kf_out').innerHTML=`Steady Kalman gain: <b>${fmt(lastK,3)}</b><br>${lastK>0.5?'trusting measurements (responsive)':'trusting model (smooth)'}`;
+}
+// ============ MODULE 28: CONTROLLABILITY ============
+function ctrbobsv(){
+  const b1=+$('co_b1').value,b2=+$('co_b2').value;$('co_b1_v').textContent=fmt(b1,1);$('co_b2_v').textContent=fmt(b2,1);
+  const AB=[b2, -2*b1-3*b2];           // A=[[0,1],[-2,-3]]
+  const detC=b1*AB[1]-b2*AB[0];
+  Plot($('co_cv'),{xmin:-8,xmax:8,ymin:-8,ymax:8,equal:true,xlabel:'state 1',ylabel:'state 2',
+    series:[{points:[{x:0,y:0},{x:b1,y:b2}],color:C.cyan,w:2.5},{marks:[{x:b1,y:b2}],color:C.cyan,r:4},
+            {points:[{x:0,y:0},{x:AB[0],y:AB[1]}],color:C.gold,w:2.5},{marks:[{x:AB[0],y:AB[1]}],color:C.gold,r:4}]});
+  const ctrl=Math.abs(detC)>1e-3;
+  $('co_out').innerHTML=`AB = [<b>${fmt(AB[0],1)}, ${fmt(AB[1],1)}</b>]<br>det[B  AB] = <b>${fmt(detC,2)}</b><br>${ctrl?'<span class="verdict ok">CONTROLLABLE</span>':'<span class="verdict bad">NOT controllable</span> (vectors collinear)'}`;
+}
+wire(['pp2_z','pp2_w'],polePlace);
+wire(['lq_e'],lqr);
+wire(['ob_w'],observer);
+wire(['kf_r','kf_q'],kalman);
+wire(['co_b1','co_b2'],ctrbobsv);
 </script>
 </body></html>
