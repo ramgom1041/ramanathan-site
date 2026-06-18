@@ -1,0 +1,414 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Control Systems — Interactive Simulation Lab | Dr. S. Ramanathan</title>
+<link rel="stylesheet" href="course.css">
+<style>
+:root{--navy:#0a1930;--teal:#0f5c70;--cyan:#3fc4dc;--ink:#1b2733;--grey:#5c6b78;--line:#e3e9ee;}
+.lab{max-width:980px;margin:0 auto;padding:0 22px}
+.sim{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin:22px 0;
+box-shadow:0 1px 3px rgba(16,42,67,.05)}
+.sim h2{font-size:21px;color:var(--navy);margin-bottom:4px}
+.sim .tag{display:inline-block;background:#eaf3f6;color:#0d4d5e;font-size:12px;font-weight:600;
+padding:3px 10px;border-radius:6px;margin-bottom:8px}
+.sim p.exp{color:#374a57;font-size:14.5px;margin:6px 0 14px}
+.sim p.exp b{color:var(--navy)}
+.try{background:#f3f9fb;border-left:3px solid var(--cyan);padding:8px 12px;border-radius:0 8px 8px 0;
+font-size:13.5px;color:#0d4d5e;margin-top:12px}
+.row{display:flex;gap:20px;flex-wrap:wrap}
+.controls{flex:1 1 240px;min-width:230px}
+.plotwrap{flex:2 1 460px;min-width:300px}
+canvas{width:100%;height:auto;background:#0c1f2e;border-radius:10px;display:block}
+.ctl{margin-bottom:12px}
+.ctl label{display:flex;justify-content:space-between;font-size:13px;color:var(--navy);font-weight:600;margin-bottom:3px}
+.ctl label .v{color:var(--teal);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--teal)}
+input[type=text]{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:monospace}
+.readout{font-size:13px;color:#374a57;margin-top:10px;line-height:1.7}
+.readout b{color:var(--navy)}
+.verdict{font-weight:700;padding:6px 12px;border-radius:8px;display:inline-block;margin-top:6px}
+.ok{background:#dcf5e8;color:#0b7a4b}.bad{background:#fde2e2;color:#b42020}
+table.routh{border-collapse:collapse;font-family:monospace;font-size:13px;margin-top:10px}
+table.routh td{border:1px solid var(--line);padding:4px 10px;text-align:right}
+table.routh td.lbl{background:#eaf3f6;color:#0d4d5e;font-weight:700;text-align:center}
+.legend{font-size:12px;color:var(--grey);margin-top:6px}
+.legend span{display:inline-block;margin-right:14px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
+.toc a{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#eaf4f7;
+padding:6px 12px;border-radius:30px;font-size:13px}
+.toc a:hover{background:rgba(255,255,255,.22);color:#fff}
+</style></head><body>
+
+<div class="top"><div class="wrap">
+<a class="back" href="../index.html#courses">← Back to portfolio</a>
+<h1>Control Systems — Interactive Simulation Lab</h1>
+<p>Learn the hard parts of control theory by <b>playing with them</b>. Move a slider and watch the response change instantly. Built by Dr. S. Ramanathan (Ph.D., Control Systems).</p>
+<div class="toc">
+<a href="#onoff">On-Off Control</a><a href="#pid">PID Control</a><a href="#bode">Bode Plot</a>
+<a href="#polar">Polar / Nyquist</a><a href="#routh">Routh Array</a><a href="#rlocus">Root Locus</a>
+</div>
+</div></div>
+
+<section><div class="lab">
+
+<!-- ON-OFF -->
+<div class="sim" id="onoff">
+  <span class="tag">MODULE 1</span>
+  <h2>On-Off (Bang-Bang) Control</h2>
+  <p class="exp">The simplest controller: the actuator is either fully <b>ON</b> or fully <b>OFF</b>, like a thermostat. To stop it switching infinitely fast, we add a <b>hysteresis band</b> around the setpoint — turn ON below the band, OFF above it. The output never settles exactly; it <b>oscillates</b> within the band. Wider band → slower switching but bigger ripple.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Setpoint <span class="v" id="oo_sp_v">60</span></label><input type="range" id="oo_sp" min="30" max="80" value="60" step="1"></div>
+      <div class="ctl"><label>Hysteresis band <span class="v" id="oo_h_v">6</span></label><input type="range" id="oo_h" min="1" max="20" value="6" step="1"></div>
+      <div class="ctl"><label>Plant time constant τ <span class="v" id="oo_tau_v">4.0</span> s</label><input type="range" id="oo_tau" min="1" max="12" value="4" step="0.5"></div>
+      <div class="readout" id="oo_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>Output</span><span><i class="dot" style="background:#f4b740"></i>Setpoint</span><span><i class="dot" style="background:#8b9aa6"></i>Heater ON/OFF</span></div>
+    </div>
+    <div class="plotwrap"><canvas id="oo_cv" width="720" height="300"></canvas></div>
+  </div>
+  <div class="try">💡 Try: shrink the band to 1 — see the rapid "chattering". Widen it to 20 — bigger ripple, fewer switches. That trade-off is the whole story of on-off control.</div>
+</div>
+
+<!-- PID -->
+<div class="sim" id="pid">
+  <span class="tag">MODULE 2</span>
+  <h2>PID Control</h2>
+  <p class="exp"><b>P</b> reacts to the present error, <b>I</b> erases steady-state error by accumulating the past, and <b>D</b> anticipates the future by reacting to the rate of change. Tune them on an underdamped plant and watch the step response. Too much P → oscillation; too much I → overshoot &amp; sluggish settling; D → damping (but noise-sensitive).</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>K<sub>p</sub> <span class="v" id="p_kp_v">2.0</span></label><input type="range" id="p_kp" min="0" max="20" value="2" step="0.1"></div>
+      <div class="ctl"><label>K<sub>i</sub> <span class="v" id="p_ki_v">0.0</span></label><input type="range" id="p_ki" min="0" max="10" value="0" step="0.1"></div>
+      <div class="ctl"><label>K<sub>d</sub> <span class="v" id="p_kd_v">0.0</span></label><input type="range" id="p_kd" min="0" max="5" value="0" step="0.05"></div>
+      <div class="readout" id="p_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>Response</span><span><i class="dot" style="background:#f4b740"></i>Setpoint</span></div>
+    </div>
+    <div class="plotwrap"><canvas id="p_cv" width="720" height="300"></canvas></div>
+  </div>
+  <div class="try">💡 Try: start with only K<sub>p</sub>=4 (note the steady-state gap). Add K<sub>i</sub>=1 to close the gap. Then add K<sub>d</sub>=0.3 to tame the overshoot. That's manual PID tuning.</div>
+</div>
+
+<!-- BODE -->
+<div class="sim" id="bode">
+  <span class="tag">MODULE 3</span>
+  <h2>Bode Plot</h2>
+  <p class="exp">A Bode plot shows how a system responds to each frequency: <b>magnitude</b> (gain, in dB) and <b>phase</b> (lag, in degrees) versus frequency on a log scale. For a 2nd-order system, low damping ζ creates a <b>resonant peak</b> near ω<sub>n</sub>. The plot below is for G(s) = K·ω<sub>n</sub>²/(s² + 2ζω<sub>n</sub>s + ω<sub>n</sub>²).</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>ω<sub>n</sub> (rad/s) <span class="v" id="b_wn_v">10</span></label><input type="range" id="b_wn" min="1" max="50" value="10" step="1"></div>
+      <div class="ctl"><label>Damping ζ <span class="v" id="b_z_v">0.30</span></label><input type="range" id="b_z" min="0.05" max="2" value="0.3" step="0.05"></div>
+      <div class="ctl"><label>Gain K <span class="v" id="b_k_v">1.0</span></label><input type="range" id="b_k" min="0.1" max="10" value="1" step="0.1"></div>
+      <div class="readout" id="b_out"></div>
+    </div>
+    <div class="plotwrap">
+      <canvas id="b_mag" width="720" height="190"></canvas>
+      <canvas id="b_ph" width="720" height="190" style="margin-top:8px"></canvas>
+    </div>
+  </div>
+  <div class="try">💡 Try: drop ζ to 0.05 — a sharp resonant peak appears in the magnitude plot. Raise ζ above 0.7 — the peak disappears (well-damped).</div>
+</div>
+
+<!-- POLAR -->
+<div class="sim" id="polar">
+  <span class="tag">MODULE 4</span>
+  <h2>Polar / Nyquist Plot</h2>
+  <p class="exp">The same frequency response, drawn in the complex plane: each point is G(jω) as ω sweeps from 0 → ∞. This is the basis of the <b>Nyquist stability criterion</b> — how close the curve passes to the critical point <b>−1</b> tells you the stability margins. Same G(s) as the Bode module.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>ω<sub>n</sub> (rad/s) <span class="v" id="n_wn_v">10</span></label><input type="range" id="n_wn" min="1" max="50" value="10" step="1"></div>
+      <div class="ctl"><label>Damping ζ <span class="v" id="n_z_v">0.30</span></label><input type="range" id="n_z" min="0.05" max="2" value="0.3" step="0.05"></div>
+      <div class="ctl"><label>Gain K <span class="v" id="n_k_v">1.0</span></label><input type="range" id="n_k" min="0.1" max="10" value="1" step="0.1"></div>
+      <div class="readout" id="n_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>G(jω)</span><span><i class="dot" style="background:#ef5350"></i>−1 point</span></div>
+    </div>
+    <div class="plotwrap"><canvas id="n_cv" width="720" height="380"></canvas></div>
+  </div>
+  <div class="try">💡 Try: increase K and watch the curve swell toward the −1 point — that's the system marching toward instability.</div>
+</div>
+
+<!-- ROUTH -->
+<div class="sim" id="routh">
+  <span class="tag">MODULE 5</span>
+  <h2>Routh-Hurwitz Array</h2>
+  <p class="exp">Is a system stable <b>without</b> finding the roots? The Routh array answers it from the characteristic-polynomial coefficients alone. Build the table; the number of <b>sign changes in the first column</b> equals the number of unstable (right-half-plane) roots. Zero sign changes → stable.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Polynomial coefficients (highest power first)</label>
+        <input type="text" id="r_in" value="1 2 3 4 5"></div>
+      <div class="readout">Example: <code>1 2 3 4 5</code> means s⁴+2s³+3s²+4s+5.</div>
+      <div id="r_verdict"></div>
+    </div>
+    <div class="plotwrap"><div id="r_table"></div></div>
+  </div>
+  <div class="try">💡 Try: <code>1 1 2 24 1</code> (unstable — sign changes). Then <code>1 6 11 6</code> (stable). Edit and watch the verdict flip.</div>
+</div>
+
+<!-- ROOT LOCUS -->
+<div class="sim" id="rlocus">
+  <span class="tag">MODULE 6</span>
+  <h2>Root Locus</h2>
+  <p class="exp">As loop gain <b>K</b> increases from 0 → ∞, where do the closed-loop poles go? The root locus traces those paths. Loci <b>start at open-loop poles</b> (×) and end at <b>zeros</b> (○) or infinity. When a branch crosses into the right-half-plane, the system goes unstable. Enter open-loop poles/zeros (real or <code>a+bj</code>), comma-separated.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Open-loop poles</label><input type="text" id="rl_p" value="0, -2, -4"></div>
+      <div class="ctl"><label>Open-loop zeros</label><input type="text" id="rl_z" value=""></div>
+      <div class="ctl"><label>Gain K <span class="v" id="rl_k_v">5.0</span></label><input type="range" id="rl_k" min="0" max="60" value="5" step="0.5"></div>
+      <div class="readout" id="rl_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#8b9aa6"></i>locus</span><span>× poles</span><span>○ zeros</span><span><i class="dot" style="background:#f4b740"></i>poles at K</span></div>
+    </div>
+    <div class="plotwrap"><canvas id="rl_cv" width="720" height="420"></canvas></div>
+  </div>
+  <div class="try">💡 Try the classic <code>0, -2, -4</code>: raise K and watch two branches bend toward the right-half-plane and cross the imaginary axis — that gain is the stability limit.</div>
+</div>
+
+</div></section>
+<footer>© Dr. S. Ramanathan · Control Systems Interactive Lab · All simulations run in your browser</footer>
+
+<script>
+const C={navy:'#0a1930',teal:'#0f5c70',cyan:'#3fc4dc',gold:'#f4b740',grey:'#8b9aa6',red:'#ef5350'};
+function $(id){return document.getElementById(id);}
+function fmt(x,d){d=d==null?2:d;return (Math.abs(x)<1e-9?0:x).toFixed(d);}
+
+// ---------- generic plotter ----------
+function Plot(cv,o){
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.fillStyle='#0c1f2e';ctx.fillRect(0,0,W,H);
+  const m={l:58,r:16,t:18,b:34};const pw=W-m.l-m.r,ph=H-m.t-m.b;
+  let {xmin,xmax,ymin,ymax,xlog}=o;
+  if(o.equal){ // equalize aspect (data units per pixel)
+    const sx=(xmax-xmin)/pw, sy=(ymax-ymin)/ph, s=Math.max(sx,sy);
+    const cx=(xmin+xmax)/2, cy=(ymin+ymax)/2;
+    xmin=cx-s*pw/2; xmax=cx+s*pw/2; ymin=cy-s*ph/2; ymax=cy+s*ph/2;
+  }
+  const lg=Math.log10;
+  function X(x){let t=xlog?(lg(x)-lg(xmin))/(lg(xmax)-lg(xmin)):(x-xmin)/(xmax-xmin);return m.l+t*pw;}
+  function Y(y){return m.t+(1-(y-ymin)/(ymax-ymin))*ph;}
+  // grid + ticks
+  ctx.strokeStyle='rgba(255,255,255,.09)';ctx.fillStyle='#7e93a1';ctx.font='11px monospace';ctx.lineWidth=1;
+  ctx.textAlign='center';ctx.textBaseline='top';
+  if(xlog){
+    for(let d=Math.ceil(lg(xmin));d<=Math.floor(lg(xmax));d++){
+      const xv=Math.pow(10,d),px=X(xv);
+      ctx.beginPath();ctx.moveTo(px,m.t);ctx.lineTo(px,m.t+ph);ctx.stroke();
+      ctx.fillText('10'+sup(d),px,m.t+ph+5);
+      for(let k=2;k<10;k++){const xm=xv*k;if(xm<xmin||xm>xmax)continue;const pxm=X(xm);
+        ctx.strokeStyle='rgba(255,255,255,.04)';ctx.beginPath();ctx.moveTo(pxm,m.t);ctx.lineTo(pxm,m.t+ph);ctx.stroke();ctx.strokeStyle='rgba(255,255,255,.09)';}
+    }
+  } else {
+    for(let i=0;i<=5;i++){const xv=xmin+i*(xmax-xmin)/5,px=X(xv);
+      ctx.beginPath();ctx.moveTo(px,m.t);ctx.lineTo(px,m.t+ph);ctx.stroke();
+      ctx.fillText(niceN(xv),px,m.t+ph+5);}
+  }
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let i=0;i<=4;i++){const yv=ymin+i*(ymax-ymin)/4,py=Y(yv);
+    ctx.beginPath();ctx.moveTo(m.l,py);ctx.lineTo(m.l+pw,py);ctx.stroke();
+    ctx.fillText(niceN(yv),m.l-6,py);}
+  // zero axes
+  ctx.strokeStyle='rgba(255,255,255,.28)';
+  if(ymin<0&&ymax>0){const p=Y(0);ctx.beginPath();ctx.moveTo(m.l,p);ctx.lineTo(m.l+pw,p);ctx.stroke();}
+  if(!xlog&&xmin<0&&xmax>0){const p=X(0);ctx.beginPath();ctx.moveTo(p,m.t);ctx.lineTo(p,m.t+ph);ctx.stroke();}
+  // labels
+  ctx.fillStyle='#9fb4c0';ctx.font='11px sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  if(o.xlabel)ctx.fillText(o.xlabel,m.l+pw/2,H-4);
+  ctx.save();ctx.translate(12,m.t+ph/2);ctx.rotate(-Math.PI/2);
+  if(o.ylabel)ctx.fillText(o.ylabel,0,0);ctx.restore();
+  // clip plotting area
+  ctx.save();ctx.beginPath();ctx.rect(m.l,m.t,pw,ph);ctx.clip();
+  (o.series||[]).forEach(s=>{
+    if(s.points&&s.points.length){
+      ctx.strokeStyle=s.color;ctx.lineWidth=s.w||2;ctx.beginPath();
+      s.points.forEach((p,i)=>{const px=X(p.x),py=Y(p.y);i?ctx.lineTo(px,py):ctx.moveTo(px,py);});
+      ctx.stroke();
+    }
+    if(s.marks){ctx.fillStyle=s.color;s.marks.forEach(p=>{ctx.beginPath();ctx.arc(X(p.x),Y(p.y),s.r||4,0,7);ctx.fill();});}
+    if(s.xmarks){ // × markers
+      ctx.strokeStyle=s.color;ctx.lineWidth=2;s.xmarks.forEach(p=>{const a=X(p.x),b=Y(p.y),d=5;
+        ctx.beginPath();ctx.moveTo(a-d,b-d);ctx.lineTo(a+d,b+d);ctx.moveTo(a+d,b-d);ctx.lineTo(a-d,b+d);ctx.stroke();});}
+    if(s.omarks){ctx.strokeStyle=s.color;ctx.lineWidth=2;s.omarks.forEach(p=>{ctx.beginPath();ctx.arc(X(p.x),Y(p.y),5,0,7);ctx.stroke();});}
+  });
+  ctx.restore();
+  return {X,Y};
+}
+function sup(n){const m={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};return (''+n).split('').map(c=>m[c]||c).join('');}
+function niceN(x){if(Math.abs(x)>=1000||(Math.abs(x)<0.01&&x!==0))return x.toExponential(0);return (Math.round(x*100)/100).toString();}
+
+// ===== complex helpers =====
+const cx=(re,im)=>({re,im:im||0});
+const cadd=(a,b)=>cx(a.re+b.re,a.im+b.im);
+const csub=(a,b)=>cx(a.re-b.re,a.im-b.im);
+const cmul=(a,b)=>cx(a.re*b.re-a.im*b.im,a.re*b.im+a.im*b.re);
+const cdiv=(a,b)=>{const d=b.re*b.re+b.im*b.im;return cx((a.re*b.re+a.im*b.im)/d,(a.im*b.re-a.re*b.im)/d);};
+const cabs=a=>Math.hypot(a.re,a.im);
+
+// ============ MODULE 1: ON-OFF ============
+function onoff(){
+  const sp=+$('oo_sp').value,h=+$('oo_h').value,tau=+$('oo_tau').value;
+  $('oo_sp_v').textContent=sp;$('oo_h_v').textContent=h;$('oo_tau_v').textContent=fmt(tau,1);
+  const Tamb=20,gain=80,dt=0.05,Tend=50;let T=Tamb,on=false;
+  const out=[],heat=[],setp=[];let switches=0;
+  for(let t=0;t<=Tend;t+=dt){
+    if(on&&T>sp+h/2){on=false;switches++;}
+    else if(!on&&T<sp-h/2){on=true;switches++;}
+    out.push({x:t,y:T});setp.push({x:t,y:sp});heat.push({x:t,y:Tamb-8+(on?4:0)});
+    const u=on?1:0;T+=dt*((-(T-Tamb)+gain*u)/tau);
+  }
+  Plot($('oo_cv'),{xmin:0,xmax:Tend,ymin:0,ymax:100,xlabel:'time (s)',ylabel:'output',
+    series:[{points:heat,color:C.grey,w:1.5},{points:setp,color:C.gold,w:1.5},{points:out,color:C.cyan,w:2}]});
+  $('oo_out').innerHTML=`Ripple band: <b>±${fmt(h/2,1)}</b><br>Switches in ${Tend}s: <b>${switches}</b>`;
+}
+
+// ============ MODULE 2: PID ============
+function pid(){
+  const Kp=+$('p_kp').value,Ki=+$('p_ki').value,Kd=+$('p_kd').value;
+  $('p_kp_v').textContent=fmt(Kp,1);$('p_ki_v').textContent=fmt(Ki,1);$('p_kd_v').textContent=fmt(Kd,2);
+  const wn=2,ze=0.25,dt=0.005,Tend=10,r=1;       // underdamped plant
+  let y=0,v=0,I=0,ePrev=r;const pts=[],sp=[];let peak=0;
+  for(let t=0;t<=Tend;t+=dt){
+    const e=r-y;I+=e*dt;const de=(e-ePrev)/dt;ePrev=e;
+    let u=Kp*e+Ki*I+Kd*de;if(u>50)u=50;if(u<-50)u=-50;
+    const a=-2*ze*wn*v-wn*wn*y+wn*wn*u;v+=a*dt;y+=v*dt;
+    if(y>peak)peak=y;pts.push({x:t,y:y});sp.push({x:t,y:r});
+  }
+  const os=Math.max(0,(peak-r)/r*100),ss=y;
+  Plot($('p_cv'),{xmin:0,xmax:Tend,ymin:-0.2,ymax:2,xlabel:'time (s)',ylabel:'output',
+    series:[{points:sp,color:C.gold,w:1.5},{points:pts,color:C.cyan,w:2}]});
+  $('p_out').innerHTML=`Overshoot: <b>${fmt(os,0)}%</b><br>Final value: <b>${fmt(ss,2)}</b> (target 1.00)<br>Steady-state error: <b>${fmt(Math.abs(1-ss),2)}</b>`;
+}
+
+// ============ MODULES 3&4: BODE + NYQUIST ============
+function G2(w,wn,ze,K){ // returns complex G(jw)
+  const num=cx(K*wn*wn,0);
+  const den=cx(wn*wn-w*w, 2*ze*wn*w);
+  return cdiv(num,den);
+}
+function bode(){
+  const wn=+$('b_wn').value,ze=+$('b_z').value,K=+$('b_k').value;
+  $('b_wn_v').textContent=wn;$('b_z_v').textContent=fmt(ze,2);$('b_k_v').textContent=fmt(K,1);
+  const mag=[],ph=[];let peak=-1e9,peakw=0;
+  for(let i=0;i<=240;i++){
+    const w=Math.pow(10,-1+i/240*3); // 0.1 .. 100
+    const g=G2(w,wn,ze,K),mdb=20*Math.log10(cabs(g)),pd=Math.atan2(g.im,g.re)*180/Math.PI;
+    if(mdb>peak){peak=mdb;peakw=w;}
+    mag.push({x:w,y:mdb});ph.push({x:w,y:pd});
+  }
+  Plot($('b_mag'),{xmin:0.1,xmax:100,ymin:-60,ymax:30,xlog:true,xlabel:'ω (rad/s)',ylabel:'dB',
+    series:[{points:mag,color:C.cyan,w:2}]});
+  Plot($('b_ph'),{xmin:0.1,xmax:100,ymin:-200,ymax:10,xlog:true,xlabel:'ω (rad/s)',ylabel:'phase °',
+    series:[{points:ph,color:C.gold,w:2}]});
+  const dc=20*Math.log10(K);
+  $('b_out').innerHTML=`DC gain: <b>${fmt(dc,1)} dB</b><br>Peak: <b>${fmt(peak,1)} dB</b> @ ω≈<b>${fmt(peakw,1)}</b>`;
+}
+function nyq(){
+  const wn=+$('n_wn').value,ze=+$('n_z').value,K=+$('n_k').value;
+  $('n_wn_v').textContent=wn;$('n_z_v').textContent=fmt(ze,2);$('n_k_v').textContent=fmt(K,1);
+  const pts=[];let xmn=-1.2,xmx=0.2,ymn=-0.2,ymx=0.2;
+  for(let i=0;i<=400;i++){
+    const w=Math.pow(10,-1+i/400*3);const g=G2(w,wn,ze,K);
+    pts.push({x:g.re,y:g.im});
+    xmn=Math.min(xmn,g.re);xmx=Math.max(xmx,g.re);ymn=Math.min(ymn,g.im);ymx=Math.max(ymx,g.im);
+  }
+  // mirror (negative freq) for full Nyquist
+  const mir=pts.map(p=>({x:p.x,y:-p.y})).reverse();
+  const pad=0.15*Math.max(xmx-xmn,ymx-ymn);
+  Plot($('n_cv'),{xmin:xmn-pad,xmax:xmx+pad,ymin:ymn-pad,ymax:ymx+pad,equal:true,xlabel:'Re',ylabel:'Im',
+    series:[{points:pts,color:C.cyan,w:2},{points:mir,color:'rgba(63,196,220,.4)',w:1.5},
+            {marks:[{x:-1,y:0}],color:C.red,r:5}]});
+  $('n_out').innerHTML=`Closest approach to −1 governs stability margin. Raise K to push the curve outward.`;
+}
+
+// ============ MODULE 5: ROUTH ============
+function routh(){
+  const raw=$('r_in').value.trim().split(/[\s,]+/).map(Number).filter(x=>!isNaN(x));
+  const box=$('r_table'),vd=$('r_verdict');
+  if(raw.length<2){box.innerHTML='';vd.innerHTML='<span class="verdict bad">enter ≥2 coefficients</span>';return;}
+  const n=raw.length,rows=n;const cols=Math.ceil(n/2);
+  const R=Array.from({length:rows},()=>Array(cols).fill(0));
+  for(let i=0;i<n;i++)R[i%2][Math.floor(i/2)]=raw[i];
+  const eps=1e-6;
+  for(let i=2;i<rows;i++){
+    let a=R[i-2][0];let b=R[i-1][0];if(Math.abs(b)<1e-12)b=eps;
+    for(let j=0;j<cols-1;j++){R[i][j]=(b*R[i-2][j+1]-a*R[i-1][j+1])/b;}
+    if(Math.abs(R[i][0])<1e-12)R[i][0]=eps;
+  }
+  // table
+  let html='<table class="routh">';
+  for(let i=0;i<rows;i++){html+='<tr><td class="lbl">s'+sup(n-1-i)+'</td>';
+    for(let j=0;j<cols;j++)html+='<td>'+fmt(R[i][j],3)+'</td>';html+='</tr>';}
+  html+='</table>';box.innerHTML=html;
+  let sign=0,changes=0,prev=null;
+  for(let i=0;i<rows;i++){const c=R[i][0];if(prev!==null&&Math.sign(c)!==Math.sign(prev))changes++;prev=c;}
+  if(changes===0)vd.innerHTML='<span class="verdict ok">✓ STABLE — no sign changes (all roots in left-half-plane)</span>';
+  else vd.innerHTML='<span class="verdict bad">✗ UNSTABLE — '+changes+' sign change'+(changes>1?'s':'')+' → '+changes+' root(s) in right-half-plane</span>';
+}
+
+// ============ MODULE 6: ROOT LOCUS ============
+function parseC(str){ // parse comma list of real or a+bj
+  return str.split(',').map(s=>s.trim()).filter(s=>s).map(s=>{
+    s=s.replace(/i/g,'j').replace(/\s/g,'');
+    const m=s.match(/^([+-]?[\d.]*)?([+-][\d.]*)?j$/);
+    if(s.indexOf('j')>=0){
+      const mm=s.match(/^([+-]?[\d.]+)?([+-][\d.]*)j$/);
+      if(mm){const re=mm[1]?parseFloat(mm[1]):0;let imp=mm[2];if(imp==='+'||imp==='')imp='1';if(imp==='-')imp='-1';return cx(re,parseFloat(imp));}
+      return cx(0,parseFloat(s.replace('j',''))||1);
+    }
+    return cx(parseFloat(s),0);
+  }).filter(c=>!isNaN(c.re)&&!isNaN(c.im));
+}
+function polyFromRoots(roots){ // returns complex coeff array, highest first
+  let p=[cx(1,0)];
+  roots.forEach(r=>{const np=Array(p.length+1).fill(0).map(()=>cx(0,0));
+    for(let i=0;i<p.length;i++){np[i]=cadd(np[i],p[i]);np[i+1]=csub(np[i+1],cmul(p[i],r));}p=np;});
+  return p;
+}
+function polyroots(coeffs){ // Durand-Kerner; coeffs complex, highest first
+  const a=coeffs.map(c=>cx(c.re,c.im));const n=a.length-1;if(n<1)return [];
+  const lead=a[0];const c=a.map(z=>cdiv(z,lead));
+  let r=[];for(let i=0;i<n;i++){const ang=2*Math.PI*i/n+0.4;r.push(cx(0.7*Math.cos(ang)+0.1,0.7*Math.sin(ang)));}
+  const ev=(x)=>{let s=cx(0,0);for(let i=0;i<c.length;i++)s=cadd(cmul(s,x),c[i]);return s;};
+  for(let it=0;it<120;it++){let maxd=0;
+    for(let i=0;i<n;i++){let den=cx(1,0);for(let j=0;j<n;j++)if(j!==i)den=cmul(den,csub(r[i],r[j]));
+      const d=cdiv(ev(r[i]),den);r[i]=csub(r[i],d);maxd=Math.max(maxd,cabs(d));}
+    if(maxd<1e-10)break;}
+  return r;
+}
+function rlocus(){
+  const P=parseC($('rl_p').value),Z=parseC($('rl_z').value),Ksel=+$('rl_k').value;
+  $('rl_k_v').textContent=fmt(Ksel,1);
+  const denP=polyFromRoots(P),numP=polyFromRoots(Z);
+  // align lengths: char poly = den + K*num, pad num at front
+  function charPoly(K){
+    const L=Math.max(denP.length,numP.length);
+    const d=Array(L).fill(0).map(()=>cx(0,0)),nu=Array(L).fill(0).map(()=>cx(0,0));
+    for(let i=0;i<denP.length;i++)d[L-denP.length+i]=denP[i];
+    for(let i=0;i<numP.length;i++)nu[L-numP.length+i]=numP[i];
+    return d.map((c,i)=>cadd(c,cx(K*nu[i].re,K*nu[i].im)));
+  }
+  const locusPts=[];let xmn=-1,xmx=1,ymn=-1,ymx=1;
+  P.concat(Z).forEach(p=>{xmn=Math.min(xmn,p.re);xmx=Math.max(xmx,p.re);ymn=Math.min(ymn,p.im);ymx=Math.max(ymx,p.im);});
+  for(let s=0;s<=160;s++){const K=Math.pow(10,-2+s/160*4); // 0.01..100
+    const roots=polyroots(charPoly(K));
+    roots.forEach(rt=>{locusPts.push({x:rt.re,y:rt.im});xmn=Math.min(xmn,rt.re);xmx=Math.max(xmx,rt.re);ymn=Math.min(ymn,rt.im);ymx=Math.max(ymx,rt.im);});}
+  const selRoots=polyroots(charPoly(Ksel)).map(r=>({x:r.re,y:r.im}));
+  let unstable=selRoots.some(r=>r.x>1e-6);
+  const padx=0.2*(xmx-xmn||1),pady=0.2*(ymy(ymx,ymn));
+  function ymy(a,b){return (a-b)||1;}
+  Plot($('rl_cv'),{xmin:xmn-padx,xmax:Math.max(xmx+padx,1),ymin:ymn-pady,ymax:ymx+pady,equal:true,xlabel:'Real',ylabel:'Imag',
+    series:[{marks:locusPts.map(p=>p),color:'rgba(139,154,166,.55)',r:1.6},
+            {xmarks:P.map(p=>({x:p.re,y:p.im})),color:C.cyan},
+            {omarks:Z.map(p=>({x:p.re,y:p.im})),color:C.cyan},
+            {marks:selRoots,color:C.gold,r:5}]});
+  $('rl_out').innerHTML=`Closed-loop poles at K=${fmt(Ksel,1)}:<br>`+
+    selRoots.map(r=>`<b>${fmt(r.x,2)}${r.y>=0?'+':'−'}${fmt(Math.abs(r.y),2)}j</b>`).join('<br>')+
+    `<br>${unstable?'<span class="verdict bad">UNSTABLE</span>':'<span class="verdict ok">STABLE</span>'}`;
+}
+
+// ---- wire up ----
+function wire(ids,fn){ids.forEach(id=>{const e=$(id);if(e){e.addEventListener('input',fn);}});fn();}
+wire(['oo_sp','oo_h','oo_tau'],onoff);
+wire(['p_kp','p_ki','p_kd'],pid);
+wire(['b_wn','b_z','b_k'],bode);
+wire(['n_wn','n_z','n_k'],nyq);
+wire(['r_in'],routh);
+wire(['rl_p','rl_z','rl_k'],rlocus);
+</script>
+</body></html>
