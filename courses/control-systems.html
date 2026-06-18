@@ -59,6 +59,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#polar">Polar / Nyquist</a><a href="#routh">Routh Array</a><a href="#rlocus">Root Locus</a>
 <a href="#step">Step Response</a><a href="#poles">Pole &amp; Stability</a><a href="#leadlag">Lead / Lag</a>
 <a href="#phase">Phase Portrait</a><a href="#zplane">Z-Plane</a><a href="#senst">Sensitivity S/T</a>
+<a href="#margins">Stability Margins</a><a href="#nmp">Zeros / Non-Min-Phase</a><a href="#delay">Time Delay</a>
 </div>
 </div></div>
 
@@ -424,6 +425,91 @@ padding:6px 12px;border-radius:30px;font-size:13px}
       <li><b>High frequency:</b> \(|L|\ll1\) → \(|T|\approx0\) (noise rejected).</li>
       <li><b>Peak sensitivity</b> \(M_s=\max_\omega|S(j\omega)|\) measures robustness — keep it small (≈ 1.3–2, i.e. &lt; 6 dB).</li>
       <li>The Bode sensitivity integral (\(\int\ln|S|\,d\omega=0\)) means pushing \(|S|\) down somewhere forces it <b>up</b> elsewhere — the waterbed effect.</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- STABILITY MARGINS -->
+<div class="sim" id="margins">
+  <span class="tag">MODULE 13</span>
+  <h2>Open-Loop Bode &amp; Stability Margins</h2>
+  <p class="exp">Before closing the loop, the open-loop Bode of L(s) tells you <i>how stable</i> the closed loop will be. The <b>gain margin</b> (how much extra gain until instability) and <b>phase margin</b> (how much extra lag) are read straight off the two crossover frequencies.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Loop gain K <span class="v" id="m_k_v">8</span></label><input type="range" id="m_k" min="0.5" max="80" value="8" step="0.5"></div>
+      <div class="ctl"><label>Pole p₁ <span class="v" id="m_p1_v">2</span></label><input type="range" id="m_p1" min="1" max="30" value="2" step="1"></div>
+      <div class="ctl"><label>Pole p₂ <span class="v" id="m_p2_v">8</span></label><input type="range" id="m_p2" min="1" max="40" value="8" step="1"></div>
+      <div class="readout" id="m_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>|L| dB</span><span><i class="dot" style="background:#f4b740"></i>phase</span><span><i class="dot" style="background:#ef5350"></i>−180°</span></div>
+    </div>
+    <div class="plotwrap">
+      <canvas id="m_mag" width="720" height="190"></canvas>
+      <canvas id="m_ph" width="720" height="190" style="margin-top:8px"></canvas>
+    </div>
+  </div>
+  <div class="try">💡 Try: raise K — the magnitude curve lifts, the gain-crossover moves right, and the phase margin shrinks. Push K high enough and PM goes negative → unstable.</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>For the open-loop \(L(s)=\dfrac{K}{s(1+s/p_1)(1+s/p_2)}\):</p>
+    <ul>
+      <li><b>Gain crossover</b> \(\omega_{gc}\): where \(|L|=0\) dB. <b>Phase margin</b> \(=180^\circ+\angle L(j\omega_{gc})\).</li>
+      <li><b>Phase crossover</b> \(\omega_{pc}\): where \(\angle L=-180^\circ\). <b>Gain margin</b> \(=-|L(j\omega_{pc})|_{\text{dB}}\).</li>
+    </ul>
+    <div class="eqn">\[ \text{PM}=180^\circ+\angle L(j\omega_{gc}),\qquad \text{GM}=\frac{1}{|L(j\omega_{pc})|} \]</div>
+    <p>Positive margins ⟹ stable closed loop. Rules of thumb: PM ≈ 45–60° and GM ≈ 6–12 dB for a well-damped, robust design.</p>
+  </div></details>
+</div>
+
+<!-- NON-MINIMUM PHASE -->
+<div class="sim" id="nmp">
+  <span class="tag">MODULE 14</span>
+  <h2>Effect of Zeros &amp; Non-Minimum Phase</h2>
+  <p class="exp">Poles set the modes; <b>zeros</b> shape how those modes combine. A left-half-plane zero speeds the response and adds overshoot. A <b>right-half-plane zero</b> makes the system <b>non-minimum phase</b> — the output first moves the <i>wrong way</i> (undershoot) before recovering. Drag the zero across the imaginary axis to see it.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Zero location (s) <span class="v" id="zz_loc_v">-3.0</span></label><input type="range" id="zz_loc" min="-10" max="10" value="-3" step="0.5"></div>
+      <div class="ctl"><label>Damping ζ <span class="v" id="zz_z_v">0.50</span></label><input type="range" id="zz_z" min="0.2" max="1.2" value="0.5" step="0.05"></div>
+      <div class="readout" id="zz_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>response</span><span><i class="dot" style="background:#f4b740"></i>setpoint</span></div>
+    </div>
+    <div class="plotwrap"><canvas id="zz_cv" width="720" height="300"></canvas></div>
+  </div>
+  <div class="try">💡 Try: zero at −1 (close LHP) → big overshoot. Zero at +2 (RHP) → the response dips <b>below zero</b> first — that initial undershoot is the signature of non-minimum-phase systems (and why they're hard to control).</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>Add a zero at \(s=z\) to a 2nd-order system (DC gain kept at 1):</p>
+    <div class="eqn">\[ G(s)=\Big(1-\tfrac{s}{z}\Big)\frac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2} \]</div>
+    <ul>
+      <li><b>LHP zero</b> (\(z<0\)): adds derivative-like action → faster rise, more overshoot. The closer to the imaginary axis, the stronger the effect.</li>
+      <li><b>RHP zero</b> (\(z>0\)): <b>non-minimum phase</b> — the step response undershoots (goes negative) before rising. RHP zeros impose a fundamental bandwidth limit and cannot be cancelled by feedback.</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- TIME DELAY -->
+<div class="sim" id="delay">
+  <span class="tag">MODULE 15</span>
+  <h2>Time Delay (Dead Time) &amp; Phase Margin</h2>
+  <p class="exp">Transport/processing delay adds pure <b>phase lag</b> that grows without bound with frequency — while leaving the gain untouched. A little delay quietly eats your phase margin; enough of it will destabilise an otherwise-fine loop. This is why dead time is the control engineer's nemesis.</p>
+  <div class="row">
+    <div class="controls">
+      <div class="ctl"><label>Loop gain K <span class="v" id="dl_k_v">2.0</span></label><input type="range" id="dl_k" min="0.2" max="10" value="2" step="0.1"></div>
+      <div class="ctl"><label>Plant τ <span class="v" id="dl_tau_v">0.50</span></label><input type="range" id="dl_tau" min="0.1" max="2" value="0.5" step="0.05"></div>
+      <div class="ctl"><label>Dead time T <span class="v" id="dl_T_v">0.30</span> s</label><input type="range" id="dl_T" min="0" max="1.5" value="0.3" step="0.05"></div>
+      <div class="readout" id="dl_out"></div>
+      <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>|L| dB</span><span><i class="dot" style="background:#f4b740"></i>phase</span><span><i class="dot" style="background:#ef5350"></i>−180°</span></div>
+    </div>
+    <div class="plotwrap">
+      <canvas id="dl_mag" width="720" height="190"></canvas>
+      <canvas id="dl_ph" width="720" height="190" style="margin-top:8px"></canvas>
+    </div>
+  </div>
+  <div class="try">💡 Try: start with T=0 (comfortable phase margin). Increase the dead time — the phase plot sinks, the phase-crossover marches left, and the margins collapse toward instability.</div>
+  <details class="theory"><summary>Theory &amp; derivation</summary><div class="tbody">
+    <p>A pure delay \(e^{-sT}\) has unity magnitude but a phase that decreases linearly with frequency:</p>
+    <div class="eqn">\[ \big|e^{-j\omega T}\big|=1,\qquad \angle e^{-j\omega T}=-\omega T \ \text{(rad)} \]</div>
+    <p>For \(L(s)=\dfrac{K\,e^{-sT}}{\tau s+1}\): the magnitude is unchanged by the delay, but every frequency picks up extra lag \(-\omega T\). Because that lag is unbounded, the phase eventually crosses \(-180^\circ\), giving a finite gain margin even for a simple plant.</p>
+    <ul>
+      <li>Larger \(T\) → phase crossover at lower \(\omega\) → smaller GM/PM.</li>
+      <li>Predictive schemes (e.g. the Smith predictor) are used to tame large dead times.</li>
     </ul>
   </div></details>
 </div>
@@ -805,5 +891,72 @@ function senst(){
 wire(['pp_wn','pp_z'],phaseportrait);
 wire(['z_r','z_th'],zplane);
 wire(['st_k','st_t'],senst);
+
+// crossover helpers (for margins / delay)
+function cross(arr,t){for(let i=1;i<arr.length;i++){const a=arr[i-1]-t,b=arr[i]-t;if(a===0)return{lo:i-1,f:0};if(a*b<0)return{lo:i-1,f:a/(a-b)};}return null;}
+function interp(arr,c){return arr[c.lo]+c.f*(arr[c.lo+1]-arr[c.lo]);}
+function interpW(w,c){return w[c.lo]*Math.pow(w[c.lo+1]/w[c.lo],c.f);}
+
+// ============ MODULE 13: STABILITY MARGINS ============
+function margins(){
+  const K=+$('m_k').value,p1=+$('m_p1').value,p2=+$('m_p2').value;
+  $('m_k_v').textContent=fmt(K,1);$('m_p1_v').textContent=fmt(p1,0);$('m_p2_v').textContent=fmt(p2,0);
+  const w=[],mdb=[],phd=[];
+  for(let i=0;i<=320;i++){const W=Math.pow(10,-2+i/320*5);
+    const m=K/(W*Math.sqrt(1+(W/p1)**2)*Math.sqrt(1+(W/p2)**2));
+    w.push(W);mdb.push(20*Math.log10(m));
+    phd.push(-90-Math.atan(W/p1)*180/Math.PI-Math.atan(W/p2)*180/Math.PI);}
+  const gc=cross(mdb,0),pc=cross(phd,-180);
+  let PM=null,GM=null,wgc=null,wpc=null;
+  if(gc){wgc=interpW(w,gc);PM=180+interp(phd,gc);}
+  if(pc){wpc=interpW(w,pc);GM=-interp(mdb,pc);}
+  const magS={points:w.map((x,i)=>({x,y:mdb[i]})),color:C.cyan,w:2};
+  Plot($('m_mag'),{xmin:0.01,xmax:1000,ymin:-60,ymax:40,xlog:true,xlabel:'ω (rad/s)',ylabel:'|L| dB',
+    series:[magS].concat(wgc?[{marks:[{x:wgc,y:0}],color:C.gold,r:5}]:[])});
+  Plot($('m_ph'),{xmin:0.01,xmax:1000,ymin:-280,ymax:-60,xlog:true,xlabel:'ω (rad/s)',ylabel:'phase °',
+    series:[{points:[{x:0.01,y:-180},{x:1000,y:-180}],color:'rgba(239,83,80,.55)',w:1.5},
+            {points:w.map((x,i)=>({x,y:phd[i]})),color:C.gold,w:2}].concat(wpc?[{marks:[{x:wpc,y:-180}],color:C.cyan,r:5}]:[])});
+  const stable=(PM==null||PM>0)&&(GM==null||GM>0);
+  $('m_out').innerHTML=`Phase margin: <b>${PM==null?'∞':fmt(PM,1)+'°'}</b>${wgc?' @ ω='+fmt(wgc,1):''}<br>Gain margin: <b>${GM==null?'∞':fmt(GM,1)+' dB'}</b>${wpc?' @ ω='+fmt(wpc,1):''}<br>${stable?'<span class="verdict ok">STABLE</span>':'<span class="verdict bad">UNSTABLE</span>'}`;
+}
+
+// ============ MODULE 14: ZEROS / NON-MINIMUM PHASE ============
+function nmp(){
+  const zc=+$('zz_loc').value,ze=+$('zz_z').value,wn=4;
+  $('zz_loc_v').textContent=fmt(zc,1);$('zz_z_v').textContent=fmt(ze,2);
+  const a1=2*ze*wn,a0=wn*wn,b0=wn*wn,b1=(Math.abs(zc)<0.25?0:-wn*wn/zc);
+  const dt=0.004,Te=8;let x1=0,x2=0;const pts=[],sp=[];let mn=0,mx=1.2;
+  for(let t=0;t<=Te;t+=dt){const y=b0*x1+b1*x2;pts.push({x:t,y:y});sp.push({x:t,y:1});mn=Math.min(mn,y);mx=Math.max(mx,y);
+    const x1d=x2,x2d=-a0*x1-a1*x2+1;x1+=x1d*dt;x2+=x2d*dt;}
+  Plot($('zz_cv'),{xmin:0,xmax:Te,ymin:Math.min(-0.4,mn*1.15),ymax:Math.max(1.8,mx*1.1),xlabel:'time (s)',ylabel:'output',
+    series:[{points:sp,color:C.gold,w:1.5},{points:pts,color:C.cyan,w:2}]});
+  const kind = Math.abs(zc)<0.25?'no zero (pure 2nd-order)':(zc>0?'<span class="verdict bad">Non-minimum phase</span> (RHP zero) → initial undershoot':'Minimum phase (LHP zero) → extra overshoot');
+  $('zz_out').innerHTML=`Zero at s = <b>${fmt(zc,1)}</b><br>${kind}`;
+}
+
+// ============ MODULE 15: TIME DELAY ============
+function delayf(){
+  const K=+$('dl_k').value,tau=+$('dl_tau').value,T=+$('dl_T').value;
+  $('dl_k_v').textContent=fmt(K,1);$('dl_tau_v').textContent=fmt(tau,2);$('dl_T_v').textContent=fmt(T,2);
+  const w=[],mdb=[],phd=[];
+  for(let i=0;i<=320;i++){const W=Math.pow(10,-2+i/320*4);
+    w.push(W);mdb.push(20*Math.log10(K/Math.sqrt(1+(W*tau)**2)));
+    phd.push(-Math.atan(W*tau)*180/Math.PI - W*T*180/Math.PI);}
+  const gc=cross(mdb,0),pc=cross(phd,-180);
+  let PM=null,GM=null,wgc=null,wpc=null;
+  if(gc){wgc=interpW(w,gc);PM=180+interp(phd,gc);}
+  if(pc){wpc=interpW(w,pc);GM=-interp(mdb,pc);}
+  Plot($('dl_mag'),{xmin:0.01,xmax:100,ymin:-40,ymax:30,xlog:true,xlabel:'ω (rad/s)',ylabel:'|L| dB',
+    series:[{points:w.map((x,i)=>({x,y:mdb[i]})),color:C.cyan,w:2}].concat(wgc?[{marks:[{x:wgc,y:0}],color:C.gold,r:5}]:[])});
+  Plot($('dl_ph'),{xmin:0.01,xmax:100,ymin:-360,ymax:0,xlog:true,xlabel:'ω (rad/s)',ylabel:'phase °',
+    series:[{points:[{x:0.01,y:-180},{x:100,y:-180}],color:'rgba(239,83,80,.55)',w:1.5},
+            {points:w.map((x,i)=>({x,y:phd[i]})),color:C.gold,w:2}].concat(wpc?[{marks:[{x:wpc,y:-180}],color:C.cyan,r:5}]:[])});
+  const stable=(PM==null||PM>0)&&(GM==null||GM>0);
+  $('dl_out').innerHTML=`Phase margin: <b>${PM==null?'∞':fmt(PM,1)+'°'}</b><br>Gain margin: <b>${GM==null?'∞':fmt(GM,1)+' dB'}</b>${wpc?' @ ω='+fmt(wpc,1):''}<br>${stable?'<span class="verdict ok">STABLE</span>':'<span class="verdict bad">UNSTABLE</span>'}`;
+}
+
+wire(['m_k','m_p1','m_p2'],margins);
+wire(['zz_loc','zz_z'],nmp);
+wire(['dl_k','dl_tau','dl_T'],delayf);
 </script>
 </body></html>
