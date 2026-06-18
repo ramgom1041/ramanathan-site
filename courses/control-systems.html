@@ -64,6 +64,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#zn">Z–N Auto-Tune</a><a href="#lead">Lead Design</a><a href="#nichols">Nichols Chart</a><a href="#pzb">Pole-Zero Builder</a>
 <a href="#pp2">Pole Placement</a><a href="#lqr">LQR</a><a href="#obs">Observer</a><a href="#kf">Kalman Filter</a><a href="#co">Controllability</a>
 <a href="#disc">Discretization</a><a href="#dpid">Discrete PID</a><a href="#alias">Sampling / Aliasing</a>
+<a href="#pend">Pendulum Phase Plane</a><a href="#aw">Anti-Windup</a><a href="#df">Limit Cycle</a><a href="#sm">Sliding Mode</a>
 </div>
 </div></div>
 
@@ -783,6 +784,70 @@ padding:6px 12px;border-radius:30px;font-size:13px}
   </div></details>
 </div>
 
+<!-- PENDULUM -->
+<div class="sim" id="pend">
+  <span class="tag">MODULE 32</span><h2>Pendulum Phase Plane (Nonlinear)</h2>
+  <p class="exp">Real systems are nonlinear. The pendulum has <b>two kinds of equilibria</b>: hanging down (stable) and balanced up (an unstable <b>saddle</b>). The phase plane reveals the global picture — swinging orbits, the separatrix, and (with damping) spirals into rest — that a linear model can't show.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Damping b <span class="v" id="pe_b_v">0.20</span></label><input type="range" id="pe_b" min="0" max="1" value="0.2" step="0.05"></div>
+    <div class="readout" id="pe_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>trajectories</span><span><i class="dot" style="background:#f4b740"></i>stable (down)</span><span><i class="dot" style="background:#ef5350"></i>saddle (up)</span></div>
+  </div><div class="plotwrap"><canvas id="pe_cv" width="720" height="380"></canvas></div></div>
+  <div class="try">💡 Try: b=0 → conservative; closed orbits (swinging) inside, rotations outside, separated by the separatrix through the upright saddles. Add damping → everything spirals into the hanging-down state.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \ddot\theta + b\dot\theta + \tfrac{g}{L}\sin\theta = 0 \ \Rightarrow\ \begin{cases}\dot\theta=\omega\\ \dot\omega=-b\,\omega-\sin\theta\end{cases} \]</div>
+    <p>Equilibria at \(\theta=0,\pm2\pi,\dots\) (stable) and \(\theta=\pm\pi\) (saddles). Linearising about \(\theta=0\) gives the familiar 2nd-order system; about \(\theta=\pi\), \(\sin\theta\approx-(\theta-\pi)\) gives an unstable saddle — which is why balancing an inverted pendulum needs active control.</p>
+  </div></details>
+</div>
+
+<!-- ANTI-WINDUP -->
+<div class="sim" id="aw">
+  <span class="tag">MODULE 33</span><h2>Integrator Windup &amp; Anti-Windup</h2>
+  <p class="exp">Every real actuator <b>saturates</b>. While it's maxed out, a PID's integrator keeps accumulating error ("winding up") — then massively overshoots when it finally catches up. <b>Anti-windup</b> stops the integral from charging during saturation. Compare the two.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Actuator limit u<sub>max</sub> <span class="v" id="aw_u_v">1.2</span></label><input type="range" id="aw_u" min="0.4" max="3" value="1.2" step="0.1"></div>
+    <div class="ctl"><label>Integral gain K<sub>i</sub> <span class="v" id="aw_ki_v">1.5</span></label><input type="range" id="aw_ki" min="0" max="5" value="1.5" step="0.1"></div>
+    <div class="readout" id="aw_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#ef5350"></i>no anti-windup</span><span><i class="dot" style="background:#3fc4dc"></i>with anti-windup</span><span><i class="dot" style="background:#f4b740"></i>setpoint</span></div>
+  </div><div class="plotwrap"><canvas id="aw_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: tight u<sub>max</sub> with a big K<sub>i</sub> → the red (no anti-windup) curve overshoots wildly and is slow to recover; the blue (anti-windup) tracks cleanly.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>During saturation the loop is open, but the integrator doesn't know — it keeps integrating the error, building a huge term that must be "unwound" before the output can come back. <b>Conditional integration</b> (shown here) simply pauses the integral while saturated; <b>back-calculation</b> bleeds the excess off through a tracking gain.</p>
+  </div></details>
+</div>
+
+<!-- LIMIT CYCLE / DESCRIBING FUNCTION -->
+<div class="sim" id="df">
+  <span class="tag">MODULE 34</span><h2>Relay Feedback &amp; Limit Cycles</h2>
+  <p class="exp">A relay (on/off) nonlinearity in a loop produces a self-sustained <b>limit cycle</b> — a fixed-amplitude oscillation. The <b>describing function</b> predicts it by treating the relay as an amplitude-dependent gain. This is the principle behind relay auto-tuning.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Relay amplitude d <span class="v" id="df_d_v">1.0</span></label><input type="range" id="df_d" min="0.4" max="3" value="1" step="0.1"></div>
+    <div class="readout" id="df_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>output y(t)</span></div>
+  </div><div class="plotwrap"><canvas id="df_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: the loop settles into a steady oscillation no matter the amplitude d — the period is set by the plant (where its phase = −180°), and the amplitude scales with d.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>The describing function of an ideal relay (amplitude d) is \(N(A)=\dfrac{4d}{\pi A}\). A limit cycle exists where \(G(j\omega)N(A)=-1\), i.e. \(G(j\omega)=-\dfrac{\pi A}{4d}\). The oscillation frequency is the plant's phase-crossover (here \(1/(s+1)^3\) → \(\omega=\sqrt3\), period ≈ 3.63 s); its amplitude follows from \(|G|\) there.</p>
+  </div></details>
+</div>
+
+<!-- SLIDING MODE -->
+<div class="sim" id="sm">
+  <span class="tag">MODULE 35</span><h2>Sliding Mode Control</h2>
+  <p class="exp">A robust nonlinear scheme: define a <b>sliding surface</b> \(\sigma=cx_1+x_2=0\) and switch the control to always drive the state toward it. Once on the surface the state <b>slides</b> to the origin along it — insensitive to disturbances and model error (at the cost of high-frequency "chattering").</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Surface slope c <span class="v" id="sm_c_v">1.5</span></label><input type="range" id="sm_c" min="0.5" max="3" value="1.5" step="0.1"></div>
+    <div class="ctl"><label>Switching gain K <span class="v" id="sm_k_v">4</span></label><input type="range" id="sm_k" min="1" max="10" value="4" step="0.5"></div>
+    <div class="readout" id="sm_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>trajectory</span><span><i class="dot" style="background:#f4b740"></i>sliding surface</span></div>
+  </div><div class="plotwrap"><canvas id="sm_cv" width="720" height="360"></canvas></div></div>
+  <div class="try">💡 Try: the state shoots to the surface line, then rides it into the origin. Increase c → steeper surface → faster sliding. The zig-zag along the line is chattering.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \sigma=cx_1+x_2,\qquad u=-K\,\text{sign}(\sigma) \]</div>
+    <p>The control forces \(\sigma\dot\sigma<0\) (a Lyapunov condition), so the state reaches \(\sigma=0\) in finite time. On the surface the dynamics reduce to \(\dot x_1=-c x_1\) — first-order, set entirely by your chosen \(c\), independent of the plant. Real implementations smooth the sign function (boundary layer) to reduce chattering.</p>
+  </div></details>
+</div>
+
 </div></section>
 <footer>© Dr. S. Ramanathan · Control Systems Interactive Lab · All simulations run in your browser</footer>
 
@@ -1492,5 +1557,61 @@ function aliasing(){
 wire(['dz_ts','dz_tau'],discretize);
 wire(['dp_kp','dp_ki','dp_kd','dp_ts'],discPID);
 wire(['al_f','al_fs'],aliasing);
+
+// ============ MODULE 32: PENDULUM ============
+function pendulum(){
+  const b=+$('pe_b').value;$('pe_b_v').textContent=fmt(b,2);
+  const f=(th,w)=>[w,-b*w-Math.sin(th)];
+  const Rx=7,Ry=4,segs=[],Nx=21,Ny=11;
+  for(let i=0;i<Nx;i++)for(let j=0;j<Ny;j++){const th=-Rx+2*Rx*i/(Nx-1),w=-Ry+2*Ry*j/(Ny-1),d=f(th,w),m=Math.hypot(d[0],d[1])||1,L=0.32;
+    segs.push({x1:th,y1:w,x2:th+d[0]/m*L,y2:w+d[1]/m*L});}
+  const ICs=[[-6,3.6],[-3.2,3.6],[0,3.3],[3.2,3.6],[6,3.6],[-6,-3.6],[-3.2,-3.6],[0,-3.3],[3.2,-3.6],[6,-3.6],[-1.5,0.4],[1.5,-0.4]];
+  const trajs=ICs.map(ic=>{let th=ic[0],w=ic[1];const p=[];const dt=0.008;for(let t=0;t<16;t+=dt){p.push({x:th,y:w});const d=f(th,w);th+=d[0]*dt;w+=d[1]*dt;if(Math.abs(w)>Ry+1)break;}return {points:p,color:'rgba(63,196,220,.8)',w:1.3};});
+  Plot($('pe_cv'),{xmin:-Rx,xmax:Rx,ymin:-Ry,ymax:Ry,equal:true,xlabel:'θ (rad)',ylabel:'ω',
+    series:[{segs,color:'rgba(150,170,180,.5)'}].concat(trajs).concat([
+      {marks:[{x:0,y:0},{x:2*Math.PI,y:0},{x:-2*Math.PI,y:0}],color:C.gold,r:5},
+      {xmarks:[{x:Math.PI,y:0},{x:-Math.PI,y:0}],color:C.red}])});
+  $('pe_out').innerHTML=`Stable: θ=0, ±2π<br>Saddles (inverted): θ=±π<br>Damping b=<b>${fmt(b,2)}</b> ${b<0.01?'(conservative)':''}`;
+}
+// ============ MODULE 33: ANTI-WINDUP ============
+function antiwindup(){
+  const umax=+$('aw_u').value,Ki=+$('aw_ki').value,Kp=2;$('aw_u_v').textContent=fmt(umax,1);$('aw_ki_v').textContent=fmt(Ki,1);
+  const dt=0.01,Te=14;
+  function sim(aw){let y=0,I=0;const p=[];for(let t=0;t<=Te;t+=dt){const e=1-y;const uun=Kp*e+Ki*I;let u=uun>umax?umax:uun<-umax?-umax:uun;
+    if(aw){if(u===uun)I+=e*dt;}else{I+=e*dt;}
+    y+=(-y+u)*dt;p.push({x:t,y:y});}return p;}
+  const no=sim(false),yes=sim(true);let mx=1.2;no.concat(yes).forEach(p=>mx=Math.max(mx,p.y));
+  Plot($('aw_cv'),{xmin:0,xmax:Te,ymin:0,ymax:mx*1.08,xlabel:'time (s)',ylabel:'output',
+    series:[{points:[{x:0,y:1},{x:Te,y:1}],color:C.gold,w:1.3},{points:no,color:C.red,w:2},{points:yes,color:C.cyan,w:2}]});
+  $('aw_out').innerHTML=`Peak (no anti-windup): <b>${fmt(Math.max(...no.map(p=>p.y)),2)}</b><br>Peak (with): <b>${fmt(Math.max(...yes.map(p=>p.y)),2)}</b>`;
+}
+// ============ MODULE 34: RELAY LIMIT CYCLE ============
+function describing(){
+  const d=+$('df_d').value;$('df_d_v').textContent=fmt(d,1);
+  const dt=0.005,Te=40;let x1=0.5,x2=0,x3=0;const pts=[];
+  for(let t=0;t<=Te;t+=dt){const y=x3,u=-d*Math.sign(y);x1+=(-x1+u)*dt;x2+=(-x2+x1)*dt;x3+=(-x3+x2)*dt;pts.push({x:t,y:y});}
+  // measure amplitude/period over last 40%
+  const tail=pts.filter(p=>p.x>Te*0.6);const amp=Math.max(...tail.map(p=>Math.abs(p.y)));
+  // period: count zero crossings
+  let cross=[];for(let i=1;i<tail.length;i++)if(tail[i-1].y<0&&tail[i].y>=0)cross.push(tail[i].x);
+  const per=cross.length>1?(cross[cross.length-1]-cross[0])/(cross.length-1):NaN;
+  Plot($('df_cv'),{xmin:0,xmax:Te,ymin:-amp*1.4||-0.5,ymax:amp*1.4||0.5,xlabel:'time (s)',ylabel:'y(t)',
+    series:[{points:pts,color:C.cyan,w:1.8}]});
+  $('df_out').innerHTML=`Limit-cycle amplitude: <b>${fmt(amp,3)}</b><br>Period: <b>${isNaN(per)?'—':fmt(per,2)+' s'}</b> (theory ≈ 3.63 s)`;
+}
+// ============ MODULE 35: SLIDING MODE ============
+function slidingmode(){
+  const c=+$('sm_c').value,K=+$('sm_k').value;$('sm_c_v').textContent=fmt(c,1);$('sm_k_v').textContent=fmt(K,1);
+  let x1=3,x2=-1;const traj=[];const dt=0.0015,Te=10;
+  for(let t=0;t<=Te;t+=dt){traj.push({x:x1,y:x2});const s=c*x1+x2,u=-K*Math.sign(s);x1+=x2*dt;x2+=u*dt;if(Math.abs(x1)>6||Math.abs(x2)>6)break;}
+  const surf=[{x:-5,y:5*c},{x:5,y:-5*c}];
+  Plot($('sm_cv'),{xmin:-5,xmax:5,ymin:-5,ymax:5,equal:true,xlabel:'x₁',ylabel:'x₂',
+    series:[{points:surf,color:C.gold,w:2},{points:traj,color:C.cyan,w:1.8},{marks:[{x:0,y:0}],color:C.gold,r:4}]});
+  $('sm_out').innerHTML=`Surface: σ = ${fmt(c,1)}·x₁ + x₂ = 0<br>On the surface: ẋ₁ = −${fmt(c,1)}·x₁ (first-order)`;
+}
+wire(['pe_b'],pendulum);
+wire(['aw_u','aw_ki'],antiwindup);
+wire(['df_d'],describing);
+wire(['sm_c','sm_k'],slidingmode);
 </script>
 </body></html>
