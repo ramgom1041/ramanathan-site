@@ -66,6 +66,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#disc">Discretization</a><a href="#dpid">Discrete PID</a><a href="#alias">Sampling / Aliasing</a>
 <a href="#pend">Pendulum Phase Plane</a><a href="#aw">Anti-Windup</a><a href="#df">Limit Cycle</a><a href="#sm">Sliding Mode</a>
 <a href="#casc">Cascade Control</a><a href="#ff">Feedforward</a><a href="#smith">Smith Predictor</a><a href="#dr">Disturbance Rejection</a>
+<a href="#lyap">Lyapunov Stability</a><a href="#bw">Bandwidth / Crossover</a>
 </div>
 </div></div>
 
@@ -910,6 +911,39 @@ padding:6px 12px;border-radius:30px;font-size:13px}
   </div></details>
 </div>
 
+<!-- LYAPUNOV -->
+<div class="sim" id="lyap">
+  <span class="tag">MODULE 40</span><h2>Lyapunov Stability</h2>
+  <p class="exp">Lyapunov's method proves stability <b>without solving</b> the equations: find an "energy" function \(V(x)>0\) that always <b>decreases</b> along trajectories. The level sets of V are nested ellipses; if the trajectory keeps crossing them inward, the system is stable. Watch energy dissipate.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Damping ζ <span class="v" id="ly_z_v">0.20</span></label><input type="range" id="ly_z" min="0" max="1" value="0.2" step="0.05"></div>
+    <div class="readout" id="ly_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>trajectory</span><span><i class="dot" style="background:#f4b740"></i>V = const (energy)</span></div>
+  </div><div class="plotwrap"><canvas id="ly_cv" width="720" height="380"></canvas></div></div>
+  <div class="try">💡 Try: ζ&gt;0 → the trajectory spirals inward, crossing every energy ellipse toward lower energy (V̇&lt;0 → stable). ζ=0 → it rides a single ellipse forever (energy conserved, marginally stable).</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>For the mass-spring-damper take \(V=\tfrac12(\omega_n^2 x_1^2 + x_2^2)\) (potential + kinetic energy). Then</p>
+    <div class="eqn">\[ \dot V = \omega_n^2 x_1\dot x_1 + x_2\dot x_2 = -2\zeta\omega_n x_2^2 \le 0 \]</div>
+    <p>\(V>0\) and \(\dot V\le0\) prove (Lyapunov) stability; strict \(\dot V<0\) gives asymptotic stability. The power: it works for nonlinear systems too, where no transfer function exists.</p>
+  </div></details>
+</div>
+
+<!-- BANDWIDTH -->
+<div class="sim" id="bw">
+  <span class="tag">MODULE 41</span><h2>Closed-Loop Bandwidth &amp; Crossover</h2>
+  <p class="exp">How fast can the closed loop track? Its <b>bandwidth</b> ω<sub>BW</sub> (the −3 dB point of |T(jω)|) is set largely by the open-loop <b>gain-crossover</b> frequency. Raise the loop gain and watch the bandwidth — and the response speed — grow.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Loop gain K <span class="v" id="bw_k_v">10</span></label><input type="range" id="bw_k" min="1" max="60" value="10" step="1"></div>
+    <div class="ctl"><label>Plant pole a <span class="v" id="bw_a_v">4</span></label><input type="range" id="bw_a" min="1" max="12" value="4" step="0.5"></div>
+    <div class="readout" id="bw_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>|T| closed-loop</span><span><i class="dot" style="background:#8b9aa6"></i>|L| open-loop</span><span><i class="dot" style="background:#ef5350"></i>−3 dB</span></div>
+  </div><div class="plotwrap"><canvas id="bw_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: increase K → |L| crosses 0 dB at a higher frequency, the closed-loop −3 dB bandwidth moves right, and the system responds faster (but with less phase margin).</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>\(L=\dfrac{K}{s(s+a)}\), \(T=\dfrac{L}{1+L}\). At low ω, \(|T|\approx1\) (tracks); past \(\omega_{BW}\) it rolls off. As a rule \(\omega_{BW}\approx\omega_{gc}\) (the open-loop gain-crossover), and rise time \(t_r\approx\dfrac{1.8}{\omega_{BW}}\) — so bandwidth is the frequency-domain measure of speed.</p>
+  </div></details>
+</div>
+
 </div></section>
 <footer>© Dr. S. Ramanathan · Control Systems Interactive Lab · All simulations run in your browser</footer>
 
@@ -1733,5 +1767,39 @@ wire(['cas_ki'],cascade);
 wire(['ff_g'],feedforward);
 wire(['sp_t','sp_kp'],smith);
 wire(['dr_ki'],distrej);
+
+// ============ MODULE 40: LYAPUNOV ============
+function lyapunov(){
+  const ze=+$('ly_z').value,wn=1.5;$('ly_z_v').textContent=fmt(ze,2);
+  const f=(x1,x2)=>[x2,-wn*wn*x1-2*ze*wn*x2];
+  let x1=2.5,x2=0;const traj=[];const dt=0.005;
+  for(let t=0;t<22;t+=dt){traj.push({x:x1,y:x2});const d=f(x1,x2);x1+=d[0]*dt;x2+=d[1]*dt;if(Math.hypot(x1,x2)<0.02)break;}
+  const ell=[0.3,1,2,4,7].map(c=>{const e=[];for(let k=0;k<=64;k++){const th=2*Math.PI*k/64;e.push({x:Math.sqrt(2*c)/wn*Math.cos(th),y:Math.sqrt(2*c)*Math.sin(th)});}return {points:e,color:'rgba(244,183,64,.45)',w:1};});
+  Plot($('ly_cv'),{xmin:-3,xmax:3,ymin:-3.6,ymax:3.6,equal:true,xlabel:'x₁',ylabel:'x₂',
+    series:ell.concat([{points:traj,color:C.cyan,w:2},{marks:[{x:0,y:0}],color:C.gold,r:4}])});
+  $('ly_out').innerHTML=`V = ½(ω<sub>n</sub>²x₁² + x₂²)<br>V̇ = −2ζω<sub>n</sub>x₂² ${ze>0.001?'&lt; 0 → <span class="verdict ok">ASYMPTOTICALLY STABLE</span>':'= 0 → <span class="verdict bad">marginal</span> (energy conserved)'}`;
+}
+// ============ MODULE 41: BANDWIDTH ============
+function bandwidth(){
+  const K=+$('bw_k').value,a=+$('bw_a').value;$('bw_k_v').textContent=fmt(K,0);$('bw_a_v').textContent=fmt(a,1);
+  const Td=[],Ld=[];let wbw=null,wgc=null,prevT=null,prevL=null,prevW=null;
+  for(let i=0;i<=320;i++){const W=Math.pow(10,-1.5+i/320*3.5);
+    const L=cdiv(cx(K,0),cmul(cx(0,W),cx(a,W)));
+    const opl=cx(1+L.re,L.im),T=cdiv(L,opl);
+    const tdb=20*Math.log10(cabs(T)),ldb=20*Math.log10(cabs(L));
+    Td.push({x:W,y:tdb});Ld.push({x:W,y:ldb});
+    if(prevT!=null&&prevT>-3&&tdb<=-3&&wbw==null)wbw=W;
+    if(prevL!=null&&prevL>0&&ldb<=0&&wgc==null)wgc=W;
+    prevT=tdb;prevL=ldb;prevW=W;
+  }
+  const PM=wgc?180+(-90-Math.atan(wgc/a)*180/Math.PI):null;
+  Plot($('bw_cv'),{xmin:0.03,xmax:100,ymin:-40,ymax:20,xlog:true,xlabel:'ω (rad/s)',ylabel:'dB',
+    series:[{points:[{x:0.03,y:-3},{x:100,y:-3}],color:'rgba(239,83,80,.5)',w:1.3},
+            {points:Ld,color:'rgba(139,154,166,.7)',w:1.5},{points:Td,color:C.cyan,w:2}]
+      .concat(wbw?[{marks:[{x:wbw,y:-3}],color:C.red,r:5}]:[])});
+  $('bw_out').innerHTML=`Bandwidth ω<sub>BW</sub>: <b>${wbw?fmt(wbw,2):'—'} rad/s</b><br>Gain crossover ω<sub>gc</sub>: <b>${wgc?fmt(wgc,2):'—'}</b><br>Phase margin: <b>${PM?fmt(PM,0)+'°':'—'}</b>`;
+}
+wire(['ly_z'],lyapunov);
+wire(['bw_k','bw_a'],bandwidth);
 </script>
 </body></html>
