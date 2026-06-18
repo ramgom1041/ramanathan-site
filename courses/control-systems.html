@@ -63,6 +63,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#fo">First-Order</a><a href="#inputs">Step/Impulse/Ramp</a><a href="#sserr">Steady-State Error</a><a href="#domin">Dominant Poles</a>
 <a href="#zn">Z–N Auto-Tune</a><a href="#lead">Lead Design</a><a href="#nichols">Nichols Chart</a><a href="#pzb">Pole-Zero Builder</a>
 <a href="#pp2">Pole Placement</a><a href="#lqr">LQR</a><a href="#obs">Observer</a><a href="#kf">Kalman Filter</a><a href="#co">Controllability</a>
+<a href="#disc">Discretization</a><a href="#dpid">Discrete PID</a><a href="#alias">Sampling / Aliasing</a>
 </div>
 </div></div>
 
@@ -731,6 +732,57 @@ padding:6px 12px;border-radius:30px;font-size:13px}
   </div></details>
 </div>
 
+<!-- DISCRETIZATION -->
+<div class="sim" id="disc">
+  <span class="tag">MODULE 29</span><h2>Discretization — ZOH vs Tustin</h2>
+  <p class="exp">To run a controller on a computer you must convert it from continuous \(s\) to discrete \(z\). The two common methods — <b>zero-order hold</b> (exact for the sampled plant) and <b>Tustin</b> (bilinear, preserves frequency shape) — agree at small sample times but diverge as the sample time grows.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Sample time T<sub>s</sub> <span class="v" id="dz_ts_v">0.5</span> s</label><input type="range" id="dz_ts" min="0.1" max="2.5" value="0.5" step="0.1"></div>
+    <div class="ctl"><label>Plant τ <span class="v" id="dz_tau_v">1.0</span> s</label><input type="range" id="dz_tau" min="0.5" max="3" value="1" step="0.1"></div>
+    <div class="readout" id="dz_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#f4b740"></i>continuous</span><span><i class="dot" style="background:#3fc4dc"></i>ZOH</span><span><i class="dot" style="background:#ef5350"></i>Tustin</span></div>
+  </div><div class="plotwrap"><canvas id="dz_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: small T<sub>s</sub> → both discrete step responses sit right on the continuous curve. Large T<sub>s</sub> → ZOH stays exact at the sample instants while Tustin shows its characteristic offset.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p><b>ZOH</b>: pole maps \(z=e^{-T_s/\tau}\) (exact for a step-held input). <b>Tustin</b>: substitute \(s=\dfrac{2}{T_s}\dfrac{z-1}{z+1}\) — warps frequencies slightly but keeps stability of the LHP inside the unit circle. Rule of thumb: sample 10–30× faster than the closed-loop bandwidth.</p>
+  </div></details>
+</div>
+
+<!-- DISCRETE PID -->
+<div class="sim" id="dpid">
+  <span class="tag">MODULE 30</span><h2>Discrete PID &amp; Sample Rate</h2>
+  <p class="exp">A digital PID is just a difference equation evaluated every T<sub>s</sub>. Tune the gains and the sample time on a first-order plant. Sampling too slowly adds delay and destabilises a loop that would be fine in continuous time.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>K<sub>p</sub> <span class="v" id="dp_kp_v">2.0</span></label><input type="range" id="dp_kp" min="0" max="10" value="2" step="0.1"></div>
+    <div class="ctl"><label>K<sub>i</sub> <span class="v" id="dp_ki_v">1.0</span></label><input type="range" id="dp_ki" min="0" max="8" value="1" step="0.1"></div>
+    <div class="ctl"><label>K<sub>d</sub> <span class="v" id="dp_kd_v">0.0</span></label><input type="range" id="dp_kd" min="0" max="2" value="0" step="0.05"></div>
+    <div class="ctl"><label>Sample time T<sub>s</sub> <span class="v" id="dp_ts_v">0.1</span> s</label><input type="range" id="dp_ts" min="0.02" max="1" value="0.1" step="0.02"></div>
+    <div class="readout" id="dp_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>output</span><span><i class="dot" style="background:#f4b740"></i>setpoint</span></div>
+  </div><div class="plotwrap"><canvas id="dp_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: Kp=2, Ki=1 with small Ts=0.04 → clean. Now drag Ts up to ~0.8 → the sampling delay makes the same gains ring and eventually go unstable.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ u[k]=K_p e[k] + K_i T_s\!\sum_{j\le k} e[j] + \frac{K_d}{T_s}\big(e[k]-e[k-1]\big) \]</div>
+    <p>The integral becomes a running sum × T<sub>s</sub>; the derivative becomes a backward difference ÷ T<sub>s</sub>. Each sample of delay eats phase margin (≈ \(\omega\,T_s/2\) of lag), which is why a too-slow sample rate destabilises.</p>
+  </div></details>
+</div>
+
+<!-- ALIASING -->
+<div class="sim" id="alias">
+  <span class="tag">MODULE 31</span><h2>Sampling &amp; Aliasing</h2>
+  <p class="exp">If you sample a signal slower than <b>twice</b> its frequency (the Nyquist rate), it masquerades as a lower-frequency <b>alias</b> — an impostor your controller can't tell from the real thing. This is why anti-alias filters and adequate sample rates are non-negotiable.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Signal frequency f <span class="v" id="al_f_v">8</span> Hz</label><input type="range" id="al_f" min="1" max="30" value="8" step="1"></div>
+    <div class="ctl"><label>Sample rate f<sub>s</sub> <span class="v" id="al_fs_v">10</span> Hz</label><input type="range" id="al_fs" min="2" max="60" value="10" step="1"></div>
+    <div class="readout" id="al_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#f4b740"></i>true signal</span><span><i class="dot" style="background:#3fc4dc"></i>samples</span><span><i class="dot" style="background:#ef5350"></i>alias</span></div>
+  </div><div class="plotwrap"><canvas id="al_cv" width="720" height="280"></canvas></div></div>
+  <div class="try">💡 Try: f=8, fs=10 (below Nyquist 2f=16) → the samples trace a slow 2 Hz alias (red). Raise fs above 16 Hz → the alias disappears and the samples follow the real signal.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>The <b>Nyquist–Shannon</b> theorem: to reconstruct a signal you must sample at \(f_s>2f_{max}\). Below that, a frequency \(f\) appears as \(f_{alias}=|f - f_s\cdot\text{round}(f/f_s)|\). No digital processing can undo aliasing once it's happened — it must be filtered out before sampling.</p>
+  </div></details>
+</div>
+
 </div></section>
 <footer>© Dr. S. Ramanathan · Control Systems Interactive Lab · All simulations run in your browser</footer>
 
@@ -1395,5 +1447,50 @@ wire(['lq_e'],lqr);
 wire(['ob_w'],observer);
 wire(['kf_r','kf_q'],kalman);
 wire(['co_b1','co_b2'],ctrbobsv);
+
+// ============ MODULE 29: DISCRETIZATION ============
+function discretize(){
+  const Ts=+$('dz_ts').value,tau=+$('dz_tau').value;$('dz_ts_v').textContent=fmt(Ts,1);$('dz_tau_v').textContent=fmt(tau,1);
+  const Te=6*tau;
+  const cont=[];for(let i=0;i<=300;i++){const t=Te*i/300;cont.push({x:t,y:1-Math.exp(-t/tau)});}
+  const az=Math.exp(-Ts/tau),bz=1-az;const zoh=[];let y=0;
+  for(let k=0;k*Ts<=Te;k++){zoh.push({x:k*Ts,y:y});zoh.push({x:(k+1)*Ts,y:y});y=az*y+bz;}
+  const a=2*tau/Ts;const tust=[];let yT=0,uP=0;
+  for(let k=0;k*Ts<=Te;k++){const u=1;const yn=(u+uP-(1-a)*yT)/(a+1);tust.push({x:k*Ts,y:yn});yT=yn;uP=u;}
+  Plot($('dz_cv'),{xmin:0,xmax:Te,ymin:0,ymax:1.2,xlabel:'time (s)',ylabel:'step output',
+    series:[{points:zoh,color:C.cyan,w:2},{points:cont,color:C.gold,w:1.5},{marks:tust,color:C.red,r:3}]});
+  $('dz_out').innerHTML=`Samples per τ: <b>${fmt(tau/Ts,1)}</b><br>ZOH pole z = <b>${fmt(az,3)}</b>`;
+}
+// ============ MODULE 30: DISCRETE PID ============
+function discPID(){
+  const Kp=+$('dp_kp').value,Ki=+$('dp_ki').value,Kd=+$('dp_kd').value,Ts=+$('dp_ts').value;
+  $('dp_kp_v').textContent=fmt(Kp,1);$('dp_ki_v').textContent=fmt(Ki,1);$('dp_kd_v').textContent=fmt(Kd,2);$('dp_ts_v').textContent=fmt(Ts,2);
+  const tau=1,az=Math.exp(-Ts/tau),bz=1-az,Te=10;
+  let y=0,I=0,eP=1;const pts=[],sp=[];let mx=1.5,unstable=false;
+  for(let k=0;k*Ts<=Te;k++){
+    const e=1-y;I+=e*Ts;const D=(e-eP)/Ts;eP=e;
+    let u=Kp*e+Ki*I+Kd*D;if(u>50)u=50;if(u<-50)u=-50;
+    pts.push({x:k*Ts,y:y});sp.push({x:k*Ts,y:1});
+    y=az*y+bz*u;mx=Math.max(mx,y);if(!isFinite(y)||Math.abs(y)>1e3){unstable=true;break;}
+  }
+  Plot($('dp_cv'),{xmin:0,xmax:Te,ymin:-0.5,ymax:Math.min(3,Math.max(2,mx*1.05)),xlabel:'time (s)',ylabel:'output',
+    series:[{points:sp,color:C.gold,w:1.5},{points:pts,color:C.cyan,w:2}]});
+  $('dp_out').innerHTML=`Sample time T<sub>s</sub>=<b>${fmt(Ts,2)} s</b><br>${unstable?'<span class="verdict bad">UNSTABLE</span> — sampling too slow':'<span class="verdict ok">stable</span>'}`;
+}
+// ============ MODULE 31: ALIASING ============
+function aliasing(){
+  const f=+$('al_f').value,fs=+$('al_fs').value;$('al_f_v').textContent=fmt(f,0);$('al_fs_v').textContent=fmt(fs,0);
+  const T=1;const tru=[];for(let i=0;i<=600;i++){const t=T*i/600;tru.push({x:t,y:Math.sin(2*Math.PI*f*t)});}
+  const samp=[];for(let k=0;k/fs<=T;k++){const t=k/fs;samp.push({x:t,y:Math.sin(2*Math.PI*f*t)});}
+  const fa=Math.abs(f-fs*Math.round(f/fs));
+  const alias=[];if(fa<f-0.01){for(let i=0;i<=600;i++){const t=T*i/600;alias.push({x:t,y:Math.sin(2*Math.PI*fa*t)});}}
+  Plot($('al_cv'),{xmin:0,xmax:T,ymin:-1.3,ymax:1.3,xlabel:'time (s)',ylabel:'amplitude',
+    series:[{points:tru,color:'rgba(244,183,64,.85)',w:1.5}].concat(alias.length?[{points:alias,color:C.red,w:2}]:[]).concat([{marks:samp,color:C.cyan,r:3}])});
+  const nyq=fs/2;
+  $('al_out').innerHTML=`Nyquist limit f<sub>s</sub>/2 = <b>${fmt(nyq,1)} Hz</b><br>${f>nyq?`<span class="verdict bad">ALIASING</span> → appears as <b>${fmt(fa,1)} Hz</b>`:'<span class="verdict ok">OK</span> (f below Nyquist)'}`;
+}
+wire(['dz_ts','dz_tau'],discretize);
+wire(['dp_kp','dp_ki','dp_kd','dp_ts'],discPID);
+wire(['al_f','al_fs'],aliasing);
 </script>
 </body></html>
