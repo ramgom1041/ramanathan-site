@@ -29,3 +29,14 @@ padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;white-space:no
 .mod a.pdf:hover{background:var(--teal);color:#fff}
 footer{background:var(--navy);color:#9fb4c0;text-align:center;padding:22px;font-size:13px}
 @media(max-width:640px){.mod{flex-wrap:wrap}.mod a.pdf{margin-left:58px}}
+.fb-wrap{max-width:980px;margin:6px auto 34px;padding:0 22px}
+.fb{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;box-shadow:0 1px 3px rgba(16,42,67,.05)}
+.fb h3{color:var(--navy);margin:0 0 4px;font-size:18px}
+.fb .fb-sub{color:var(--grey);font-size:13.5px;margin:0 0 12px}
+.fb-stars{font-size:32px;color:#d4dde3;cursor:pointer;user-select:none;line-height:1}
+.fb-stars span{padding:0 3px;transition:color .1s}
+.fb-stars span.on{color:#f4b740}
+.fb-text{width:100%;max-width:560px;min-height:72px;margin:14px auto 0;display:block;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14px;resize:vertical}
+.fb-send{margin-top:14px;background:var(--teal);color:#fff;border:0;border-radius:30px;padding:11px 26px;font-weight:600;cursor:pointer;font-size:14px}
+.fb-send:hover{background:#0d4d5e}
+.fb-note{font-size:13px;margin-top:10px;min-height:16px}

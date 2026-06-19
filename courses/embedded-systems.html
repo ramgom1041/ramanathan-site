@@ -37,7 +37,7 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
 </style></head><body>
 
 <div class="top"><div class="wrap">
-<a class="back" href="../index.html#courses">← Back to portfolio</a>
+<a class="back" href="index.html">← All Courses</a>
 <h1>Embedded Systems &amp; Microcontrollers — Interactive Lab</h1>
 <p>The core peripherals of every microcontroller, made tangible. Tune real parameters — duty cycle, prescaler, ADC bits, baud rate — and watch the waveforms. Built by Dr. S. Ramanathan.</p>
 <div class="toc">
@@ -297,4 +297,5 @@ wire(['u_d','u_baud','u_par','u_stop'],uart);
 wire(['d_b','d_t'],debounce);
 $('d_re').addEventListener('click',()=>{bounceSeed=Math.floor((performance.now()*1000))%233280;debounce();});
 </script>
+<script src="feedback.js"></script>
 </body></html>
