@@ -1,0 +1,416 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Camera Technology — Interactive Lab | Dr. S. Ramanathan</title>
+<link rel="stylesheet" href="course.css">
+<link rel="icon" href="../favicon.ico">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{--navy:#0a1930;--teal:#0f5c70;--cyan:#3fc4dc;--ink:#1b2733;--grey:#5c6b78;--line:#e3e9ee;}
+.lab{max-width:980px;margin:0 auto;padding:0 22px}
+.sim{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin:22px 0;box-shadow:0 1px 3px rgba(16,42,67,.05)}
+.sim h2{font-size:21px;color:var(--navy);margin-bottom:4px}
+.sim .tag{display:inline-block;background:#eaf3f6;color:#0d4d5e;font-size:12px;font-weight:600;padding:3px 10px;border-radius:6px;margin-bottom:8px}
+.sim p.exp{color:#374a57;font-size:14.5px;margin:6px 0 14px}.sim p.exp b{color:var(--navy)}
+.try{background:#f3f9fb;border-left:3px solid var(--cyan);padding:8px 12px;border-radius:0 8px 8px 0;font-size:13.5px;color:#0d4d5e;margin-top:12px}
+.row{display:flex;gap:20px;flex-wrap:wrap}.controls{flex:1 1 240px;min-width:230px}.plotwrap{flex:2 1 460px;min-width:300px}
+canvas{width:100%;height:auto;background:#0c1f2e;border-radius:10px;display:block}
+.ctl{margin-bottom:12px}.ctl label{display:flex;justify-content:space-between;font-size:13px;color:var(--navy);font-weight:600;margin-bottom:3px}
+.ctl label .v{color:var(--teal);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--teal)}
+select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;font-size:14px}
+.readout{font-size:13px;color:#374a57;margin-top:10px;line-height:1.7}.readout b{color:var(--navy)}
+.legend{font-size:12px;color:var(--grey);margin-top:6px}.legend span{display:inline-block;margin-right:14px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
+.pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600;margin:2px 3px 0 0}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
+.toc a{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#eaf4f7;padding:6px 12px;border-radius:30px;font-size:13px}
+.toc a:hover{background:rgba(255,255,255,.22);color:#fff}
+.theory{margin-top:16px;border-top:1px dashed var(--line);padding-top:4px}
+.theory summary{cursor:pointer;font-weight:700;color:var(--teal);font-size:14px;padding:8px 0;list-style:none}
+.theory summary::-webkit-details-marker{display:none}.theory summary:before{content:'▸  ';font-size:12px}.theory[open] summary:before{content:'▾  '}
+.theory .tbody{font-size:14.5px;color:#2a3b46;line-height:1.75;padding:4px 2px 6px}
+.theory .tbody ul{margin:8px 0 8px 20px}.theory .tbody li{margin:5px 0}
+.eqn{background:#f3f9fb;border:1px solid #e0eef2;border-radius:8px;padding:6px 14px;margin:10px 0;overflow-x:auto}
+</style></head><body>
+
+<div class="top"><div class="wrap">
+<a class="back" href="index.html">← All Courses</a>
+<h1>Camera Technology — Interactive Lab</h1>
+<p>How a camera turns light into pixels — the optics &amp; sensor concepts every machine-vision and photography engineer needs. Tune real parameters (aperture, focal length, distortion, baseline) and see the effect instantly. Built by Dr. S. Ramanathan.</p>
+<div class="toc">
+<a href="#expo">Exposure Triangle</a><a href="#dof">Depth of Field</a><a href="#fov">Field of View</a>
+<a href="#dist">Lens Distortion</a><a href="#shutter">Rolling Shutter</a><a href="#stereo">Stereo Depth</a>
+<a href="#sensor">Sensor Formats</a><a href="#lens">Lens Selection</a><a href="#iface">Specs &amp; Interfaces</a>
+</div>
+</div></div>
+
+<section><div class="lab">
+
+<!-- EXPOSURE -->
+<div class="sim" id="expo">
+  <span class="tag">MODULE 1</span><h2>The Exposure Triangle</h2>
+  <p class="exp">Three controls set image brightness — <b>aperture</b> (how wide the lens opens), <b>shutter speed</b> (how long light is collected), and <b>ISO</b> (sensor gain) — but each has a side-effect: depth of field, motion blur, and noise. Balance them for a correct exposure.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Aperture <span class="v" id="ex_a_v">f/8</span></label><input type="range" id="ex_a" min="0" max="8" value="4" step="1"></div>
+    <div class="ctl"><label>Shutter <span class="v" id="ex_s_v">1/125</span></label><input type="range" id="ex_s" min="0" max="12" value="6" step="1"></div>
+    <div class="ctl"><label>ISO <span class="v" id="ex_i_v">100</span></label><input type="range" id="ex_i" min="0" max="6" value="0" step="1"></div>
+    <div class="readout" id="ex_out"></div>
+  </div><div class="plotwrap"><canvas id="ex_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: open the aperture (small f-number) → brighter but shallow depth of field. To keep exposure constant, use a faster shutter or lower ISO. That's the photographer's trade-off.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \text{EV} = \log_2\!\frac{N^2}{t},\qquad \text{Brightness} \propto \frac{t\cdot \text{ISO}}{N^2} \]</div>
+    <p>\(N\) = f-number, \(t\) = exposure time. Each "stop" doubles or halves the light: one stop of aperture (×√2 in N), one stop of shutter (×2 in t), and one stop of ISO are interchangeable for brightness — but not for side-effects.</p>
+  </div></details>
+</div>
+
+<!-- DEPTH OF FIELD -->
+<div class="sim" id="dof">
+  <span class="tag">MODULE 2</span><h2>Depth of Field</h2>
+  <p class="exp">Only a slice of the scene is acceptably sharp. That slice — the <b>depth of field</b> — grows with a narrower aperture (bigger f-number), a shorter focal length, and a farther subject. The shaded band shows what's in focus.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Aperture f-number <span class="v" id="df_n_v">5.6</span></label><input type="range" id="df_n" min="0" max="8" value="3" step="1"></div>
+    <div class="ctl"><label>Focal length <span class="v" id="df_f_v">50</span> mm</label><input type="range" id="df_f" min="16" max="200" value="50" step="2"></div>
+    <div class="ctl"><label>Subject distance <span class="v" id="df_s_v">3.0</span> m</label><input type="range" id="df_s" min="0.5" max="10" value="3" step="0.1"></div>
+    <div class="readout" id="df_out"></div>
+  </div><div class="plotwrap"><canvas id="df_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: f/22 + 35 mm → almost everything sharp (landscape). f/1.4 + 200 mm on a close subject → a razor-thin focus slice (portrait bokeh).</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ H=\frac{f^2}{N\,c}+f,\qquad D_n=\frac{s(H-f)}{H+s-2f},\qquad D_f=\frac{s(H-f)}{H-s} \]</div>
+    <p>\(H\) is the hyperfocal distance; focusing there makes everything from \(H/2\) to infinity sharp. \(c\) is the circle of confusion (≈0.03 mm for full-frame). When \(s\ge H\), the far limit is infinity.</p>
+  </div></details>
+</div>
+
+<!-- FIELD OF VIEW -->
+<div class="sim" id="fov">
+  <span class="tag">MODULE 3</span><h2>Field of View &amp; Focal Length</h2>
+  <p class="exp">Focal length and sensor size set how much of the world the camera sees. A short focal length (wide lens) captures a broad angle; a long one (telephoto) zooms into a narrow slice. Crucial for choosing a machine-vision lens to cover a given target at a given distance.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Focal length <span class="v" id="fv_f_v">25</span> mm</label><input type="range" id="fv_f" min="4" max="100" value="25" step="1"></div>
+    <div class="ctl"><label>Sensor width <span class="v" id="fv_w_v">11.3</span> mm</label><input type="range" id="fv_w" min="4" max="36" value="11.3" step="0.1"></div>
+    <div class="ctl"><label>Working distance <span class="v" id="fv_d_v">1.5</span> m</label><input type="range" id="fv_d" min="0.2" max="5" value="1.5" step="0.1"></div>
+    <div class="readout" id="fv_out"></div>
+  </div><div class="plotwrap"><canvas id="fv_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: short focal length → wide angle, large field covered but lower detail. Long focal length → narrow angle, the target fills the frame (more pixels on target).</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \text{FOV}=2\arctan\!\frac{d_{sensor}}{2f},\qquad W_{scene}=2\,D\tan\!\frac{\text{FOV}}{2}=\frac{D\cdot d_{sensor}}{f} \]</div>
+    <p>So the field width at the target scales with sensor size and working distance, and inversely with focal length. The "spatial resolution" (mm per pixel) = field width ÷ pixel count.</p>
+  </div></details>
+</div>
+
+<!-- DISTORTION -->
+<div class="sim" id="dist">
+  <span class="tag">MODULE 4</span><h2>Lens Distortion</h2>
+  <p class="exp">Real lenses bend straight lines. <b>Barrel</b> distortion (wide lenses) bulges the image outward; <b>pincushion</b> (telephoto) pinches it inward. Camera <b>calibration</b> estimates these coefficients so machine-vision measurements stay accurate. Watch a square grid warp.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Radial coeff k₁ <span class="v" id="ds_k_v">-0.30</span></label><input type="range" id="ds_k" min="-0.6" max="0.6" value="-0.3" step="0.02"></div>
+    <div class="readout" id="ds_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>distorted</span><span><i class="dot" style="background:#8b9aa6"></i>ideal grid</span></div>
+  </div><div class="plotwrap"><canvas id="ds_cv" width="720" height="340"></canvas></div></div>
+  <div class="try">💡 Try: k₁ &lt; 0 → barrel (lines bow outward, like a GoPro). k₁ &gt; 0 → pincushion. k₁ = 0 → perfect rectilinear grid. Calibration finds and undoes this.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ r_{d}=r\,(1+k_1 r^2 + k_2 r^4 + \dots) \]</div>
+    <p>Radial distortion displaces each point along its radius from the optical centre by a polynomial in \(r\). The Brown–Conrady model (used by OpenCV's <code>calibrateCamera</code>) solves for \(k_1,k_2,k_3\) plus tangential terms, then <code>undistort</code> reverses it.</p>
+  </div></details>
+</div>
+
+<!-- ROLLING SHUTTER -->
+<div class="sim" id="shutter">
+  <span class="tag">MODULE 5</span><h2>Rolling vs Global Shutter</h2>
+  <p class="exp">A <b>global</b> shutter exposes every pixel at once. A <b>rolling</b> shutter (most CMOS sensors) reads rows top-to-bottom over a short time — so a fast-moving object is captured at slightly different positions per row, producing <b>skew</b>. Critical for fast machine-vision inspection.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Object speed <span class="v" id="rs_v_v">6</span></label><input type="range" id="rs_v" min="0" max="20" value="6" step="1"></div>
+    <div class="ctl"><label>Readout time <span class="v" id="rs_t_v">15</span> ms</label><input type="range" id="rs_t" min="0" max="40" value="15" step="1"></div>
+    <div class="readout" id="rs_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#8b9aa6"></i>global (true)</span><span><i class="dot" style="background:#3fc4dc"></i>rolling capture</span></div>
+  </div><div class="plotwrap"><canvas id="rs_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: fast object + long readout → the rectangle becomes a slanted parallelogram (the classic "jello" / skew). Zero speed or zero readout → no distortion (matches global shutter).</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>Row \(y\) is exposed at time \(t(y)=\dfrac{y}{H}T_{read}\). An object moving at velocity \(v\) shifts by \(v\,t(y)\) by the time that row is read, so a vertical edge tilts by \(\Delta x = v\,T_{read}\) over the full frame height — a shear, not a simple blur. Global shutters avoid it but cost more and can have lower full-well capacity.</p>
+  </div></details>
+</div>
+
+<!-- STEREO DEPTH -->
+<div class="sim" id="stereo">
+  <span class="tag">MODULE 6</span><h2>Stereo Depth (Triangulation)</h2>
+  <p class="exp">Two cameras a known <b>baseline</b> apart see a point at slightly different image positions — the <b>disparity</b>. From it you recover depth by triangulation. This is the principle behind stereo vision and 3D measurement systems.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Baseline B <span class="v" id="st_b_v">120</span> mm</label><input type="range" id="st_b" min="30" max="300" value="120" step="5"></div>
+    <div class="ctl"><label>Focal length <span class="v" id="st_f_v">800</span> px</label><input type="range" id="st_f" min="200" max="2000" value="800" step="50"></div>
+    <div class="ctl"><label>Disparity d <span class="v" id="st_d_v">40</span> px</label><input type="range" id="st_d" min="5" max="200" value="40" step="1"></div>
+    <div class="readout" id="st_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>cameras</span><span><i class="dot" style="background:#f4b740"></i>measured point</span></div>
+  </div><div class="plotwrap"><canvas id="st_cv" width="720" height="320"></canvas></div></div>
+  <div class="try">💡 Try: small disparity → far object; large disparity → near. A wider baseline B improves depth precision (but shrinks the overlapping field of view).</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ Z=\frac{f\cdot B}{d} \]</div>
+    <p>Depth \(Z\) is inversely proportional to disparity \(d\): nearby points shift a lot between the two views, distant points barely move. Depth precision degrades with distance (\(\partial Z/\partial d \propto Z^2\)), which is why a larger baseline or longer focal length helps for far targets.</p>
+  </div></details>
+</div>
+
+<!-- SENSOR FORMATS -->
+<div class="sim" id="sensor">
+  <span class="tag">MODULE 7</span><h2>Sensor Formats &amp; Pixel Size</h2>
+  <p class="exp">Sensor size drives image quality more than megapixels. A bigger sensor gathers more light (less noise, more dynamic range) and changes the effective field of view via the <b>crop factor</b>. For a fixed megapixel count, a bigger sensor also means larger <b>pixels</b> — better sensitivity. Compare formats to scale.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Format</label><select id="sf_fmt"></select></div>
+    <div class="ctl"><label>Resolution <span class="v" id="sf_mp_v">12</span> MP</label><input type="range" id="sf_mp" min="1" max="60" value="12" step="1"></div>
+    <div class="readout" id="sf_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>selected</span><span><i class="dot" style="background:#8b9aa6"></i>other formats</span></div>
+  </div><div class="plotwrap"><canvas id="sf_cv" width="720" height="320"></canvas></div></div>
+  <div class="try">💡 Try: pick a tiny 1/2.3" sensor at 48 MP → minuscule pixels (noisy in low light). A full-frame at 24 MP → big pixels (clean). Same MP, very different image quality.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \text{crop factor}=\frac{43.27\text{ mm}}{\text{sensor diagonal}},\qquad \text{pixel pitch}=\frac{\text{sensor width}}{\text{horizontal pixels}} \]</div>
+    <p>The crop factor multiplies a lens's effective focal length (a 25 mm lens on a 2/3" sensor frames like a ~100 mm lens on full-frame). Larger pixels collect more photons → higher signal-to-noise and dynamic range, which is why sensor area, not megapixels, is the headline spec for low-light and metrology cameras.</p>
+  </div></details>
+</div>
+
+<!-- LENS SELECTION -->
+<div class="sim" id="lens">
+  <span class="tag">MODULE 8</span><h2>Lens Selection &amp; Types</h2>
+  <p class="exp">The core machine-vision lens question: <i>what focal length covers my target at my working distance?</i> Set the sensor, the distance, and the field you must image — the required focal length is computed, along with the lens category and notes on prime/zoom/macro/telecentric.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Sensor width <span class="v" id="ln_s_v">8.8</span> mm</label><input type="range" id="ln_s" min="4" max="36" value="8.8" step="0.1"></div>
+    <div class="ctl"><label>Working distance <span class="v" id="ln_d_v">300</span> mm</label><input type="range" id="ln_d" min="50" max="2000" value="300" step="10"></div>
+    <div class="ctl"><label>Field width to image <span class="v" id="ln_w_v">100</span> mm</label><input type="range" id="ln_w" min="10" max="800" value="100" step="5"></div>
+    <div class="readout" id="ln_out"></div>
+  </div><div class="plotwrap"><canvas id="ln_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: a small target far away → long focal length (telephoto). A big field up close → short focal length (wide). For precise dimensional measurement, a <b>telecentric</b> lens removes perspective error entirely.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ f=\frac{\text{sensor width}\times \text{working distance}}{\text{field width}},\qquad \text{magnification}=\frac{\text{sensor width}}{\text{field width}} \]</div>
+    <ul>
+      <li><b>Prime</b> (fixed f): sharper, cheaper, used in most vision systems. <b>Zoom</b>: flexible f but more distortion.</li>
+      <li><b>Macro</b>: for magnifications near or above 1×. <b>Wide/fisheye</b>: large FOV, heavy distortion.</li>
+      <li><b>Telecentric</b>: constant magnification regardless of object distance → no perspective error, ideal for gauging &amp; 3D metrology.</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- INTERFACES -->
+<div class="sim" id="iface">
+  <span class="tag">MODULE 9</span><h2>Camera Specs, Data Rate &amp; Interfaces</h2>
+  <p class="exp">A camera's resolution × bit depth × frame rate sets its <b>data rate</b> — which dictates the interface (USB3, GigE, Camera Link, CoaXPress…). Pick the specs and see the required bandwidth and the cheapest interface that can carry it. (Plus: the CCD-vs-CMOS trade-off below.)</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Resolution <span class="v" id="if_mp_v">5</span> MP</label><input type="range" id="if_mp" min="0.3" max="50" value="5" step="0.1"></div>
+    <div class="ctl"><label>Frame rate <span class="v" id="if_fps_v">60</span> fps</label><input type="range" id="if_fps" min="1" max="500" value="60" step="1"></div>
+    <div class="ctl"><label>Bit depth</label><select id="if_bits"><option>8</option><option>10</option><option selected>12</option><option>16</option></select></div>
+    <div class="readout" id="if_out"></div>
+  </div><div class="plotwrap"><canvas id="if_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: 5 MP @ 60 fps, 12-bit → a few hundred MB/s, needs USB3/GigE-Vision class. Crank to 25 MP @ 100 fps → only Camera Link / CoaXPress can keep up.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \text{data rate} = \text{pixels} \times \frac{\text{bits}}{8} \times \text{fps} \]</div>
+    <p><b>CCD vs CMOS:</b> CCD historically gave lower noise &amp; global shutter but is slower and power-hungry; modern <b>CMOS</b> dominates — fast, low-power, on-chip ADC, and now excellent noise (with global-shutter variants for motion). Interface ballpark throughput: USB2 ≈ 40, GigE ≈ 110, USB3 ≈ 380, Camera Link ≈ 850, 10-GigE ≈ 1100, CoaXPress (CXP-12 ×4) ≈ 5000 MB/s.</p>
+  </div></details>
+</div>
+
+</div></section>
+<footer>© Dr. S. Ramanathan · Camera Technology Interactive Lab · All simulations run in your browser</footer>
+
+<script>
+const C={navy:'#0a1930',teal:'#0f5c70',cyan:'#3fc4dc',gold:'#f4b740',grey:'#8b9aa6',red:'#ef5350'};
+function $(id){return document.getElementById(id);}
+function fmt(x,d){d=d==null?2:d;return (Math.abs(x)<1e-9?0:x).toFixed(d);}
+function ctx2(id){const cv=$(id),x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);x.fillStyle='#0c1f2e';x.fillRect(0,0,cv.width,cv.height);return [x,cv.width,cv.height];}
+
+// ===== MODULE 1: EXPOSURE =====
+const APS=[1.4,2,2.8,4,5.6,8,11,16,22], SHU=[["1/4000",1/4000],["1/2000",1/2000],["1/1000",1/1000],["1/500",1/500],["1/250",1/250],["1/125",1/125],["1/60",1/60],["1/30",1/30],["1/15",1/15],["1/8",1/8],["1/4",1/4],["1/2",1/2],["1s",1]], ISOS=[100,200,400,800,1600,3200,6400];
+function expo(){
+  const N=APS[+$('ex_a').value], sh=SHU[+$('ex_s').value], iso=ISOS[+$('ex_i').value];
+  $('ex_a_v').textContent='f/'+N;$('ex_s_v').textContent=sh[0];$('ex_i_v').textContent=iso;
+  const t=sh[1];
+  const RE=(iso/100)*(1/(N*N))*t, ref=(1)*(1/64)*(1/125);
+  const bright=RE/ref;                       // 1 = correct exposure
+  const EV=Math.log2(N*N/t);
+  const [x,W,H]=ctx2('ex_cv');
+  // scene swatch: sky + ground, brightness scaled
+  const lvl=Math.max(0,Math.min(1,0.5*bright));
+  function shade(base){return 'rgb('+base.map(c=>Math.round(Math.min(255,c*2*lvl))).join(',')+')';}
+  x.fillStyle=shade([120,150,210]);x.fillRect(40,30,W-80,(H-60)*0.55);
+  x.fillStyle=shade([110,140,90]);x.fillRect(40,30+(H-60)*0.55,W-80,(H-60)*0.45);
+  // "sun"
+  x.fillStyle=shade([250,240,180]);x.beginPath();x.arc(W-130,90,26,0,7);x.fill();
+  // ISO noise
+  if(iso>=800){const n=Math.floor((iso/100))*40;for(let i=0;i<n;i++){const px=40+Math.random()*(W-80),py=30+Math.random()*(H-60);x.fillStyle=Math.random()<0.5?'rgba(255,255,255,.25)':'rgba(0,0,0,.25)';x.fillRect(px,py,2,2);}}
+  x.strokeStyle='rgba(255,255,255,.3)';x.strokeRect(40,30,W-80,H-60);
+  const expo = bright>1.25?'overexposed':bright<0.8?'underexposed':'good exposure';
+  const dof=N<=2.8?'shallow':N>=11?'deep':'moderate', blur=t>=1/30?'motion blur likely':t<=1/500?'motion frozen':'some blur', noise=iso>=3200?'noisy':iso<=400?'clean':'slight noise';
+  $('ex_out').innerHTML=`EV (ISO100): <b>${fmt(EV,1)}</b><br>Exposure: <b>${expo}</b><br>Depth of field: <b>${dof}</b><br>Motion: <b>${blur}</b><br>Noise: <b>${noise}</b>`;
+}
+
+// ===== MODULE 2: DEPTH OF FIELD =====
+function dof(){
+  const N=APS[+$('df_n').value], f=+$('df_f').value, s=+$('df_s').value*1000; // mm
+  $('df_n_v').textContent='f/'+N;$('df_f_v').textContent=f;$('df_s_v').textContent=fmt(s/1000,1);
+  const c=0.03, H=f*f/(N*c)+f;
+  const Dn=s*(H-f)/(H+s-2*f);
+  const Df=(s>=H)?Infinity:s*(H-f)/(H-s);
+  const [x,W,Hh]=ctx2('df_cv');
+  const maxD=10000; // 10 m view
+  const X=d=>50+Math.min(d,maxD)/maxD*(W-80);
+  // ground line
+  x.strokeStyle='rgba(255,255,255,.25)';x.beginPath();x.moveTo(40,Hh-40);x.lineTo(W-30,Hh-40);x.stroke();
+  // camera
+  x.fillStyle=C.grey;x.fillRect(40,Hh/2-16,26,32);
+  // in-focus band
+  const xn=X(Dn), xf=X(isFinite(Df)?Df:maxD);
+  x.fillStyle='rgba(63,196,220,.25)';x.fillRect(xn,40,Math.max(2,xf-xn),Hh-90);
+  x.strokeStyle=C.cyan;x.strokeRect(xn,40,Math.max(2,xf-xn),Hh-90);
+  // subject
+  x.fillStyle=C.gold;x.beginPath();x.arc(X(s),Hh/2,8,0,7);x.fill();
+  x.fillStyle='#9fb4c0';x.font='11px sans-serif';x.fillText('subject',X(s)-18,Hh/2-14);
+  x.fillText('0',46,Hh-26);x.fillText('10 m',W-60,Hh-26);
+  const dofm=isFinite(Df)?(Df-Dn)/1000:Infinity;
+  $('df_out').innerHTML=`Near: <b>${fmt(Dn/1000,2)} m</b><br>Far: <b>${isFinite(Df)?fmt(Df/1000,2)+' m':'∞'}</b><br>Depth of field: <b>${isFinite(dofm)?fmt(dofm,2)+' m':'∞'}</b><br>Hyperfocal: <b>${fmt(H/1000,2)} m</b>`;
+}
+
+// ===== MODULE 3: FIELD OF VIEW =====
+function fov(){
+  const f=+$('fv_f').value, w=+$('fv_w').value, D=+$('fv_d').value*1000;
+  $('fv_f_v').textContent=f;$('fv_w_v').textContent=fmt(w,1);$('fv_d_v').textContent=fmt(D/1000,1);
+  const fovr=2*Math.atan(w/(2*f)), fovd=fovr*180/Math.PI, Wsc=D*w/f;
+  const [x,W,H]=ctx2('fv_cv');
+  const apex=[55,H/2], reach=W-70;
+  const half=fovr/2;
+  const yTop=apex[1]-Math.tan(half)*(reach-apex[0]), yBot=apex[1]+Math.tan(half)*(reach-apex[0]);
+  // FOV wedge
+  x.fillStyle='rgba(63,196,220,.18)';x.beginPath();x.moveTo(apex[0],apex[1]);x.lineTo(reach,Math.max(20,yTop));x.lineTo(reach,Math.min(H-20,yBot));x.closePath();x.fill();
+  x.strokeStyle=C.cyan;x.stroke();
+  // camera
+  x.fillStyle=C.grey;x.fillRect(apex[0]-18,apex[1]-14,22,28);
+  // target plane
+  x.strokeStyle=C.gold;x.lineWidth=3;x.beginPath();x.moveTo(reach,Math.max(20,yTop));x.lineTo(reach,Math.min(H-20,yBot));x.stroke();x.lineWidth=1;
+  x.fillStyle='#9fb4c0';x.font='12px sans-serif';x.fillText(fmt(fovd,0)+'°',apex[0]+30,apex[1]+4);
+  $('fv_out').innerHTML=`Field of view: <b>${fmt(fovd,1)}°</b><br>Scene width @ ${fmt(D/1000,1)} m: <b>${fmt(Wsc/1000,2)} m</b><br>${fovd>70?'wide-angle':fovd<25?'telephoto':'normal'} lens`;
+}
+
+// ===== MODULE 4: DISTORTION =====
+function dist(){
+  const k=+$('ds_k').value;$('ds_k_v').textContent=fmt(k,2);
+  const [x,W,H]=ctx2('ds_cv');
+  const cx=W/2, cy=H/2, S=Math.min(W,H)*0.42, n=8;
+  function map(gx,gy){const nx=gx/n,ny=gy/n,r2=nx*nx+ny*ny,f=1+k*r2;return [cx+nx*S*f, cy+ny*S*f];}
+  // ideal grid (faint)
+  x.strokeStyle='rgba(139,154,166,.4)';x.lineWidth=1;
+  for(let i=-n;i<=n;i++){x.beginPath();x.moveTo(cx+(i/n)*S,cy-S);x.lineTo(cx+(i/n)*S,cy+S);x.stroke();x.beginPath();x.moveTo(cx-S,cy+(i/n)*S);x.lineTo(cx+S,cy+(i/n)*S);x.stroke();}
+  // distorted grid
+  x.strokeStyle=C.cyan;x.lineWidth=1.6;
+  for(let i=-n;i<=n;i++){x.beginPath();for(let j=-n;j<=n;j++){const p=map(i,j);j===-n?x.moveTo(p[0],p[1]):x.lineTo(p[0],p[1]);}x.stroke();
+    x.beginPath();for(let j=-n;j<=n;j++){const p=map(j,i);j===-n?x.moveTo(p[0],p[1]):x.lineTo(p[0],p[1]);}x.stroke();}
+  $('ds_out').innerHTML=`k₁ = <b>${fmt(k,2)}</b><br>Type: <b>${k<-0.01?'Barrel':k>0.01?'Pincushion':'Rectilinear (none)'}</b>`;
+}
+
+// ===== MODULE 5: ROLLING SHUTTER =====
+function rshutter(){
+  const v=+$('rs_v').value, Tr=+$('rs_t').value;$('rs_v_v').textContent=v;$('rs_t_v').textContent=Tr;
+  const [x,W,H]=ctx2('rs_cv');
+  const skew=v*Tr*0.9;                     // px shift over full height
+  const bx=W/2-110, bw=120, top=40, bot=H-40, bh=bot-top;
+  // global (true) rectangle
+  x.strokeStyle=C.grey;x.lineWidth=2;x.strokeRect(bx,top,bw,bh);
+  x.fillStyle='rgba(139,154,166,.12)';x.fillRect(bx,top,bw,bh);
+  // rolling capture: each row shifted by (y/bh)*skew
+  x.fillStyle='rgba(63,196,220,.35)';x.strokeStyle=C.cyan;x.lineWidth=2;
+  x.beginPath();
+  x.moveTo(bx, top);
+  x.lineTo(bx+bw, top);
+  x.lineTo(bx+bw+skew, bot);
+  x.lineTo(bx+skew, bot);
+  x.closePath();x.fill();x.stroke();
+  $('rs_out').innerHTML=`Skew shift: <b>${fmt(skew,0)} px</b><br>${skew<2?'≈ global shutter (no skew)':'rolling-shutter shear'}`;
+}
+
+// ===== MODULE 6: STEREO =====
+function stereo(){
+  const B=+$('st_b').value, f=+$('st_f').value, d=+$('st_d').value;
+  $('st_b_v').textContent=B;$('st_f_v').textContent=f;$('st_d_v').textContent=d;
+  const Z=f*B/d; // mm
+  const [x,W,H]=ctx2('st_cv');
+  const baseY=H-45, cxm=W/2, scale=(W*0.4)/B;       // px per mm for baseline drawing
+  const lx=cxm-B*scale/2, rx=cxm+B*scale/2;
+  // depth scaling to canvas height
+  const maxZ=4000, py=p=>baseY-Math.min(p,maxZ)/maxZ*(H-90);
+  const ptY=py(Z);
+  // cameras
+  x.fillStyle=C.cyan;x.fillRect(lx-12,baseY-8,24,16);x.fillRect(rx-12,baseY-8,24,16);
+  // sight lines
+  x.strokeStyle='rgba(63,196,220,.6)';x.lineWidth=1.5;
+  x.beginPath();x.moveTo(lx,baseY);x.lineTo(cxm,ptY);x.stroke();
+  x.beginPath();x.moveTo(rx,baseY);x.lineTo(cxm,ptY);x.stroke();
+  // point
+  x.fillStyle=C.gold;x.beginPath();x.arc(cxm,ptY,7,0,7);x.fill();
+  x.fillStyle='#9fb4c0';x.font='12px sans-serif';x.fillText('Z = '+fmt(Z/1000,2)+' m',cxm+12,ptY+4);
+  x.fillText('baseline B',cxm-28,baseY+22);
+  $('st_out').innerHTML=`Depth Z = f·B/d<br>= <b>${fmt(Z,0)} mm</b> (<b>${fmt(Z/1000,2)} m</b>)<br>Precision drops with distance (∝ Z²).`;
+}
+
+function wire(ids,fn){ids.forEach(id=>{const e=$(id);if(e)e.addEventListener('input',fn);});fn();}
+wire(['ex_a','ex_s','ex_i'],expo);
+wire(['df_n','df_f','df_s'],dof);
+wire(['fv_f','fv_w','fv_d'],fov);
+wire(['ds_k'],dist);
+wire(['rs_v','rs_t'],rshutter);
+wire(['st_b','st_f','st_d'],stereo);
+
+// ===== MODULE 7: SENSOR FORMATS =====
+const FMTS=[
+ {n:'1/4"',w:3.6,h:2.7},{n:'1/3"',w:4.8,h:3.6},{n:'1/2.3"',w:6.17,h:4.55},
+ {n:'1/1.8"',w:7.18,h:5.32},{n:'2/3"',w:8.8,h:6.6},{n:'1"',w:13.2,h:8.8},
+ {n:'4/3"',w:17.3,h:13.0},{n:'APS-C',w:23.6,h:15.7},{n:'Full-frame',w:36,h:24}];
+(function(){const sel=$('sf_fmt');FMTS.forEach((f,i)=>{const o=document.createElement('option');o.value=i;o.textContent=f.n+'  ('+f.w+'×'+f.h+' mm)';if(f.n==='2/3"')o.selected=true;sel.appendChild(o);});})();
+function sensorFmt(){
+  const F=FMTS[+$('sf_fmt').value], MP=+$('sf_mp').value;$('sf_mp_v').textContent=MP;
+  const diag=Math.hypot(F.w,F.h), crop=43.27/diag;
+  const total=MP*1e6, ar=F.w/F.h, wpx=Math.sqrt(total*ar), pitch=F.w/wpx*1000; // µm
+  const [x,W,H]=ctx2('sf_cv');
+  const cx=W/2, cy=H/2, sc=Math.min((W-60)/36,(H-60)/24);
+  // draw all formats centred, faint; selected highlighted
+  FMTS.forEach(f=>{const w=f.w*sc,h=f.h*sc;const sel=(f===F);
+    x.strokeStyle=sel?C.cyan:'rgba(139,154,166,.5)';x.lineWidth=sel?2.5:1;
+    if(sel){x.fillStyle='rgba(63,196,220,.12)';x.fillRect(cx-w/2,cy-h/2,w,h);}
+    x.strokeRect(cx-w/2,cy-h/2,w,h);});
+  x.fillStyle='#9fb4c0';x.font='11px sans-serif';x.fillText('Full-frame',cx+36*sc/2-58,cy-24*sc/2-6);
+  $('sf_out').innerHTML=`<b>${F.n}</b> — ${F.w}×${F.h} mm<br>Diagonal: <b>${fmt(diag,1)} mm</b><br>Crop factor: <b>${fmt(crop,2)}×</b><br>Pixel pitch: <b>${fmt(pitch,2)} µm</b> @ ${MP} MP`;
+}
+// ===== MODULE 8: LENS SELECTION =====
+function lensSel(){
+  const sw=+$('ln_s').value, D=+$('ln_d').value, fw=+$('ln_w').value;
+  $('ln_s_v').textContent=fmt(sw,1);$('ln_d_v').textContent=D;$('ln_w_v').textContent=fw;
+  const f=sw*D/fw, mag=sw/fw, fovd=2*Math.atan(sw/(2*f))*180/Math.PI;
+  const [x,W,H]=ctx2('ln_cv');
+  const apex=[55,H/2], reach=W-70, half=Math.atan((fw/2)/D);
+  const yT=apex[1]-Math.tan(half)*(reach-apex[0]), yB=apex[1]+Math.tan(half)*(reach-apex[0]);
+  x.fillStyle='rgba(63,196,220,.16)';x.beginPath();x.moveTo(apex[0],apex[1]);x.lineTo(reach,Math.max(18,yT));x.lineTo(reach,Math.min(H-18,yB));x.closePath();x.fill();
+  x.strokeStyle=C.cyan;x.stroke();
+  x.fillStyle=C.grey;x.fillRect(apex[0]-18,apex[1]-14,22,28);
+  x.strokeStyle=C.gold;x.lineWidth=3;x.beginPath();x.moveTo(reach,Math.max(18,yT));x.lineTo(reach,Math.min(H-18,yB));x.stroke();x.lineWidth=1;
+  x.fillStyle='#9fb4c0';x.font='12px sans-serif';x.fillText(fmt(fw,0)+' mm field',reach-90,Math.max(30,yT)-6);
+  const cat=fovd>70?'wide-angle':fovd<25?'telephoto':'normal';
+  $('ln_out').innerHTML=`Required focal length: <b>${fmt(f,1)} mm</b><br>Magnification: <b>${fmt(mag,3)}×</b><br>Field of view: <b>${fmt(fovd,1)}°</b> (${cat})`;
+}
+// ===== MODULE 9: INTERFACES =====
+const IFACES=[['USB 2.0',40],['GigE Vision',110],['USB3 Vision',380],['Camera Link',850],['10 GigE',1100],['CoaXPress ×4',5000]];
+function iface(){
+  const MP=+$('if_mp').value, fps=+$('if_fps').value, bits=+$('if_bits').value;
+  $('if_mp_v').textContent=fmt(MP,1);$('if_fps_v').textContent=fps;
+  const rate=MP*1e6*(bits/8)*fps/1e6; // MB/s
+  let pick=IFACES.find(i=>i[1]>=rate); pick=pick?pick[0]:'> CoaXPress (needs multi-link)';
+  const [x,W,H]=ctx2('if_cv');
+  const maxR=Math.max(rate*1.1,5000), x0=150, x1=W-30, bw=x1-x0;
+  const X=r=>x0+Math.min(r,maxR)/maxR*bw;
+  x.font='12px sans-serif';
+  IFACES.forEach((it,i)=>{const y=30+i*((H-60)/IFACES.length);
+    x.fillStyle='#9fb4c0';x.textAlign='right';x.fillText(it[0],x0-10,y+14);
+    x.fillStyle=rate<=it[1]?'rgba(63,196,220,.55)':'rgba(139,154,166,.3)';x.fillRect(x0,y,X(it[1])-x0,18);
+    x.strokeStyle='rgba(255,255,255,.15)';x.strokeRect(x0,y,X(it[1])-x0,18);});
+  // required rate marker
+  x.strokeStyle=C.gold;x.lineWidth=2;x.beginPath();x.moveTo(X(rate),18);x.lineTo(X(rate),H-26);x.stroke();
+  x.fillStyle=C.gold;x.textAlign='center';x.fillText(fmt(rate,0)+' MB/s',X(rate),12);x.textAlign='left';
+  $('if_out').innerHTML=`Data rate: <b>${fmt(rate,0)} MB/s</b><br>Min interface: <b>${pick}</b><br>(${MP} MP × ${bits}-bit × ${fps} fps)`;
+}
+wire(['sf_fmt','sf_mp'],sensorFmt);
+wire(['ln_s','ln_d','ln_w'],lensSel);
+wire(['if_mp','if_fps','if_bits'],iface);
+</script>
+<script src="feedback.js"></script>
+</body></html>
