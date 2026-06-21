@@ -33,25 +33,44 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
 .theory .tbody{font-size:14.5px;color:#2a3b46;line-height:1.75;padding:4px 2px 6px}
 .theory .tbody ul{margin:8px 0 8px 20px}.theory .tbody li{margin:5px 0}
 .eqn{background:#f3f9fb;border:1px solid #e0eef2;border-radius:8px;padding:6px 14px;margin:10px 0;overflow-x:auto}
+.section-head{max-width:980px;margin:30px auto 0;padding:13px 22px;color:#fff;font-size:17px;font-weight:800;letter-spacing:.4px;background:linear-gradient(120deg,#0a1930,#0f5c70);border-radius:12px}
 </style></head><body>
 
 <div class="top"><div class="wrap">
 <a class="back" href="index.html">← All Courses</a>
 <h1>Camera Technology — Interactive Lab</h1>
-<p>How a camera turns light into pixels — the optics &amp; sensor concepts every machine-vision and photography engineer needs. Tune real parameters (aperture, focal length, distortion, baseline) and see the effect instantly. Built by Dr. S. Ramanathan.</p>
-<div class="toc">
-<a href="#expo">Exposure Triangle</a><a href="#dof">Depth of Field</a><a href="#fov">Field of View</a>
-<a href="#dist">Lens Distortion</a><a href="#shutter">Rolling Shutter</a><a href="#stereo">Stereo Depth</a>
-<a href="#sensor">Sensor Formats</a><a href="#lens">Lens Selection</a><a href="#iface">Specs &amp; Interfaces</a>
-<a href="#ccmos">CCD vs CMOS</a><a href="#bayer">Bayer &amp; Color</a><a href="#mtf">Resolution / MTF</a><a href="#dr">Dynamic Range / SNR</a>
-</div>
+<p>A professional, industry-oriented course on camera technology &amp; imaging-system selection for machine vision — from photons to production. 22 modules across 7 sections, every concept interactive. Built by Dr. S. Ramanathan.</p>
+<div class="toc"><a href="#sec1">1 · Foundations</a><a href="#sec2">2 · Optics &amp; Lenses</a><a href="#sec3">3 · Sensors</a><a href="#sec4">4 · Image Science</a><a href="#sec5">5 · 3D &amp; Advanced</a><a href="#sec6">6 · Industrial Systems</a><a href="#sec7">7 · Selection</a></div>
 </div></div>
 
 <section><div class="lab">
+<h2 class="section-head" id="sec1">SECTION 1 — Foundations of Imaging</h2>
+
+<!-- pipe -->
+<div class="sim" id="pipe">
+  <span class="tag">MODULE 1</span><h2>How a Camera Works — Photon → Pixel</h2>
+  <p class="exp">A camera is a measurement instrument. Light is focused by the lens, converted to charge in the sensor, amplified, digitised by the ADC, then processed by the ISP into an image. Step through the pipeline.</p>
+  <div class="row"><div class="controls"><div class="ctl"><label>Pipeline stage <span class="v" id="pipe_st_v">5</span></label><input type="range" id="pipe_st" min="1" max="5" value="5" step="1"></div>
+    <div class="readout" id="pipe_out"></div>
+  </div><div class="plotwrap"><canvas id="pipe_cv" width="720" height="220"></canvas></div></div>
+  <div class="try">💡 Drag the stage from 1→5 to follow light becoming a digital image. Each block adds noise &amp; latency — the weakest stage caps quality.</div>
+  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> trace the imaging pipeline and identify where quality is lost.<div class="eqn">\[ N_e = QE\cdot N_{photons},\quad DN = g\cdot N_e + \text{offset} \]</div><b>Common mistakes:</b> assuming "more megapixels = better"; ignoring QE &amp; the lens; treating the ISP as lossless.<br><b>Quiz:</b> (1) Order the stages. (2) Where is demosaicing done? (3) What does the ADC limit?</div></details>
+</div>
+
+<!-- spec -->
+<div class="sim" id="spec">
+  <span class="tag">MODULE 2</span><h2>Light &amp; the Electromagnetic Spectrum</h2>
+  <p class="exp">Different wavelengths reveal different physics. Choose the band that makes your feature visible — and note the sensor &amp; optics each one requires.</p>
+  <div class="row"><div class="controls"><div class="ctl"><label>Waveband <span class="v" id="spec_b_v">Visible</span></label><input type="range" id="spec_b" min="0" max="6" value="1" step="1"></div>
+    <div class="readout" id="spec_out"></div>
+  </div><div class="plotwrap"><canvas id="spec_cv" width="720" height="180"></canvas></div></div>
+  <div class="try">💡 Slide into SWIR → silicon sensors stop working (need InGaAs). Slide into LWIR → thermal, no illumination needed, Ge optics.</div>
+  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> match a waveband to its application, sensor and optics.<div class="eqn">\[ E=hc/\lambda,\qquad \lambda_{max}=2898/T(K)\ \mu m\ \text{(Wien)} \]</div><b>Common mistakes:</b> visible light when the feature is only visible in UV/NIR/thermal; glass optics in thermal.<br><b>Quiz:</b> (1) Band for water content? (2) Detector for LWIR? (3) Wien peak of a 300 K body.</div></details>
+</div>
 
 <!-- EXPOSURE -->
 <div class="sim" id="expo">
-  <span class="tag">MODULE 1</span><h2>The Exposure Triangle</h2>
+  <span class="tag">MODULE 3</span><h2>The Exposure Triangle</h2>
   <p class="exp">Three controls set image brightness — <b>aperture</b> (how wide the lens opens), <b>shutter speed</b> (how long light is collected), and <b>ISO</b> (sensor gain) — but each has a side-effect: depth of field, motion blur, and noise. Balance them for a correct exposure.</p>
   <div class="row"><div class="controls">
     <div class="ctl"><label>Aperture <span class="v" id="ex_a_v">f/8</span></label><input type="range" id="ex_a" min="0" max="8" value="4" step="1"></div>
@@ -66,26 +85,11 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
   </div></details>
 </div>
 
-<!-- DEPTH OF FIELD -->
-<div class="sim" id="dof">
-  <span class="tag">MODULE 2</span><h2>Depth of Field</h2>
-  <p class="exp">Only a slice of the scene is acceptably sharp. That slice — the <b>depth of field</b> — grows with a narrower aperture (bigger f-number), a shorter focal length, and a farther subject. The shaded band shows what's in focus.</p>
-  <div class="row"><div class="controls">
-    <div class="ctl"><label>Aperture f-number <span class="v" id="df_n_v">5.6</span></label><input type="range" id="df_n" min="0" max="8" value="3" step="1"></div>
-    <div class="ctl"><label>Focal length <span class="v" id="df_f_v">50</span> mm</label><input type="range" id="df_f" min="16" max="200" value="50" step="2"></div>
-    <div class="ctl"><label>Subject distance <span class="v" id="df_s_v">3.0</span> m</label><input type="range" id="df_s" min="0.5" max="10" value="3" step="0.1"></div>
-    <div class="readout" id="df_out"></div>
-  </div><div class="plotwrap"><canvas id="df_cv" width="720" height="300"></canvas></div></div>
-  <div class="try">💡 Try: f/22 + 35 mm → almost everything sharp (landscape). f/1.4 + 200 mm on a close subject → a razor-thin focus slice (portrait bokeh).</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ H=\frac{f^2}{N\,c}+f,\qquad D_n=\frac{s(H-f)}{H+s-2f},\qquad D_f=\frac{s(H-f)}{H-s} \]</div>
-    <p>\(H\) is the hyperfocal distance; focusing there makes everything from \(H/2\) to infinity sharp. \(c\) is the circle of confusion (≈0.03 mm for full-frame). When \(s\ge H\), the far limit is infinity.</p>
-  </div></details>
-</div>
+<h2 class="section-head" id="sec2">SECTION 2 — Optics &amp; Lenses</h2>
 
 <!-- FIELD OF VIEW -->
 <div class="sim" id="fov">
-  <span class="tag">MODULE 3</span><h2>Field of View &amp; Focal Length</h2>
+  <span class="tag">MODULE 4</span><h2>Field of View &amp; Focal Length</h2>
   <p class="exp">Focal length and sensor size set how much of the world the camera sees. A short focal length (wide lens) captures a broad angle; a long one (telephoto) zooms into a narrow slice. Crucial for choosing a machine-vision lens to cover a given target at a given distance.</p>
   <div class="row"><div class="controls">
     <div class="ctl"><label>Focal length <span class="v" id="fv_f_v">25</span> mm</label><input type="range" id="fv_f" min="4" max="100" value="25" step="1"></div>
@@ -100,76 +104,26 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
   </div></details>
 </div>
 
-<!-- DISTORTION -->
-<div class="sim" id="dist">
-  <span class="tag">MODULE 4</span><h2>Lens Distortion</h2>
-  <p class="exp">Real lenses bend straight lines. <b>Barrel</b> distortion (wide lenses) bulges the image outward; <b>pincushion</b> (telephoto) pinches it inward. Camera <b>calibration</b> estimates these coefficients so machine-vision measurements stay accurate. Watch a square grid warp.</p>
+<!-- DEPTH OF FIELD -->
+<div class="sim" id="dof">
+  <span class="tag">MODULE 5</span><h2>Depth of Field</h2>
+  <p class="exp">Only a slice of the scene is acceptably sharp. That slice — the <b>depth of field</b> — grows with a narrower aperture (bigger f-number), a shorter focal length, and a farther subject. The shaded band shows what's in focus.</p>
   <div class="row"><div class="controls">
-    <div class="ctl"><label>Radial coeff k₁ <span class="v" id="ds_k_v">-0.30</span></label><input type="range" id="ds_k" min="-0.6" max="0.6" value="-0.3" step="0.02"></div>
-    <div class="readout" id="ds_out"></div>
-    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>distorted</span><span><i class="dot" style="background:#8b9aa6"></i>ideal grid</span></div>
-  </div><div class="plotwrap"><canvas id="ds_cv" width="720" height="340"></canvas></div></div>
-  <div class="try">💡 Try: k₁ &lt; 0 → barrel (lines bow outward, like a GoPro). k₁ &gt; 0 → pincushion. k₁ = 0 → perfect rectilinear grid. Calibration finds and undoes this.</div>
+    <div class="ctl"><label>Aperture f-number <span class="v" id="df_n_v">5.6</span></label><input type="range" id="df_n" min="0" max="8" value="3" step="1"></div>
+    <div class="ctl"><label>Focal length <span class="v" id="df_f_v">50</span> mm</label><input type="range" id="df_f" min="16" max="200" value="50" step="2"></div>
+    <div class="ctl"><label>Subject distance <span class="v" id="df_s_v">3.0</span> m</label><input type="range" id="df_s" min="0.5" max="10" value="3" step="0.1"></div>
+    <div class="readout" id="df_out"></div>
+  </div><div class="plotwrap"><canvas id="df_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: f/22 + 35 mm → almost everything sharp (landscape). f/1.4 + 200 mm on a close subject → a razor-thin focus slice (portrait bokeh).</div>
   <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ r_{d}=r\,(1+k_1 r^2 + k_2 r^4 + \dots) \]</div>
-    <p>Radial distortion displaces each point along its radius from the optical centre by a polynomial in \(r\). The Brown–Conrady model (used by OpenCV's <code>calibrateCamera</code>) solves for \(k_1,k_2,k_3\) plus tangential terms, then <code>undistort</code> reverses it.</p>
-  </div></details>
-</div>
-
-<!-- ROLLING SHUTTER -->
-<div class="sim" id="shutter">
-  <span class="tag">MODULE 5</span><h2>Rolling vs Global Shutter</h2>
-  <p class="exp">A <b>global</b> shutter exposes every pixel at once. A <b>rolling</b> shutter (most CMOS sensors) reads rows top-to-bottom over a short time — so a fast-moving object is captured at slightly different positions per row, producing <b>skew</b>. Critical for fast machine-vision inspection.</p>
-  <div class="row"><div class="controls">
-    <div class="ctl"><label>Object speed <span class="v" id="rs_v_v">6</span></label><input type="range" id="rs_v" min="0" max="20" value="6" step="1"></div>
-    <div class="ctl"><label>Readout time <span class="v" id="rs_t_v">15</span> ms</label><input type="range" id="rs_t" min="0" max="40" value="15" step="1"></div>
-    <div class="readout" id="rs_out"></div>
-    <div class="legend"><span><i class="dot" style="background:#8b9aa6"></i>global (true)</span><span><i class="dot" style="background:#3fc4dc"></i>rolling capture</span></div>
-  </div><div class="plotwrap"><canvas id="rs_cv" width="720" height="300"></canvas></div></div>
-  <div class="try">💡 Try: fast object + long readout → the rectangle becomes a slanted parallelogram (the classic "jello" / skew). Zero speed or zero readout → no distortion (matches global shutter).</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <p>Row \(y\) is exposed at time \(t(y)=\dfrac{y}{H}T_{read}\). An object moving at velocity \(v\) shifts by \(v\,t(y)\) by the time that row is read, so a vertical edge tilts by \(\Delta x = v\,T_{read}\) over the full frame height — a shear, not a simple blur. Global shutters avoid it but cost more and can have lower full-well capacity.</p>
-  </div></details>
-</div>
-
-<!-- STEREO DEPTH -->
-<div class="sim" id="stereo">
-  <span class="tag">MODULE 6</span><h2>Stereo Depth (Triangulation)</h2>
-  <p class="exp">Two cameras a known <b>baseline</b> apart see a point at slightly different image positions — the <b>disparity</b>. From it you recover depth by triangulation. This is the principle behind stereo vision and 3D measurement systems.</p>
-  <div class="row"><div class="controls">
-    <div class="ctl"><label>Baseline B <span class="v" id="st_b_v">120</span> mm</label><input type="range" id="st_b" min="30" max="300" value="120" step="5"></div>
-    <div class="ctl"><label>Focal length <span class="v" id="st_f_v">800</span> px</label><input type="range" id="st_f" min="200" max="2000" value="800" step="50"></div>
-    <div class="ctl"><label>Disparity d <span class="v" id="st_d_v">40</span> px</label><input type="range" id="st_d" min="5" max="200" value="40" step="1"></div>
-    <div class="readout" id="st_out"></div>
-    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>cameras</span><span><i class="dot" style="background:#f4b740"></i>measured point</span></div>
-  </div><div class="plotwrap"><canvas id="st_cv" width="720" height="320"></canvas></div></div>
-  <div class="try">💡 Try: small disparity → far object; large disparity → near. A wider baseline B improves depth precision (but shrinks the overlapping field of view).</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ Z=\frac{f\cdot B}{d} \]</div>
-    <p>Depth \(Z\) is inversely proportional to disparity \(d\): nearby points shift a lot between the two views, distant points barely move. Depth precision degrades with distance (\(\partial Z/\partial d \propto Z^2\)), which is why a larger baseline or longer focal length helps for far targets.</p>
-  </div></details>
-</div>
-
-<!-- SENSOR FORMATS -->
-<div class="sim" id="sensor">
-  <span class="tag">MODULE 7</span><h2>Sensor Formats &amp; Pixel Size</h2>
-  <p class="exp">Sensor size drives image quality more than megapixels. A bigger sensor gathers more light (less noise, more dynamic range) and changes the effective field of view via the <b>crop factor</b>. For a fixed megapixel count, a bigger sensor also means larger <b>pixels</b> — better sensitivity. Compare formats to scale.</p>
-  <div class="row"><div class="controls">
-    <div class="ctl"><label>Format</label><select id="sf_fmt"></select></div>
-    <div class="ctl"><label>Resolution <span class="v" id="sf_mp_v">12</span> MP</label><input type="range" id="sf_mp" min="1" max="60" value="12" step="1"></div>
-    <div class="readout" id="sf_out"></div>
-    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>selected</span><span><i class="dot" style="background:#8b9aa6"></i>other formats</span></div>
-  </div><div class="plotwrap"><canvas id="sf_cv" width="720" height="320"></canvas></div></div>
-  <div class="try">💡 Try: pick a tiny 1/2.3" sensor at 48 MP → minuscule pixels (noisy in low light). A full-frame at 24 MP → big pixels (clean). Same MP, very different image quality.</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ \text{crop factor}=\frac{43.27\text{ mm}}{\text{sensor diagonal}},\qquad \text{pixel pitch}=\frac{\text{sensor width}}{\text{horizontal pixels}} \]</div>
-    <p>The crop factor multiplies a lens's effective focal length (a 25 mm lens on a 2/3" sensor frames like a ~100 mm lens on full-frame). Larger pixels collect more photons → higher signal-to-noise and dynamic range, which is why sensor area, not megapixels, is the headline spec for low-light and metrology cameras.</p>
+    <div class="eqn">\[ H=\frac{f^2}{N\,c}+f,\qquad D_n=\frac{s(H-f)}{H+s-2f},\qquad D_f=\frac{s(H-f)}{H-s} \]</div>
+    <p>\(H\) is the hyperfocal distance; focusing there makes everything from \(H/2\) to infinity sharp. \(c\) is the circle of confusion (≈0.03 mm for full-frame). When \(s\ge H\), the far limit is infinity.</p>
   </div></details>
 </div>
 
 <!-- LENS SELECTION -->
 <div class="sim" id="lens">
-  <span class="tag">MODULE 8</span><h2>Lens Selection &amp; Types</h2>
+  <span class="tag">MODULE 6</span><h2>Lens Technologies</h2>
   <p class="exp">The core machine-vision lens question: <i>what focal length covers my target at my working distance?</i> Set the sensor, the distance, and the field you must image — the required focal length is computed, along with the lens category and notes on prime/zoom/macro/telecentric.</p>
   <div class="row"><div class="controls">
     <div class="ctl"><label>Sensor width <span class="v" id="ln_s_v">8.8</span> mm</label><input type="range" id="ln_s" min="4" max="36" value="8.8" step="0.1"></div>
@@ -188,26 +142,44 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
   </div></details>
 </div>
 
-<!-- INTERFACES -->
-<div class="sim" id="iface">
-  <span class="tag">MODULE 9</span><h2>Camera Specs, Data Rate &amp; Interfaces</h2>
-  <p class="exp">A camera's resolution × bit depth × frame rate sets its <b>data rate</b> — which dictates the interface (USB3, GigE, Camera Link, CoaXPress…). Pick the specs and see the required bandwidth and the cheapest interface that can carry it. (Plus: the CCD-vs-CMOS trade-off below.)</p>
+<!-- DISTORTION -->
+<div class="sim" id="dist">
+  <span class="tag">MODULE 7</span><h2>Lens Distortion &amp; Calibration</h2>
+  <p class="exp">Real lenses bend straight lines. <b>Barrel</b> distortion (wide lenses) bulges the image outward; <b>pincushion</b> (telephoto) pinches it inward. Camera <b>calibration</b> estimates these coefficients so machine-vision measurements stay accurate. Watch a square grid warp.</p>
   <div class="row"><div class="controls">
-    <div class="ctl"><label>Resolution <span class="v" id="if_mp_v">5</span> MP</label><input type="range" id="if_mp" min="0.3" max="50" value="5" step="0.1"></div>
-    <div class="ctl"><label>Frame rate <span class="v" id="if_fps_v">60</span> fps</label><input type="range" id="if_fps" min="1" max="500" value="60" step="1"></div>
-    <div class="ctl"><label>Bit depth</label><select id="if_bits"><option>8</option><option>10</option><option selected>12</option><option>16</option></select></div>
-    <div class="readout" id="if_out"></div>
-  </div><div class="plotwrap"><canvas id="if_cv" width="720" height="300"></canvas></div></div>
-  <div class="try">💡 Try: 5 MP @ 60 fps, 12-bit → a few hundred MB/s, needs USB3/GigE-Vision class. Crank to 25 MP @ 100 fps → only Camera Link / CoaXPress can keep up.</div>
+    <div class="ctl"><label>Radial coeff k₁ <span class="v" id="ds_k_v">-0.30</span></label><input type="range" id="ds_k" min="-0.6" max="0.6" value="-0.3" step="0.02"></div>
+    <div class="readout" id="ds_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>distorted</span><span><i class="dot" style="background:#8b9aa6"></i>ideal grid</span></div>
+  </div><div class="plotwrap"><canvas id="ds_cv" width="720" height="340"></canvas></div></div>
+  <div class="try">💡 Try: k₁ &lt; 0 → barrel (lines bow outward, like a GoPro). k₁ &gt; 0 → pincushion. k₁ = 0 → perfect rectilinear grid. Calibration finds and undoes this.</div>
   <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ \text{data rate} = \text{pixels} \times \frac{\text{bits}}{8} \times \text{fps} \]</div>
-    <p><b>CCD vs CMOS:</b> CCD historically gave lower noise &amp; global shutter but is slower and power-hungry; modern <b>CMOS</b> dominates — fast, low-power, on-chip ADC, and now excellent noise (with global-shutter variants for motion). Interface ballpark throughput: USB2 ≈ 40, GigE ≈ 110, USB3 ≈ 380, Camera Link ≈ 850, 10-GigE ≈ 1100, CoaXPress (CXP-12 ×4) ≈ 5000 MB/s.</p>
+    <div class="eqn">\[ r_{d}=r\,(1+k_1 r^2 + k_2 r^4 + \dots) \]</div>
+    <p>Radial distortion displaces each point along its radius from the optical centre by a polynomial in \(r\). The Brown–Conrady model (used by OpenCV's <code>calibrateCamera</code>) solves for \(k_1,k_2,k_3\) plus tangential terms, then <code>undistort</code> reverses it.</p>
+  </div></details>
+</div>
+
+<h2 class="section-head" id="sec3">SECTION 3 — Image Sensors</h2>
+
+<!-- SENSOR FORMATS -->
+<div class="sim" id="sensor">
+  <span class="tag">MODULE 8</span><h2>Sensor Formats &amp; Pixel Size</h2>
+  <p class="exp">Sensor size drives image quality more than megapixels. A bigger sensor gathers more light (less noise, more dynamic range) and changes the effective field of view via the <b>crop factor</b>. For a fixed megapixel count, a bigger sensor also means larger <b>pixels</b> — better sensitivity. Compare formats to scale.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Format</label><select id="sf_fmt"></select></div>
+    <div class="ctl"><label>Resolution <span class="v" id="sf_mp_v">12</span> MP</label><input type="range" id="sf_mp" min="1" max="60" value="12" step="1"></div>
+    <div class="readout" id="sf_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>selected</span><span><i class="dot" style="background:#8b9aa6"></i>other formats</span></div>
+  </div><div class="plotwrap"><canvas id="sf_cv" width="720" height="320"></canvas></div></div>
+  <div class="try">💡 Try: pick a tiny 1/2.3" sensor at 48 MP → minuscule pixels (noisy in low light). A full-frame at 24 MP → big pixels (clean). Same MP, very different image quality.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \text{crop factor}=\frac{43.27\text{ mm}}{\text{sensor diagonal}},\qquad \text{pixel pitch}=\frac{\text{sensor width}}{\text{horizontal pixels}} \]</div>
+    <p>The crop factor multiplies a lens's effective focal length (a 25 mm lens on a 2/3" sensor frames like a ~100 mm lens on full-frame). Larger pixels collect more photons → higher signal-to-noise and dynamic range, which is why sensor area, not megapixels, is the headline spec for low-light and metrology cameras.</p>
   </div></details>
 </div>
 
 <!-- CCD vs CMOS -->
 <div class="sim" id="ccmos">
-  <span class="tag">MODULE 10</span><h2>CCD vs CMOS Sensor Architecture</h2>
+  <span class="tag">MODULE 9</span><h2>CCD vs CMOS Sensor Architecture</h2>
   <p class="exp">Two ways to read charge off a sensor. A <b>CCD</b> shifts every pixel's charge, bucket-brigade style, to one corner amplifier — uniform but slow. A <b>CMOS</b> sensor amplifies and digitises <b>at each pixel/column</b> in parallel — fast, low-power, and now dominant. Switch between them to see the readout path.</p>
   <div class="row"><div class="controls">
     <div class="ctl"><label>Sensor type</label><select id="cc_t"><option value="cmos" selected>CMOS</option><option value="ccd">CCD</option></select></div>
@@ -225,9 +197,45 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
   </div></details>
 </div>
 
+<!-- ROLLING SHUTTER -->
+<div class="sim" id="shutter">
+  <span class="tag">MODULE 10</span><h2>Global vs Rolling Shutter</h2>
+  <p class="exp">A <b>global</b> shutter exposes every pixel at once. A <b>rolling</b> shutter (most CMOS sensors) reads rows top-to-bottom over a short time — so a fast-moving object is captured at slightly different positions per row, producing <b>skew</b>. Critical for fast machine-vision inspection.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Object speed <span class="v" id="rs_v_v">6</span></label><input type="range" id="rs_v" min="0" max="20" value="6" step="1"></div>
+    <div class="ctl"><label>Readout time <span class="v" id="rs_t_v">15</span> ms</label><input type="range" id="rs_t" min="0" max="40" value="15" step="1"></div>
+    <div class="readout" id="rs_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#8b9aa6"></i>global (true)</span><span><i class="dot" style="background:#3fc4dc"></i>rolling capture</span></div>
+  </div><div class="plotwrap"><canvas id="rs_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: fast object + long readout → the rectangle becomes a slanted parallelogram (the classic "jello" / skew). Zero speed or zero readout → no distortion (matches global shutter).</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>Row \(y\) is exposed at time \(t(y)=\dfrac{y}{H}T_{read}\). An object moving at velocity \(v\) shifts by \(v\,t(y)\) by the time that row is read, so a vertical edge tilts by \(\Delta x = v\,T_{read}\) over the full frame height — a shear, not a simple blur. Global shutters avoid it but cost more and can have lower full-well capacity.</p>
+  </div></details>
+</div>
+
+<!-- DYNAMIC RANGE / SNR -->
+<div class="sim" id="dr">
+  <span class="tag">MODULE 11</span><h2>Dynamic Range &amp; Noise</h2>
+  <p class="exp">How much tonal range can a sensor capture, and how clean is it? <b>Dynamic range</b> = the ratio of the brightest signal (full-well) to the noise floor (read noise). <b>SNR</b> grows with light until the pixel saturates. These set how usable an image is in shadows and highlights.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Full-well capacity <span class="v" id="dr_fw_v">20</span> ke⁻</label><input type="range" id="dr_fw" min="2" max="100" value="20" step="1"></div>
+    <div class="ctl"><label>Read noise <span class="v" id="dr_rn_v">4</span> e⁻</label><input type="range" id="dr_rn" min="1" max="40" value="4" step="1"></div>
+    <div class="ctl"><label>Bit depth <span class="v" id="dr_b_v">12</span></label><input type="range" id="dr_b" min="8" max="16" value="12" step="1"></div>
+    <div class="readout" id="dr_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>SNR (dB)</span><span><i class="dot" style="background:#ef5350"></i>saturation</span></div>
+  </div><div class="plotwrap"><canvas id="dr_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: bigger full-well + lower read noise → wider dynamic range (more stops). The SNR curve rises at √(signal) in the shot-noise region, then clips at full-well. Bit depth should be enough to not waste the range.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \text{DR}_{dB}=20\log_{10}\!\frac{N_{full}}{\sigma_{read}},\quad \text{DR}_{stops}=\log_2\!\frac{N_{full}}{\sigma_{read}},\quad \text{SNR}(S)=\frac{S}{\sqrt{S+\sigma_{read}^2}} \]</div>
+    <p>Noise sources: <b>shot noise</b> \(\sqrt{S}\) (fundamental, from photon statistics), <b>read noise</b> (electronics, sets the floor), <b>dark current</b> (thermal), and <b>fixed-pattern noise</b>. In bright light, SNR is shot-limited (\(\sqrt{S}\)); in shadows, read-noise-limited. Bit depth should at least resolve the noise floor — more bits than the DR warrants just stores noise.</p>
+  </div></details>
+</div>
+
+<h2 class="section-head" id="sec4">SECTION 4 — Image Science</h2>
+
 <!-- BAYER -->
 <div class="sim" id="bayer">
-  <span class="tag">MODULE 11</span><h2>Bayer Pattern &amp; Demosaicing</h2>
+  <span class="tag">MODULE 12</span><h2>Bayer Pattern &amp; Colour Imaging</h2>
   <p class="exp">A sensor pixel only counts photons — it's colour-blind. To get colour, most cameras put a <b>colour filter array</b> over the pixels (the Bayer RGGB mosaic), then <b>demosaic</b> — interpolate the two missing channels at every pixel. Toggle between the raw mosaic and the reconstructed colour image.</p>
   <div class="row"><div class="controls">
     <div class="ctl"><label style="justify-content:flex-start;gap:8px"><input type="checkbox" id="by_dm" style="width:auto;accent-color:var(--teal)" checked> Show demosaiced (full colour)</label></div>
@@ -246,7 +254,7 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
 
 <!-- MTF / RESOLUTION -->
 <div class="sim" id="mtf">
-  <span class="tag">MODULE 12</span><h2>Resolution, MTF &amp; the Nyquist Limit</h2>
+  <span class="tag">MODULE 13</span><h2>Resolution, MTF &amp; Nyquist</h2>
   <p class="exp">"Megapixels" isn't resolution. Real resolving power is the <b>MTF</b> — how much contrast survives at each spatial frequency (line pairs/mm). The lens MTF and the sensor's pixel pitch both limit it; beyond the sensor's <b>Nyquist frequency</b>, fine detail <b>aliases</b> into moiré.</p>
   <div class="row"><div class="controls">
     <div class="ctl"><label>Pixel pitch <span class="v" id="mt_p_v">3.5</span> µm</label><input type="range" id="mt_p" min="1" max="10" value="3.5" step="0.1"></div>
@@ -261,24 +269,123 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
   </div></details>
 </div>
 
-<!-- DYNAMIC RANGE / SNR -->
-<div class="sim" id="dr">
-  <span class="tag">MODULE 13</span><h2>Dynamic Range, SNR &amp; Noise</h2>
-  <p class="exp">How much tonal range can a sensor capture, and how clean is it? <b>Dynamic range</b> = the ratio of the brightest signal (full-well) to the noise floor (read noise). <b>SNR</b> grows with light until the pixel saturates. These set how usable an image is in shadows and highlights.</p>
+<!-- iq -->
+<div class="sim" id="iq">
+  <span class="tag">MODULE 14</span><h2>Image Quality Metrics</h2>
+  <p class="exp">Quantify "good image" with engineering numbers, not the eye: sharpness, contrast, SNR, dynamic range, colour accuracy. Degrade a test pattern and watch the metrics move.</p>
+  <div class="row"><div class="controls"><div class="ctl"><label>Noise <span class="v" id="iq_n_v">8</span></label><input type="range" id="iq_n" min="0" max="60" value="8" step="1"></div><div class="ctl"><label>Blur <span class="v" id="iq_b_v">1</span></label><input type="range" id="iq_b" min="0" max="8" value="1" step="1"></div><div class="ctl"><label>Contrast <span class="v" id="iq_c_v">0.8</span></label><input type="range" id="iq_c" min="0.1" max="1" value="0.8" step="0.05"></div>
+    <div class="readout" id="iq_out"></div>
+  </div><div class="plotwrap"><canvas id="iq_cv" width="720" height="260"></canvas></div></div>
+  <div class="try">💡 Add noise → SNR drops. Add blur → MTF50 drops. These are the numbers spec sheets quote (EMVA 1288, ISO 12233).</div>
+  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> measure sharpness/SNR/contrast objectively.<div class="eqn">\[ SNR_{dB}=20\log_{10}(\mu/\sigma),\quad C=\frac{I_{max}-I_{min}}{I_{max}+I_{min}} \]</div><b>Common mistakes:</b> judging by eye; relying on a single metric.<br><b>Quiz:</b> (1) SNR in dB. (2) What MTF50 means. (3) ΔE measures?</div></details>
+</div>
+
+<h2 class="section-head" id="sec5">SECTION 5 — 3D &amp; Advanced Imaging</h2>
+
+<!-- STEREO DEPTH -->
+<div class="sim" id="stereo">
+  <span class="tag">MODULE 15</span><h2>Stereo Vision</h2>
+  <p class="exp">Two cameras a known <b>baseline</b> apart see a point at slightly different image positions — the <b>disparity</b>. From it you recover depth by triangulation. This is the principle behind stereo vision and 3D measurement systems.</p>
   <div class="row"><div class="controls">
-    <div class="ctl"><label>Full-well capacity <span class="v" id="dr_fw_v">20</span> ke⁻</label><input type="range" id="dr_fw" min="2" max="100" value="20" step="1"></div>
-    <div class="ctl"><label>Read noise <span class="v" id="dr_rn_v">4</span> e⁻</label><input type="range" id="dr_rn" min="1" max="40" value="4" step="1"></div>
-    <div class="ctl"><label>Bit depth <span class="v" id="dr_b_v">12</span></label><input type="range" id="dr_b" min="8" max="16" value="12" step="1"></div>
-    <div class="readout" id="dr_out"></div>
-    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>SNR (dB)</span><span><i class="dot" style="background:#ef5350"></i>saturation</span></div>
-  </div><div class="plotwrap"><canvas id="dr_cv" width="720" height="300"></canvas></div></div>
-  <div class="try">💡 Try: bigger full-well + lower read noise → wider dynamic range (more stops). The SNR curve rises at √(signal) in the shot-noise region, then clips at full-well. Bit depth should be enough to not waste the range.</div>
+    <div class="ctl"><label>Baseline B <span class="v" id="st_b_v">120</span> mm</label><input type="range" id="st_b" min="30" max="300" value="120" step="5"></div>
+    <div class="ctl"><label>Focal length <span class="v" id="st_f_v">800</span> px</label><input type="range" id="st_f" min="200" max="2000" value="800" step="50"></div>
+    <div class="ctl"><label>Disparity d <span class="v" id="st_d_v">40</span> px</label><input type="range" id="st_d" min="5" max="200" value="40" step="1"></div>
+    <div class="readout" id="st_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>cameras</span><span><i class="dot" style="background:#f4b740"></i>measured point</span></div>
+  </div><div class="plotwrap"><canvas id="st_cv" width="720" height="320"></canvas></div></div>
+  <div class="try">💡 Try: small disparity → far object; large disparity → near. A wider baseline B improves depth precision (but shrinks the overlapping field of view).</div>
   <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ \text{DR}_{dB}=20\log_{10}\!\frac{N_{full}}{\sigma_{read}},\quad \text{DR}_{stops}=\log_2\!\frac{N_{full}}{\sigma_{read}},\quad \text{SNR}(S)=\frac{S}{\sqrt{S+\sigma_{read}^2}} \]</div>
-    <p>Noise sources: <b>shot noise</b> \(\sqrt{S}\) (fundamental, from photon statistics), <b>read noise</b> (electronics, sets the floor), <b>dark current</b> (thermal), and <b>fixed-pattern noise</b>. In bright light, SNR is shot-limited (\(\sqrt{S}\)); in shadows, read-noise-limited. Bit depth should at least resolve the noise floor — more bits than the DR warrants just stores noise.</p>
+    <div class="eqn">\[ Z=\frac{f\cdot B}{d} \]</div>
+    <p>Depth \(Z\) is inversely proportional to disparity \(d\): nearby points shift a lot between the two views, distant points barely move. Depth precision degrades with distance (\(\partial Z/\partial d \propto Z^2\)), which is why a larger baseline or longer focal length helps for far targets.</p>
   </div></details>
 </div>
 
+<!-- td -->
+<div class="sim" id="td">
+  <span class="tag">MODULE 16</span><h2>3D Imaging Technologies</h2>
+  <p class="exp">Beyond stereo: structured light, Time-of-Flight, laser triangulation and LiDAR. Each trades range vs accuracy vs speed vs ambient-light robustness. Compare them.</p>
+  <div class="row"><div class="controls"><div class="ctl"><label>Method</label><select id="td_m"><option>Stereo</option><option>Structured light</option><option>Time-of-Flight</option><option>Laser triangulation</option><option>LiDAR</option></select></div>
+    <div class="readout" id="td_out"></div>
+  </div><div class="plotwrap"><canvas id="td_cv" width="720" height="240"></canvas></div></div>
+  <div class="try">💡 Compare structured light vs ToF: high accuracy short range vs fast full-field at longer range.</div>
+  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> pick a 3D method per application.<div class="eqn">\[ \text{ToF: } Z=\tfrac{c\,\Delta t}{2},\quad \text{CW: } Z=\tfrac{c\,\phi}{4\pi f_{mod}} \]</div><b>Common mistakes:</b> ToF for sub-mm metrology; structured light in bright ambient.<br><b>Quiz:</b> (1) ToF equation. (2) Best for sub-mm? (3) LiDAR use case.</div></details>
+</div>
+
+<!-- ms -->
+<div class="sim" id="ms">
+  <span class="tag">MODULE 17</span><h2>Multispectral &amp; Hyperspectral Imaging</h2>
+  <p class="exp">Capture many spectral bands to discriminate materials by their <b>signature</b> — bruised fruit, vegetation stress, coatings — that look identical in RGB. Switch bands to reveal hidden features.</p>
+  <div class="row"><div class="controls"><div class="ctl"><label>Band</label><select id="ms_b"><option>RGB (visible)</option><option>NIR</option><option>SWIR</option><option>Thermal (LWIR)</option></select></div>
+    <div class="readout" id="ms_out"></div>
+  </div><div class="plotwrap"><canvas id="ms_cv" width="720" height="240"></canvas></div></div>
+  <div class="try">💡 Toggle to NIR → a bruise invisible in RGB appears as a dark patch (the basis of food sorting).</div>
+  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> use spectral signatures for material discrimination.<div class="eqn">\[ R(\lambda)=I_{sample}/I_{ref},\qquad NDVI=\frac{NIR-Red}{NIR+Red} \]</div><b>Common mistakes:</b> hyperspectral when 2–3 bands suffice; ignoring calibration/illuminant.<br><b>Quiz:</b> (1) NDVI formula. (2) Multi vs hyper. (3) Push-broom meaning.</div></details>
+</div>
+
+<h2 class="section-head" id="sec6">SECTION 6 — Industrial Camera Systems</h2>
+
+<!-- INTERFACES -->
+<div class="sim" id="iface">
+  <span class="tag">MODULE 18</span><h2>Camera Interfaces &amp; Data Rates</h2>
+  <p class="exp">A camera's resolution × bit depth × frame rate sets its <b>data rate</b> — which dictates the interface (USB3, GigE, Camera Link, CoaXPress…). Pick the specs and see the required bandwidth and the cheapest interface that can carry it. (Plus: the CCD-vs-CMOS trade-off below.)</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Resolution <span class="v" id="if_mp_v">5</span> MP</label><input type="range" id="if_mp" min="0.3" max="50" value="5" step="0.1"></div>
+    <div class="ctl"><label>Frame rate <span class="v" id="if_fps_v">60</span> fps</label><input type="range" id="if_fps" min="1" max="500" value="60" step="1"></div>
+    <div class="ctl"><label>Bit depth</label><select id="if_bits"><option>8</option><option>10</option><option selected>12</option><option>16</option></select></div>
+    <div class="readout" id="if_out"></div>
+  </div><div class="plotwrap"><canvas id="if_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: 5 MP @ 60 fps, 12-bit → a few hundred MB/s, needs USB3/GigE-Vision class. Crank to 25 MP @ 100 fps → only Camera Link / CoaXPress can keep up.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \text{data rate} = \text{pixels} \times \frac{\text{bits}}{8} \times \text{fps} \]</div>
+    <p><b>CCD vs CMOS:</b> CCD historically gave lower noise &amp; global shutter but is slower and power-hungry; modern <b>CMOS</b> dominates — fast, low-power, on-chip ADC, and now excellent noise (with global-shutter variants for motion). Interface ballpark throughput: USB2 ≈ 40, GigE ≈ 110, USB3 ≈ 380, Camera Link ≈ 850, 10-GigE ≈ 1100, CoaXPress (CXP-12 ×4) ≈ 5000 MB/s.</p>
+  </div></details>
+</div>
+
+<!-- lt -->
+<div class="sim" id="lt">
+  <span class="tag">MODULE 19</span><h2>Illumination Systems</h2>
+  <p class="exp">Lighting is often the highest-leverage decision in machine vision — "good lighting beats more pixels". Each geometry makes different features pop. See a scratched part under each.</p>
+  <div class="row"><div class="controls"><div class="ctl"><label>Lighting geometry</label><select id="lt_g"><option>Bright field</option><option>Dark field</option><option>Backlight</option><option>Dome / diffuse</option><option>Coaxial</option></select></div>
+    <div class="readout" id="lt_out"></div>
+  </div><div class="plotwrap"><canvas id="lt_cv" width="720" height="240"></canvas></div></div>
+  <div class="try">💡 Switch bright→dark field → surface scratches flip from invisible to bright. Backlight → perfect silhouette for gauging.</div>
+  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> choose lighting that maximises feature contrast.<div class="eqn">\[ E\propto 1/d^2,\qquad C=\frac{I_{feat}-I_{bg}}{I_{feat}+I_{bg}}\ \text{(maximise)} \]</div><b>Common mistakes:</b> fixing in software what lighting should solve; uncontrolled ambient; specular hotspots.<br><b>Quiz:</b> (1) Dark field reveals? (2) Polariser use. (3) Backlight is for?</div></details>
+</div>
+
+<!-- sd -->
+<div class="sim" id="sd">
+  <span class="tag">MODULE 20</span><h2>Machine-Vision System Design &amp; Timing</h2>
+  <p class="exp">A working system synchronises camera + lens + lighting + trigger + processing. Build the timing budget: acquisition + transfer + processing must fit inside the cycle time, or you miss parts.</p>
+  <div class="row"><div class="controls"><div class="ctl"><label>Exposure <span class="v" id="sd_e_v">3</span> ms</label><input type="range" id="sd_e" min="0.5" max="20" value="3" step="0.5"></div><div class="ctl"><label>Readout/transfer <span class="v" id="sd_r_v">8</span> ms</label><input type="range" id="sd_r" min="1" max="40" value="8" step="1"></div><div class="ctl"><label>Processing <span class="v" id="sd_p_v">12</span> ms</label><input type="range" id="sd_p" min="1" max="60" value="12" step="1"></div><div class="ctl"><label>Cycle budget <span class="v" id="sd_c_v">33</span> ms</label><input type="range" id="sd_c" min="10" max="100" value="33" step="1"></div>
+    <div class="readout" id="sd_out"></div>
+  </div><div class="plotwrap"><canvas id="sd_cv" width="720" height="220"></canvas></div></div>
+  <div class="try">💡 Push processing past the cycle budget → the bar turns red: parts are missed. Use a hardware trigger &amp; strobe synced to exposure.</div>
+  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> budget acquisition→transfer→processing within the cycle.<div class="eqn">\[ t_{cycle}=t_{exp}+t_{read}+t_{proc},\quad \text{throughput}=1/t_{cycle} \]</div><b>Common mistakes:</b> no hardware trigger; ignoring transfer/processing latency; under-spec PC.<br><b>Quiz:</b> (1) Why encoder trigger for line-scan. (2) Cycle-time terms. (3) Strobe–exposure sync.</div></details>
+</div>
+
+<h2 class="section-head" id="sec7">SECTION 7 — Camera Selection Masterclass</h2>
+
+<!-- wz -->
+<div class="sim" id="wz">
+  <span class="tag">MODULE 21</span><h2>Camera Selection Workflow (Wizard)</h2>
+  <p class="exp">Turn application requirements into a complete spec. Enter your object, smallest feature, working distance, accuracy and speed — get recommended resolution, pixel size, lens focal length, frame rate, shutter and interface.</p>
+  <div class="row"><div class="controls"><div class="ctl"><label>Object size <span class="v" id="wz_o_v">200</span> mm</label><input type="range" id="wz_o" min="5" max="1000" value="200" step="5"></div><div class="ctl"><label>Smallest feature <span class="v" id="wz_f_v">0.2</span> mm</label><input type="range" id="wz_f" min="0.01" max="5" value="0.2" step="0.01"></div><div class="ctl"><label>Working distance <span class="v" id="wz_d_v">500</span> mm</label><input type="range" id="wz_d" min="50" max="3000" value="500" step="10"></div><div class="ctl"><label>Object speed <span class="v" id="wz_v_v">0</span> mm/s</label><input type="range" id="wz_v" min="0" max="2000" value="0" step="10"></div>
+    <div class="readout" id="wz_out"></div>
+  </div><div class="plotwrap"><div id="wz_panel" style="background:#0c1f2e;border-radius:10px;padding:18px;color:#cfe7ee;font-size:14px;line-height:1.9;min-height:240px"></div></div></div>
+  <div class="try">💡 Tighten the smallest feature 2× → required resolution (and cost) jumps. Add object speed → it recommends a global shutter.</div>
+  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> derive a full camera+lens+interface spec from requirements.<div class="eqn">\[ \text{sensor px}=\frac{\text{object}}{\text{feature}}\times(\ge 3\ \text{px/feature}),\quad f\approx\frac{d_{sensor}\cdot WD}{\text{object}} \]</div><b>Common mistakes:</b> specifying the camera before defining the smallest feature &amp; accuracy; forgetting lighting/interface.<br><b>Quiz:</b> (1) Resolution from feature size. (2) When global shutter. (3) First step of the workflow.</div></details>
+</div>
+
+<!-- cs -->
+<div class="sim" id="cs">
+  <span class="tag">MODULE 22</span><h2>Engineering Case Studies</h2>
+  <p class="exp">Apply the whole course: each real application drives a different set of camera, lens, lighting and interface decisions. Pick a case to see the reasoned specification.</p>
+  <div class="row"><div class="controls"><div class="ctl"><label>Application</label><select id="cs_c"><option>PCB inspection</option><option>Semiconductor inspection</option><option>Traffic ANPR</option><option>Drone imaging</option><option>Fruit sorting</option><option>Warehouse robotics</option><option>Bin picking</option><option>Medical imaging</option><option>Thermal inspection</option></select></div>
+    <div class="readout" id="cs_out"></div>
+  </div><div class="plotwrap"><div id="cs_panel" style="background:#0c1f2e;border-radius:10px;padding:18px;color:#cfe7ee;font-size:14px;line-height:1.8;min-height:240px"></div></div></div>
+  <div class="try">💡 Re-derive each spec with the Module 21 workflow — never copy a spec without re-checking feature size, motion and lighting.</div>
+  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> connect requirements to a complete system choice.<br><b>Common mistakes:</b> reusing a spec across applications without re-checking the critical driver.<br><b>Quiz:</b> match each application to its single most critical camera decision.</div></details>
+</div>
 </div></section>
 <footer>© Dr. S. Ramanathan · Camera Technology Interactive Lab · All simulations run in your browser</footer>
 
@@ -574,6 +681,124 @@ wire(['cc_t'],ccmos);
 wire(['by_dm','by_n'],bayer);
 wire(['mt_p','mt_l'],mtf);
 wire(['dr_fw','dr_rn','dr_b'],drsnr);
+
+// ===== M1 pipeline =====
+function pipeFn(){const st=+$('pipe_st').value;$('pipe_st_v').textContent=st;const [x,W,H]=ctx2('pipe_cv');
+ const L=['Lens','Sensor','ADC','ISP','Image'],D=['Focuses light onto the sensor','Photons → electrons (charge) per pixel','Charge → digital numbers (quantisation)','Demosaic, white balance, gamma, compression','Final digital image / stream'];
+ const n=5,bw=112,gap=(W-40-n*bw)/(n-1),y=H/2-40;
+ for(let i=0;i<n;i++){const bx=20+i*(bw+gap),on=i<st;x.fillStyle=on?'#0f5c70':'#1b2a36';x.strokeStyle=on?C.cyan:'rgba(255,255,255,.2)';x.lineWidth=2;x.fillRect(bx,y,bw,72);x.strokeRect(bx,y,bw,72);x.fillStyle=on?'#eaf4f7':'#6b8190';x.font='15px sans-serif';x.textAlign='center';x.fillText(L[i],bx+bw/2,y+42);
+  if(i<n-1){x.strokeStyle=i<st-1?C.cyan:'rgba(255,255,255,.2)';x.beginPath();x.moveTo(bx+bw,y+36);x.lineTo(bx+bw+gap,y+36);x.stroke();}}
+ $('pipe_out').innerHTML='<b>Stage '+st+': '+L[st-1]+'</b><br>'+D[st-1];}
+
+// ===== M2 spectrum =====
+const BANDS=[{n:'UV',r:'200–400 nm',s:'UV-enhanced Si',l:'quartz / UV',i:'UV LED',a:'fluorescence, surface defects, semiconductor',c:'#8a4fd0'},
+{n:'Visible',r:'400–700 nm',s:'Silicon (CCD/CMOS)',l:'standard glass',i:'white LED',a:'general inspection, colour, ANPR',c:'#3fc4dc'},
+{n:'NIR',r:'700–1000 nm',s:'Silicon',l:'NIR-corrected glass',i:'NIR LED 850/940',a:'veins, through-ink, biometrics',c:'#b85c8a'},
+{n:'SWIR',r:'1.0–2.5 µm',s:'InGaAs',l:'special SWIR glass',i:'SWIR source',a:'moisture/water, through-Si, sorting',c:'#c98a2e'},
+{n:'MWIR',r:'3–5 µm',s:'InSb (cooled)',l:'Ge / Si',i:'(emissive)',a:'hot targets, gas, defence',c:'#d0642e'},
+{n:'LWIR',r:'8–14 µm',s:'microbolometer',l:'Germanium',i:'(emissive)',a:'thermal inspection, maintenance',c:'#a23a2e'},
+{n:'X-ray',r:'<10 nm',s:'scintillator + Si',l:'(no refractive)',i:'X-ray tube',a:'internal defects, BGA voids, castings',c:'#8896a0'}];
+function specFn(){const i=+$('spec_b').value,b=BANDS[i];$('spec_b_v').textContent=b.n;const [x,W,H]=ctx2('spec_cv');
+ const seg=(W-40)/BANDS.length;for(let k=0;k<BANDS.length;k++){x.fillStyle=k===i?BANDS[k].c:'#243743';x.fillRect(20+k*seg,34,seg-3,42);x.fillStyle=k===i?'#fff':'#8b9aa6';x.font='12px sans-serif';x.textAlign='center';x.fillText(BANDS[k].n,20+k*seg+seg/2,98);}
+ $('spec_out').innerHTML='<b>'+b.n+'</b> ('+b.r+')<br>Sensor: <b>'+b.s+'</b><br>Lens: '+b.l+'<br>Illumination: '+b.i+'<br>Apps: '+b.a;}
+
+// ===== M14 image quality =====
+function iqFn(){const noise=+$('iq_n').value,blur=+$('iq_b').value,con=+$('iq_c').value;$('iq_n_v').textContent=noise;$('iq_b_v').textContent=blur;$('iq_c_v').textContent=fmt(con,2);
+ const [x,W,H]=ctx2('iq_cv');const mid=128,amp=con*110;const bars=18,bw=(W-40)/bars;
+ for(let i=0;i<bars;i++){let v=mid+(i%2?amp:-amp);for(let r=0;r<blur;r++)v=mid+(v-mid)*0.85;const g=Math.round(Math.max(0,Math.min(255,v)));x.fillStyle='rgb('+g+','+g+','+g+')';x.fillRect(20+i*bw,30,bw+1,H-60);}
+ if(noise>0){for(let k=0;k<noise*120;k++){const px=20+Math.random()*(W-40),py=30+Math.random()*(H-60),d=(Math.random()-0.5)*noise*4;x.fillStyle='rgba('+(d>0?255:0)+','+(d>0?255:0)+','+(d>0?255:0)+',.25)';x.fillRect(px,py,2,2);}}
+ const snr=20*Math.log10((amp)/(noise+0.5)),mtf50=1/(1+blur*0.6);
+ $('iq_out').innerHTML='SNR: <b>'+fmt(snr,1)+' dB</b><br>MTF50 (rel): <b>'+fmt(mtf50,2)+'</b><br>Contrast: <b>'+fmt(con,2)+'</b>';}
+
+// ===== M16 3D tech =====
+const TD={'Stereo':[3,3,3,'Passive, cheap; needs surface texture'],'Structured light':[5,2,3,'High accuracy; struggles in bright ambient'],'Time-of-Flight':[2,4,5,'Fast full-field; lower accuracy'],'Laser triangulation':[5,2,4,'Profilometry / line-scan; very accurate'],'LiDAR':[2,5,3,'Long range; mapping & automotive']};
+function tdFn(){const m=$('td_m').value,d=TD[m];const [x,W,H]=ctx2('td_cv');const labs=['Accuracy','Range','Speed'];
+ for(let i=0;i<3;i++){const y=40+i*56;x.fillStyle='#8b9aa6';x.font='13px sans-serif';x.textAlign='left';x.fillText(labs[i],20,y+14);
+  x.fillStyle='#1b2a36';x.fillRect(140,y,W-180,22);x.fillStyle=C.cyan;x.fillRect(140,y,(W-180)*d[i]/5,22);}
+ $('td_out').innerHTML='<b>'+m+'</b><br>'+d[3];}
+
+// ===== M17 spectral =====
+function msFn(){const b=$('ms_b').value;const [x,W,H]=ctx2('ms_cv');
+ // a "fruit" + features visible per band
+ x.fillStyle={'RGB (visible)':'#7cb342','NIR':'#444','SWIR':'#335','Thermal (LWIR)':'#202'}[b];x.fillRect(0,0,W,H);
+ x.fillStyle={'RGB (visible)':'#9ccc4f','NIR':'#9aa','SWIR':'#88a','Thermal (LWIR)':'#633'}[b];x.beginPath();x.arc(W/2,H/2,80,0,7);x.fill();
+ let note;
+ if(b==='RGB (visible)'){note='Looks like a healthy green apple — surface bruise invisible.';}
+ else if(b==='NIR'){x.fillStyle='#222';x.beginPath();x.arc(W/2+30,H/2-20,22,0,7);x.fill();note='NIR reveals a sub-surface bruise (dark patch) → food sorting.';}
+ else if(b==='SWIR'){x.fillStyle='#001';x.beginPath();x.arc(W/2-25,H/2+10,30,0,7);x.fill();note='SWIR shows moisture/water content differences.';}
+ else {x.fillStyle='#e8954a';x.beginPath();x.arc(W/2+20,H/2,34,0,7);x.fill();note='Thermal shows a hot spot (emissive) — no illumination needed.';}
+ x.fillStyle='#cfe7ee';x.font='13px sans-serif';x.textAlign='center';x.fillText(b,W/2,28);
+ $('ms_out').innerHTML='<b>'+b+'</b><br>'+note;}
+
+// ===== M19 lighting =====
+function ltFn(){const g=$('lt_g').value;const [x,W,H]=ctx2('lt_cv');
+ // part
+ x.fillStyle='#2a3b46';x.fillRect(W/2-160,H/2-70,320,140);
+ const showScratch=(c)=>{x.strokeStyle=c;x.lineWidth=3;x.beginPath();x.moveTo(W/2-60,H/2-30);x.lineTo(W/2+50,H/2+30);x.stroke();};
+ let note;
+ if(g==='Bright field'){x.fillStyle='#56707f';x.fillRect(W/2-160,H/2-70,320,140);showScratch('rgba(120,140,150,.5)');note='Even/flat — scratches low contrast; good for flat printed features.';}
+ else if(g==='Dark field'){showScratch(C.cyan);note='Low-angle light → scratches & edges glow bright on a dark surface.';}
+ else if(g==='Backlight'){x.fillStyle='#0c1f2e';x.fillRect(0,0,W,H);x.fillStyle='#eaf4f7';x.fillRect(0,0,W,H);x.fillStyle='#0a1622';x.fillRect(W/2-160,H/2-70,320,140);note='Silhouette → perfect for edges, dimensions, presence/absence.';}
+ else if(g==='Dome / diffuse'){x.fillStyle='#5b7480';x.fillRect(W/2-160,H/2-70,320,140);note='Diffuse, shadowless → tames specular/curved parts.';}
+ else {x.fillStyle='#526b78';x.fillRect(W/2-160,H/2-70,320,140);x.fillStyle='rgba(255,255,255,.18)';x.fillRect(W/2-40,H/2-70,80,140);note='Coaxial → on-axis light for flat shiny surfaces / engravings.';}
+ $('lt_out').innerHTML='<b>'+g+'</b><br>'+note;}
+
+// ===== M20 system timing =====
+function sdFn(){const e=+$('sd_e').value,r=+$('sd_r').value,p=+$('sd_p').value,c=+$('sd_c').value;
+ $('sd_e_v').textContent=fmt(e,1);$('sd_r_v').textContent=r;$('sd_p_v').textContent=p;$('sd_c_v').textContent=c;
+ const [x,W,H]=ctx2('sd_cv');const total=e+r+p,scale=(W-150)/Math.max(c,total);const segs=[['Exposure',e,C.gold],['Readout',r,C.cyan],['Process',p,'#7c5cff']];let xx=130;
+ x.textAlign='left';x.font='12px sans-serif';
+ segs.forEach((s,i)=>{const y=40+i*42;x.fillStyle='#8b9aa6';x.fillText(s[0],14,y+15);x.fillStyle=s[2];x.fillRect(130,y,s[1]*scale,22);});
+ // cycle marker
+ const cx2=130+c*scale;x.strokeStyle=C.red;x.setLineDash([5,4]);x.beginPath();x.moveTo(cx2,24);x.lineTo(cx2,H-20);x.stroke();x.setLineDash([]);x.fillStyle=C.red;x.fillText('cycle '+c+'ms',cx2+4,H-24);
+ // total bar
+ x.fillStyle=total<=c?'#0b7a4b':'#b42020';x.fillRect(130,H-44,total*scale,14);
+ $('sd_out').innerHTML='Total: <b>'+fmt(total,1)+' ms</b> / cycle '+c+' ms<br>'+(total<=c?'<span class="pill" style="background:#dcf5e8;color:#0b7a4b">FITS — '+fmt(1000/c,0)+' fps</span>':'<span class="pill" style="background:#fde2e2;color:#b42020">OVER BUDGET — parts missed</span>');}
+
+// ===== M21 selection wizard =====
+function wzFn(){const obj=+$('wz_o').value,feat=+$('wz_f').value,wd=+$('wz_d').value,v=+$('wz_v').value;
+ $('wz_o_v').textContent=obj;$('wz_f_v').textContent=fmt(feat,2);$('wz_d_v').textContent=wd;$('wz_v_v').textContent=v;
+ const px=Math.ceil(obj/feat*3);                       // 3 px per feature
+ const MP=px*px*0.66/1e6;                                // assume 3:2-ish area
+ const dsens=8.8;                                        // 2/3" width mm (typical MV)
+ const f=dsens*wd/obj;                                   // focal length mm
+ const mmpx=obj/px;
+ const fps= v>0? Math.max(1,Math.ceil(v/(obj))) : 'as needed';
+ const shutter= v>0? 'Global (object moving)':'Rolling OK (static)';
+ const rate= px*px*8* (v>0? (typeof fps==='number'?fps:30):30)/1e6;
+ const iface= rate<40?'USB2 / GigE':rate<350?'USB3 Vision / GigE':rate<1100?'10GigE / Camera Link':'CoaXPress';
+ $('wz_panel').innerHTML='<b style="color:#fff">Recommended specification</b><br>'+
+  '• Resolution: <b>~'+px+' px</b> across the object (≈ <b>'+fmt(MP,1)+' MP</b>)<br>'+
+  '• Spatial res: <b>'+fmt(mmpx,3)+' mm/px</b> (≥3 px on a '+fmt(feat,2)+' mm feature)<br>'+
+  '• Lens focal length: <b>≈ '+fmt(f,0)+' mm</b> (2/3″ sensor @ '+wd+' mm WD)<br>'+
+  '• Shutter: <b>'+shutter+'</b><br>'+
+  '• Frame rate: <b>'+fps+'</b><br>'+
+  '• Data rate: <b>~'+fmt(rate,0)+' MB/s</b> → interface: <b>'+iface+'</b><br>'+
+  '• Lighting: choose by feature (see Module 19).';
+ $('wz_out').innerHTML='Resolution scales as (object/feature). Tighten the feature → cost rises fast.';}
+
+// ===== M22 case studies =====
+const CASES={'PCB inspection':'High-res area or line-scan, <b>mono</b>; <b>telecentric</b> lens for measurement; coaxial/dome lighting; USB3/GigE. Driver: small features + measurement accuracy.',
+'Semiconductor inspection':'Sub-µm resolution; <b>telecentric + high-MTF</b> optics; UV/DUV wavelength; vibration isolation; cooled low-noise sensor. Driver: tiny features.',
+'Traffic ANPR':'<b>Global shutter</b> (motion), <b>NIR</b> sensor + NIR illumination + IR-pass filter, wide dynamic range for headlights, GigE. Driver: motion + lighting variation.',
+'Drone imaging':'Small/light <b>global-shutter</b> sensor; <b>multispectral</b> for crop health; beware rolling-shutter skew; efficient interface. Driver: motion + weight.',
+'Fruit sorting':'<b>Colour + NIR/hyperspectral</b> (bruises, sugar); high line-rate line-scan; diffuse lighting. Driver: spectral signature + speed.',
+'Warehouse robotics':'<b>3D</b> (stereo / ToF), wide FOV, robust to ambient light, GigE/USB3. Driver: depth + robustness.',
+'Bin picking':'<b>Structured-light or ToF 3D</b>; handling shiny/overlapping parts; accuracy vs cycle-time trade-off. Driver: 3D of cluttered scene.',
+'Medical imaging':'High dynamic range &amp; <b>colour accuracy</b>, low noise, regulatory compliance; sometimes cooled sensors. Driver: fidelity + safety.',
+'Thermal inspection':'<b>LWIR microbolometer</b>, Germanium optics, emissivity calibration, no visible light. Driver: emissive/heat signature.'};
+function csFn(){const c=$('cs_c').value;$('cs_panel').innerHTML='<b style="color:#fff">'+c+'</b><br><br>'+CASES[c];$('cs_out').innerHTML='Each case is driven by one critical decision — find it first.';}
+
+wire(['pipe_st'],pipeFn);
+wire(['spec_b'],specFn);
+wire(['iq_n','iq_b','iq_c'],iqFn);
+wire(['td_m'],tdFn);
+wire(['ms_b'],msFn);
+wire(['lt_g'],ltFn);
+wire(['sd_e','sd_r','sd_p','sd_c'],sdFn);
+wire(['wz_o','wz_f','wz_d','wz_v'],wzFn);
+wire(['cs_c'],csFn);
+
 </script>
 <script src="feedback.js"></script>
 </body></html>
