@@ -43,6 +43,7 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
 <a href="#expo">Exposure Triangle</a><a href="#dof">Depth of Field</a><a href="#fov">Field of View</a>
 <a href="#dist">Lens Distortion</a><a href="#shutter">Rolling Shutter</a><a href="#stereo">Stereo Depth</a>
 <a href="#sensor">Sensor Formats</a><a href="#lens">Lens Selection</a><a href="#iface">Specs &amp; Interfaces</a>
+<a href="#ccmos">CCD vs CMOS</a><a href="#bayer">Bayer &amp; Color</a><a href="#mtf">Resolution / MTF</a><a href="#dr">Dynamic Range / SNR</a>
 </div>
 </div></div>
 
@@ -201,6 +202,80 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
   <details class="theory"><summary>Theory</summary><div class="tbody">
     <div class="eqn">\[ \text{data rate} = \text{pixels} \times \frac{\text{bits}}{8} \times \text{fps} \]</div>
     <p><b>CCD vs CMOS:</b> CCD historically gave lower noise &amp; global shutter but is slower and power-hungry; modern <b>CMOS</b> dominates — fast, low-power, on-chip ADC, and now excellent noise (with global-shutter variants for motion). Interface ballpark throughput: USB2 ≈ 40, GigE ≈ 110, USB3 ≈ 380, Camera Link ≈ 850, 10-GigE ≈ 1100, CoaXPress (CXP-12 ×4) ≈ 5000 MB/s.</p>
+  </div></details>
+</div>
+
+<!-- CCD vs CMOS -->
+<div class="sim" id="ccmos">
+  <span class="tag">MODULE 10</span><h2>CCD vs CMOS Sensor Architecture</h2>
+  <p class="exp">Two ways to read charge off a sensor. A <b>CCD</b> shifts every pixel's charge, bucket-brigade style, to one corner amplifier — uniform but slow. A <b>CMOS</b> sensor amplifies and digitises <b>at each pixel/column</b> in parallel — fast, low-power, and now dominant. Switch between them to see the readout path.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Sensor type</label><select id="cc_t"><option value="cmos" selected>CMOS</option><option value="ccd">CCD</option></select></div>
+    <div class="readout" id="cc_out"></div>
+  </div><div class="plotwrap"><canvas id="cc_cv" width="720" height="320"></canvas></div></div>
+  <div class="try">💡 Most machine-vision &amp; phone cameras today are CMOS (speed, cost, on-chip ADC, region-of-interest readout). CCDs survive in niches needing very uniform, low-noise, high-full-well imaging (some scientific/astro).</div>
+  <details class="theory"><summary>Theory &amp; comparison</summary><div class="tbody">
+    <h4>How they differ</h4>
+    <ul>
+      <li><b>CCD:</b> photo-charge is transferred pixel-to-pixel to a single output amplifier, then digitised off-chip. Very uniform (one amplifier → low fixed-pattern noise), high full-well, but slower, higher power, and prone to <i>blooming</i> and <i>smear</i>.</li>
+      <li><b>CMOS:</b> each pixel has its own amplifier; ADCs sit per-column on-chip. Massively parallel → high frame rate, low power, windowed (ROI) readout, cheaper. Historically noisier, but modern CMOS rivals CCD.</li>
+      <li><b>Shutter:</b> CCDs are typically global shutter; most CMOS are rolling shutter (see Module 5), though global-shutter CMOS exists.</li>
+    </ul>
+    <p>Key metrics either way: quantum efficiency (QE), full-well capacity, read noise, dark current, and dynamic range (Module 13).</p>
+  </div></details>
+</div>
+
+<!-- BAYER -->
+<div class="sim" id="bayer">
+  <span class="tag">MODULE 11</span><h2>Bayer Pattern &amp; Demosaicing</h2>
+  <p class="exp">A sensor pixel only counts photons — it's colour-blind. To get colour, most cameras put a <b>colour filter array</b> over the pixels (the Bayer RGGB mosaic), then <b>demosaic</b> — interpolate the two missing channels at every pixel. Toggle between the raw mosaic and the reconstructed colour image.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label style="justify-content:flex-start;gap:8px"><input type="checkbox" id="by_dm" style="width:auto;accent-color:var(--teal)" checked> Show demosaiced (full colour)</label></div>
+    <div class="ctl"><label>Pixel grid <span class="v" id="by_n_v">32</span></label><input type="range" id="by_n" min="12" max="64" value="32" step="4"></div>
+    <div class="readout" id="by_out"></div>
+  </div><div class="plotwrap"><canvas id="by_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Untick "demosaiced" to see the raw RGGB mosaic — every pixel holds just one colour. Tick it to see the interpolated full-colour result. Notice green has twice as many pixels (the eye is most sensitive to green / luminance).</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <p>The <b>Bayer CFA</b> uses a 2×2 tile of <b>R, G, G, B</b> — 50% green, 25% red, 25% blue — because green carries most luminance detail. <b>Demosaicing</b> reconstructs the missing channels by interpolation (bilinear → edge-aware methods like Malvar or AHD).</p>
+    <ul>
+      <li>Trade-off: a colour sensor loses spatial resolution &amp; can show <b>moiré / false colour</b> at fine detail.</li>
+      <li>Alternatives: <b>3-CCD/prism</b> (full RGB per pixel), <b>Foveon</b> (stacked), or monochrome sensors (no CFA → maximum resolution &amp; sensitivity — often preferred in machine vision).</li>
+    </ul>
+  </div></details>
+</div>
+
+<!-- MTF / RESOLUTION -->
+<div class="sim" id="mtf">
+  <span class="tag">MODULE 12</span><h2>Resolution, MTF &amp; the Nyquist Limit</h2>
+  <p class="exp">"Megapixels" isn't resolution. Real resolving power is the <b>MTF</b> — how much contrast survives at each spatial frequency (line pairs/mm). The lens MTF and the sensor's pixel pitch both limit it; beyond the sensor's <b>Nyquist frequency</b>, fine detail <b>aliases</b> into moiré.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Pixel pitch <span class="v" id="mt_p_v">3.5</span> µm</label><input type="range" id="mt_p" min="1" max="10" value="3.5" step="0.1"></div>
+    <div class="ctl"><label>Lens quality (MTF50) <span class="v" id="mt_l_v">80</span> lp/mm</label><input type="range" id="mt_l" min="20" max="200" value="80" step="5"></div>
+    <div class="readout" id="mt_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>system MTF</span><span><i class="dot" style="background:#8b9aa6"></i>lens</span><span><i class="dot" style="background:#ef5350"></i>Nyquist</span></div>
+  </div><div class="plotwrap"><canvas id="mt_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: smaller pixels → higher Nyquist (more resolution) but only if the lens can deliver it. A soft lens (low MTF50) becomes the bottleneck — "the lens out-resolves the sensor, or vice-versa".</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ f_{Nyquist}=\frac{1}{2\,p}\ \text{(lp/mm, p in mm)},\qquad \text{MTF}_{sys}=\text{MTF}_{lens}\times\text{MTF}_{sensor} \]</div>
+    <p>The pixel aperture gives a sensor MTF of \(|\text{sinc}(f p)|\). Anything above \(f_{Nyquist}\) can't be sampled correctly and folds back as aliasing/moiré — which is why some cameras add an optical low-pass (anti-alias) filter. System MTF is the product of every element's MTF, so the weakest link dominates.</p>
+  </div></details>
+</div>
+
+<!-- DYNAMIC RANGE / SNR -->
+<div class="sim" id="dr">
+  <span class="tag">MODULE 13</span><h2>Dynamic Range, SNR &amp; Noise</h2>
+  <p class="exp">How much tonal range can a sensor capture, and how clean is it? <b>Dynamic range</b> = the ratio of the brightest signal (full-well) to the noise floor (read noise). <b>SNR</b> grows with light until the pixel saturates. These set how usable an image is in shadows and highlights.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Full-well capacity <span class="v" id="dr_fw_v">20</span> ke⁻</label><input type="range" id="dr_fw" min="2" max="100" value="20" step="1"></div>
+    <div class="ctl"><label>Read noise <span class="v" id="dr_rn_v">4</span> e⁻</label><input type="range" id="dr_rn" min="1" max="40" value="4" step="1"></div>
+    <div class="ctl"><label>Bit depth <span class="v" id="dr_b_v">12</span></label><input type="range" id="dr_b" min="8" max="16" value="12" step="1"></div>
+    <div class="readout" id="dr_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>SNR (dB)</span><span><i class="dot" style="background:#ef5350"></i>saturation</span></div>
+  </div><div class="plotwrap"><canvas id="dr_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: bigger full-well + lower read noise → wider dynamic range (more stops). The SNR curve rises at √(signal) in the shot-noise region, then clips at full-well. Bit depth should be enough to not waste the range.</div>
+  <details class="theory"><summary>Theory</summary><div class="tbody">
+    <div class="eqn">\[ \text{DR}_{dB}=20\log_{10}\!\frac{N_{full}}{\sigma_{read}},\quad \text{DR}_{stops}=\log_2\!\frac{N_{full}}{\sigma_{read}},\quad \text{SNR}(S)=\frac{S}{\sqrt{S+\sigma_{read}^2}} \]</div>
+    <p>Noise sources: <b>shot noise</b> \(\sqrt{S}\) (fundamental, from photon statistics), <b>read noise</b> (electronics, sets the floor), <b>dark current</b> (thermal), and <b>fixed-pattern noise</b>. In bright light, SNR is shot-limited (\(\sqrt{S}\)); in shadows, read-noise-limited. Bit depth should at least resolve the noise floor — more bits than the DR warrants just stores noise.</p>
   </div></details>
 </div>
 
@@ -411,6 +486,94 @@ function iface(){
 wire(['sf_fmt','sf_mp'],sensorFmt);
 wire(['ln_s','ln_d','ln_w'],lensSel);
 wire(['if_mp','if_fps','if_bits'],iface);
+
+// ----- xy plot helper (for MTF & SNR) -----
+function CPlot(cv,o){
+  const x=cv.getContext('2d'),W=cv.width,H=cv.height;x.fillStyle='#0c1f2e';x.fillRect(0,0,W,H);
+  const m={l:56,r:14,t:14,b:32},pw=W-m.l-m.r,ph=H-m.t-m.b,lg=Math.log10;
+  const xlog=o.xlog,X=v=>xlog?m.l+(lg(v)-lg(o.xmin))/(lg(o.xmax)-lg(o.xmin))*pw:m.l+(v-o.xmin)/(o.xmax-o.xmin)*pw;
+  const Y=v=>m.t+(1-(v-o.ymin)/(o.ymax-o.ymin))*ph;
+  x.strokeStyle='rgba(255,255,255,.09)';x.fillStyle='#7e93a1';x.font='11px monospace';x.textAlign='center';x.textBaseline='top';
+  if(xlog){for(let d=Math.ceil(lg(o.xmin));d<=Math.floor(lg(o.xmax));d++){const xv=Math.pow(10,d),px=X(xv);x.beginPath();x.moveTo(px,m.t);x.lineTo(px,m.t+ph);x.stroke();x.fillText('10'+d,px,m.t+ph+5);}}
+  else{for(let i=0;i<=5;i++){const xv=o.xmin+i*(o.xmax-o.xmin)/5,px=X(xv);x.beginPath();x.moveTo(px,m.t);x.lineTo(px,m.t+ph);x.stroke();x.fillText(Math.round(xv*10)/10,px,m.t+ph+5);}}
+  x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const yv=o.ymin+i*(o.ymax-o.ymin)/4,py=Y(yv);x.beginPath();x.moveTo(m.l,py);x.lineTo(m.l+pw,py);x.stroke();x.fillText(Math.round(yv*100)/100,m.l-6,py);}
+  x.fillStyle='#9fb4c0';x.font='11px sans-serif';x.textAlign='center';x.textBaseline='alphabetic';if(o.xlabel)x.fillText(o.xlabel,m.l+pw/2,H-4);
+  x.save();x.translate(12,m.t+ph/2);x.rotate(-Math.PI/2);if(o.ylabel)x.fillText(o.ylabel,0,0);x.restore();
+  x.save();x.beginPath();x.rect(m.l,m.t,pw,ph);x.clip();
+  (o.vlines||[]).forEach(v=>{x.strokeStyle=v.color;x.setLineDash([5,4]);x.lineWidth=1.5;x.beginPath();x.moveTo(X(v.x),m.t);x.lineTo(X(v.x),m.t+ph);x.stroke();x.setLineDash([]);});
+  (o.series||[]).forEach(s=>{x.strokeStyle=s.color;x.lineWidth=s.w||2;x.beginPath();s.points.forEach((p,i)=>{const px=X(p.x),py=Y(Math.max(o.ymin,Math.min(o.ymax,p.y)));i?x.lineTo(px,py):x.moveTo(px,py);});x.stroke();});
+  x.restore();
+}
+
+// ===== MODULE 10: CCD vs CMOS =====
+function ccmos(){
+  const t=$('cc_t').value;
+  const [x,W,H]=ctx2('cc_cv');
+  const n=6,gx=70,gy=40,cell=26,gap=8;
+  x.fillStyle='#1b3a4d';x.strokeStyle='rgba(255,255,255,.18)';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){x.fillRect(gx+c*(cell+gap),gy+r*(cell+gap),cell,cell);x.strokeRect(gx+c*(cell+gap),gy+r*(cell+gap),cell,cell);}
+  const arrW=gx+n*(cell+gap), bottom=gy+n*(cell+gap)+12;
+  x.fillStyle='#9fb4c0';x.font='12px sans-serif';x.textAlign='left';x.fillText('pixel array',gx,gy-12);
+  if(t==='ccd'){
+    x.strokeStyle=C.cyan;x.lineWidth=2;
+    for(let c=0;c<n;c++){const px=gx+c*(cell+gap)+cell/2;x.beginPath();x.moveTo(px,gy+n*(cell+gap));x.lineTo(px,bottom+18);x.stroke();}
+    x.fillStyle='rgba(63,196,220,.25)';x.fillRect(gx-4,bottom+18,n*(cell+gap),22);x.strokeStyle=C.cyan;x.strokeRect(gx-4,bottom+18,n*(cell+gap),22);
+    x.fillStyle='#cfe7ee';x.fillText('serial (CCD) register →',gx,bottom+33);
+    x.fillStyle=C.gold;x.fillRect(arrW+6,bottom+18,54,22);x.fillStyle='#06222b';x.fillText('1 ADC',arrW+12,bottom+33);
+    x.strokeStyle=C.gold;x.beginPath();x.moveTo(gx-4+n*(cell+gap),bottom+29);x.lineTo(arrW+6,bottom+29);x.stroke();
+    $('cc_out').innerHTML='<b>CCD</b><br>One amplifier → very uniform, low FPN, high full-well.<br>Slower, more power, can bloom/smear.';
+  } else {
+    x.strokeStyle=C.cyan;x.lineWidth=2;
+    for(let c=0;c<n;c++){const px=gx+c*(cell+gap)+cell/2;x.beginPath();x.moveTo(px,gy+n*(cell+gap));x.lineTo(px,bottom+18);x.stroke();
+      x.fillStyle=C.gold;x.fillRect(px-13,bottom+18,26,20);}
+    x.fillStyle='#9fb4c0';x.fillText('per-column ADCs (parallel)',gx,bottom+54);
+    $('cc_out').innerHTML='<b>CMOS</b><br>Per-pixel/column amplifiers + on-chip ADCs → fast, low-power, ROI readout, cheap.<br>Modern CMOS rivals CCD noise.';
+  }
+}
+
+// ===== MODULE 11: BAYER =====
+function bayer(){
+  const dm=$('by_dm').checked,n=+$('by_n').value;$('by_n_v').textContent=n;
+  const [x,W,H]=ctx2('by_cv');
+  const cols=n,rows=Math.max(8,Math.round(n*(H/W))),bw=W/cols,bh=H/rows;
+  function scene(u,v){return [Math.round(255*Math.min(1,Math.max(0,0.45+0.55*Math.sin(5*u+1)))),Math.round(255*(0.2+0.8*v)),Math.round(255*(1-u)*0.9)];}
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const u=(c+0.5)/cols,v=(r+0.5)/rows,col=scene(u,v);
+    if(dm){x.fillStyle='rgb('+col[0]+','+col[1]+','+col[2]+')';}
+    else{const isR=(r%2===0&&c%2===0),isB=(r%2===1&&c%2===1);
+      x.fillStyle=isR?'rgb('+col[0]+',0,0)':isB?'rgb(0,0,'+col[2]+')':'rgb(0,'+col[1]+',0)';}
+    x.fillRect(c*bw,r*bh,Math.ceil(bw)+1,Math.ceil(bh)+1);
+  }
+  $('by_out').innerHTML=dm?'<b>Demosaiced</b> — full RGB at every pixel (interpolated).':'<b>Raw Bayer mosaic</b> — each pixel = one colour (R, G or B).';
+}
+
+// ===== MODULE 12: MTF =====
+function mtf(){
+  const p=+$('mt_p').value,lcut=+$('mt_l').value;$('mt_p_v').textContent=fmt(p,1);$('mt_l_v').textContent=lcut;
+  const nyq=1000/(2*p),fmax=Math.max(nyq,lcut)*1.9,k=Math.log(2)/(lcut*lcut);
+  const lens=f=>Math.exp(-k*f*f), sensor=f=>{const a=Math.PI*f*p/1000;return f<1e-6?1:Math.abs(Math.sin(a)/a);};
+  const L=[],S=[];for(let i=0;i<=200;i++){const f=fmax*i/200;L.push({x:f,y:lens(f)});S.push({x:f,y:lens(f)*sensor(f)});}
+  CPlot($('mt_cv'),{xmin:0,xmax:fmax,ymin:0,ymax:1.05,xlabel:'spatial frequency (lp/mm)',ylabel:'MTF',
+    vlines:[{x:nyq,color:C.red}],series:[{points:L,color:C.grey,w:1.5},{points:S,color:C.cyan,w:2}]});
+  $('mt_out').innerHTML=`Nyquist limit: <b>${fmt(nyq,0)} lp/mm</b><br>Lens MTF50: <b>${lcut} lp/mm</b><br>${lcut>nyq?'lens out-resolves sensor → pixel-limited':'lens-limited (softer than the sensor)'}`;
+}
+
+// ===== MODULE 13: DYNAMIC RANGE / SNR =====
+function drsnr(){
+  const fw=+$('dr_fw').value*1000,rn=+$('dr_rn').value,b=+$('dr_b').value;
+  $('dr_fw_v').textContent=$('dr_fw').value;$('dr_rn_v').textContent=rn;$('dr_b_v').textContent=b;
+  const DRdb=20*Math.log10(fw/rn),DRst=Math.log2(fw/rn),levels=Math.pow(2,b),maxSNR=20*Math.log10(Math.sqrt(fw));
+  const pts=[];for(let i=0;i<=200;i++){const S=Math.pow(10,i/200*Math.log10(fw));const snr=S/Math.sqrt(S+rn*rn);pts.push({x:Math.max(1,S),y:20*Math.log10(snr)});}
+  CPlot($('dr_cv'),{xmin:1,xmax:fw,ymin:-10,ymax:maxSNR+6,xlog:true,xlabel:'signal (electrons)',ylabel:'SNR (dB)',
+    vlines:[{x:fw,color:C.red}],series:[{points:pts,color:C.cyan,w:2}]});
+  $('dr_out').innerHTML=`Dynamic range: <b>${fmt(DRdb,1)} dB</b> (<b>${fmt(DRst,1)} stops</b>)<br>Max SNR: <b>${fmt(maxSNR,1)} dB</b> at full-well<br>Bit depth: <b>${b}-bit</b> → ${levels.toLocaleString()} levels`;
+}
+
+wire(['cc_t'],ccmos);
+wire(['by_dm','by_n'],bayer);
+wire(['mt_p','mt_l'],mtf);
+wire(['dr_fw','dr_rn','dr_b'],drsnr);
 </script>
 <script src="feedback.js"></script>
 </body></html>
