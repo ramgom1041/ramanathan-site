@@ -54,7 +54,19 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="pipe_out"></div>
   </div><div class="plotwrap"><canvas id="pipe_cv" width="720" height="220"></canvas></div></div>
   <div class="try">💡 Drag the stage from 1→5 to follow light becoming a digital image. Each block adds noise &amp; latency — the weakest stage caps quality.</div>
-  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> trace the imaging pipeline and identify where quality is lost.<div class="eqn">\[ N_e = QE\cdot N_{photons},\quad DN = g\cdot N_e + \text{offset} \]</div><b>Common mistakes:</b> assuming "more megapixels = better"; ignoring QE &amp; the lens; treating the ISP as lossless.<br><b>Quiz:</b> (1) Order the stages. (2) Where is demosaicing done? (3) What does the ADC limit?</div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>A camera is a <b>measurement chain</b>, not a magic box. Light from the scene is collected by the lens, converted to electric charge in the sensor, amplified, digitised, then processed into pixels. Every stage adds noise, latency and potential distortion — so the final quality is set by the <i>weakest</i> stage, never by megapixels alone.</p>
+<h4>Stage by stage</h4><ul>
+<li><b>Lens:</b> forms the optical image; sets resolution (MTF), light gathering (f-number) and geometric accuracy (distortion).</li>
+<li><b>Photosite:</b> the photoelectric effect converts photons to electrons. <b>Quantum efficiency (QE)</b> is the fraction captured; charge collects in the <b>full-well</b>.</li>
+<li><b>Readout / CDS amplifier:</b> reads the charge and applies gain; <b>correlated double sampling</b> removes reset noise. This stage's residual is the <b>read noise</b> floor.</li>
+<li><b>ADC:</b> quantises voltage to digital numbers; <b>bit depth</b> sets the number of levels.</li>
+<li><b>ISP:</b> black-level subtraction, demosaic, white balance, gamma, denoise, sharpen, compress.</li></ul>
+<div class="eqn">\[ N_e = QE \cdot N_{photons}, \qquad DN = g\,N_e + \text{offset}, \qquad SNR_{shot} = \sqrt{N_e} \]</div>
+<h4>Worked example</h4><p>1000 photons hit a pixel with QE = 0.7 → 700 electrons. Shot-noise-limited SNR ≈ √700 ≈ 26 (≈ 28 dB), <i>before</i> read noise is added.</p>
+<h4>In practice (machine vision)</h4><p>For measurement, prefer <b>raw/linear</b> output and switch off sharpening, gamma and lossy compression — they alter pixel values and bias gauging. Know where each correction happens so you can disable what corrupts data.</p>
+<h4>Common pitfalls</h4><p>Equating megapixels with quality; ignoring QE and lens MTF; assuming the ISP is lossless.</p>
+<h4>Quick check</h4><p>(1) Order the stages. (2) Where is demosaicing performed? (3) What does the ADC fundamentally limit?</p></div></details>
 </div>
 
 <!-- spec -->
@@ -65,7 +77,20 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="spec_out"></div>
   </div><div class="plotwrap"><canvas id="spec_cv" width="720" height="180"></canvas></div></div>
   <div class="try">💡 Slide into SWIR → silicon sensors stop working (need InGaAs). Slide into LWIR → thermal, no illumination needed, Ge optics.</div>
-  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> match a waveband to its application, sensor and optics.<div class="eqn">\[ E=hc/\lambda,\qquad \lambda_{max}=2898/T(K)\ \mu m\ \text{(Wien)} \]</div><b>Common mistakes:</b> visible light when the feature is only visible in UV/NIR/thermal; glass optics in thermal.<br><b>Quiz:</b> (1) Band for water content? (2) Detector for LWIR? (3) Wien peak of a 300 K body.</div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Choose the <b>waveband where your feature has contrast</b>. Materials reflect, absorb, transmit and emit differently across the spectrum, so a defect invisible in colour can be obvious in UV, NIR or thermal.</p>
+<h4>The physics</h4><p>Photon energy \(E=hc/\lambda\): shorter wavelength = higher energy. Silicon responds ~350–1100 nm (so visible + NIR work on ordinary sensors); SWIR needs <b>InGaAs</b>; thermal (MWIR/LWIR) uses <b>InSb</b> or <b>microbolometers</b> and senses <i>emitted</i> radiation (no lamp needed). Hot bodies radiate per Planck's law with a peak given by Wien.</p>
+<div class="eqn">\[ E=\frac{hc}{\lambda}, \qquad \lambda_{max}=\frac{2898}{T[K]}\ \mu m\ \text{(Wien)}, \qquad R(\lambda)=\frac{I_{sample}}{I_{reference}} \]</div>
+<h4>Band cheat-sheet</h4><ul>
+<li><b>UV (200–400 nm):</b> fluorescence, fine surface defects, semiconductor.</li>
+<li><b>Visible (400–700):</b> colour, general inspection, ANPR.</li>
+<li><b>NIR (700–1000):</b> sees through some inks/skin, veins, biometrics — on silicon.</li>
+<li><b>SWIR (1–2.5 µm):</b> water/moisture content, through-silicon, plastic sorting.</li>
+<li><b>MWIR/LWIR (3–14 µm):</b> emissive thermal imaging; needs Germanium optics.</li>
+<li><b>X-ray:</b> internal density — BGA voids, castings, weld inspection.</li></ul>
+<h4>Worked example</h4><p>A 300 K object peaks at \(2898/300 \approx 9.7\,\mu m\) → squarely LWIR, which is why room-temperature thermal cameras are LWIR.</p>
+<h4>Pitfalls</h4><p>Using visible light when the feature only shows in another band; glass optics in thermal (opaque — use Ge).</p>
+<h4>Quick check</h4><p>(1) Band for water content? (2) Detector for LWIR? (3) Wien peak of 300 K.</p></div></details>
 </div>
 
 <!-- EXPOSURE -->
@@ -79,10 +104,17 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="ex_out"></div>
   </div><div class="plotwrap"><canvas id="ex_cv" width="720" height="300"></canvas></div></div>
   <div class="try">💡 Try: open the aperture (small f-number) → brighter but shallow depth of field. To keep exposure constant, use a faster shutter or lower ISO. That's the photographer's trade-off.</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ \text{EV} = \log_2\!\frac{N^2}{t},\qquad \text{Brightness} \propto \frac{t\cdot \text{ISO}}{N^2} \]</div>
-    <p>\(N\) = f-number, \(t\) = exposure time. Each "stop" doubles or halves the light: one stop of aperture (×√2 in N), one stop of shutter (×2 in t), and one stop of ISO are interchangeable for brightness — but not for side-effects.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Exposure = how many electrons fill the well. In machine vision we set it <b>deterministically</b> (fixed time/gain + controlled light), never "auto". Three knobs — aperture, exposure time, gain — set brightness, each with a side effect.</p>
+<h4>The three controls</h4><ul>
+<li><b>Aperture (f-number \(N=f/D\)):</b> light \(\propto 1/N^2\); also sets depth of field and diffraction.</li>
+<li><b>Exposure time \(t\):</b> light \(\propto t\); but a moving object blurs if it crosses ≥1 pixel during \(t\).</li>
+<li><b>Gain (ISO):</b> multiplies signal <i>and</i> noise — it brightens without adding information.</li></ul>
+<div class="eqn">\[ EV=\log_2\frac{N^2}{t}, \quad \text{Brightness}\propto \frac{t\cdot\text{gain}}{N^2}, \quad t_{max}<\frac{p\cdot M}{v_{obj}}\ (\text{blur}<1\,px) \]</div>
+<h4>Worked example</h4><p>Object at 0.5 m/s, imaged at 20 µm/px (so 1 px = 20 µm on the object): \(t_{max} < 20\,\mu m / 0.5\,m/s = 40\,\mu s\). You need strong, possibly strobed, light to expose that fast.</p>
+<h4>In practice</h4><p>Always prefer <b>more light + low gain</b> over high gain (which destroys SNR). Use flicker-free or strobed illumination synced to the trigger; keep exposure within the line/frame period.</p>
+<h4>Pitfalls</h4><p>Brightening with gain instead of light; exposure too long for the motion/line-rate.</p>
+<h4>Quick check</h4><p>(1) What causes motion blur? (2) Gain vs light for SNR? (3) Compute EV at f/8, 1/125 s.</p></div></details>
 </div>
 
 <h2 class="section-head" id="sec2">SECTION 2 — Optics &amp; Lenses</h2>
@@ -98,10 +130,13 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="fv_out"></div>
   </div><div class="plotwrap"><canvas id="fv_cv" width="720" height="300"></canvas></div></div>
   <div class="try">💡 Try: short focal length → wide angle, large field covered but lower detail. Long focal length → narrow angle, the target fills the frame (more pixels on target).</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ \text{FOV}=2\arctan\!\frac{d_{sensor}}{2f},\qquad W_{scene}=2\,D\tan\!\frac{\text{FOV}}{2}=\frac{D\cdot d_{sensor}}{f} \]</div>
-    <p>So the field width at the target scales with sensor size and working distance, and inversely with focal length. The "spatial resolution" (mm per pixel) = field width ÷ pixel count.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Focal length and sensor size decide <b>how much scene you see</b> and <b>how many pixels land on the target</b>. Lens selection is the first hard number in any vision system.</p>
+<div class="eqn">\[ FOV=2\arctan\frac{d_{sensor}}{2f}, \quad W_{scene}=\frac{D\cdot d_{sensor}}{f}, \quad f\approx\frac{d_{sensor}\cdot D}{W_{scene}}, \quad \text{mm/px}=\frac{W_{scene}}{N_{px}} \]</div>
+<h4>Worked example</h4><p>Cover a 200 mm-wide part at WD = 600 mm on a 2/3″ sensor (8.8 mm wide): \(f \approx 8.8\times600/200 \approx 26\,mm\) → pick the nearest standard (25 mm) and re-check the exact FOV. With 2448 px across, mm/px ≈ 200/2448 ≈ 0.082 mm.</p>
+<h4>In practice</h4><p>Always confirm the lens <b>image circle</b> covers the sensor format and the lens resolves the pixel pitch (Module 13). "Pixels on the smallest feature" should be ≥ 3 for reliable detection/measurement.</p>
+<h4>Pitfalls</h4><p>Ignoring sensor size; confusing FOV with resolution; lens image circle too small (vignetting/dark corners).</p>
+<h4>Quick check</h4><p>(1) f for a given FOV/WD. (2) Effect of a larger sensor at fixed f. (3) Define mm/px.</p></div></details>
 </div>
 
 <!-- DEPTH OF FIELD -->
@@ -115,10 +150,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="df_out"></div>
   </div><div class="plotwrap"><canvas id="df_cv" width="720" height="300"></canvas></div></div>
   <div class="try">💡 Try: f/22 + 35 mm → almost everything sharp (landscape). f/1.4 + 200 mm on a close subject → a razor-thin focus slice (portrait bokeh).</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ H=\frac{f^2}{N\,c}+f,\qquad D_n=\frac{s(H-f)}{H+s-2f},\qquad D_f=\frac{s(H-f)}{H-s} \]</div>
-    <p>\(H\) is the hyperfocal distance; focusing there makes everything from \(H/2\) to infinity sharp. \(c\) is the circle of confusion (≈0.03 mm for full-frame). When \(s\ge H\), the far limit is infinity.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Only a slice of the scene is acceptably sharp — the <b>depth of field</b> (DoF). It's bounded by the <b>circle of confusion</b> (CoC, \(c\)): the largest blur spot still seen as a point.</p>
+<div class="eqn">\[ H=\frac{f^2}{N c}+f, \quad D_n=\frac{s(H-f)}{H+s-2f}, \quad D_f=\frac{s(H-f)}{H-s}\ (s<H) \]</div>
+<h4>Drivers</h4><p>DoF grows with a <b>larger f-number</b> (smaller aperture), <b>shorter focal length</b>, and <b>greater distance</b>. Focusing at the hyperfocal \(H\) makes everything from \(H/2\) to ∞ sharp.</p>
+<h4>The diffraction limit</h4><p>Stopping down too far softens the whole image: the diffraction spot \(\approx 2.44\lambda N\) eventually exceeds the pixel. On small-pixel MV sensors this can start around f/5.6–f/8 — so there's an optimum aperture, not "smaller is always sharper".</p>
+<h4>Worked example</h4><p>\(f=50\,mm, N=8, c=0.03\,mm\): \(H \approx 50^2/(8\times0.03)+50 \approx 10.5\,m\). Focus there and ~5.2 m → ∞ is sharp.</p>
+<h4>Pitfalls</h4><p>Forgetting diffraction; assuming telecentric lenses obey ordinary DoF rules; tiny apertures to "get everything sharp".</p>
+<h4>Quick check</h4><p>(1) DoF vs aperture. (2) Meaning of hyperfocal. (3) When is the far limit ∞?</p></div></details>
 </div>
 
 <!-- LENS SELECTION -->
@@ -132,14 +171,18 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="ln_out"></div>
   </div><div class="plotwrap"><canvas id="ln_cv" width="720" height="300"></canvas></div></div>
   <div class="try">💡 Try: a small target far away → long focal length (telephoto). A big field up close → short focal length (wide). For precise dimensional measurement, a <b>telecentric</b> lens removes perspective error entirely.</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ f=\frac{\text{sensor width}\times \text{working distance}}{\text{field width}},\qquad \text{magnification}=\frac{\text{sensor width}}{\text{field width}} \]</div>
-    <ul>
-      <li><b>Prime</b> (fixed f): sharper, cheaper, used in most vision systems. <b>Zoom</b>: flexible f but more distortion.</li>
-      <li><b>Macro</b>: for magnifications near or above 1×. <b>Wide/fisheye</b>: large FOV, heavy distortion.</li>
-      <li><b>Telecentric</b>: constant magnification regardless of object distance → no perspective error, ideal for gauging &amp; 3D metrology.</li>
-    </ul>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Lens <b>type</b> matters as much as focal length. Machine vision favours fixed-focal industrial lenses and, for metrology, <b>telecentric</b> optics.</p>
+<h4>Lens families</h4><ul>
+<li><b>Prime / fixed:</b> sharp, stable — preferred in MV (no zoom/focus drift).</li>
+<li><b>Wide / normal / telephoto:</b> short → wide FOV; long → narrow FOV, more pixels on target.</li>
+<li><b>Macro:</b> magnification ≥ 1:1 for tiny parts.</li>
+<li><b>Telecentric:</b> entrance pupil at infinity → <b>constant magnification</b> with distance and <b>no perspective error</b> — essential for accurate gauging of 3D parts.</li></ul>
+<div class="eqn">\[ \text{Entocentric: } M=\frac{f}{WD-f}\ (M\ \text{changes with WD}); \qquad \text{Telecentric: } M=\text{const} \]</div>
+<h4>Why telecentric for metrology</h4><p>With an ordinary (entocentric) lens, parts farther away look smaller — a stepped object measures wrong. A telecentric lens images parallel rays, so a feature's size is independent of its height/position. The catch: the front element must be ≥ the object size, so they're bulky and costly.</p>
+<h4>In practice</h4><p>Match resolution (lp/mm) to the sensor; verify mount (C/CS/F/M12) and image circle; avoid consumer zooms.</p>
+<h4>Pitfalls</h4><p>Entocentric lenses for measurement; telecentric on objects bigger than its aperture.</p>
+<h4>Quick check</h4><p>(1) Why telecentric for gauging? (2) Define macro. (3) What to check besides focal length.</p></div></details>
 </div>
 
 <!-- DISTORTION -->
@@ -152,10 +195,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>distorted</span><span><i class="dot" style="background:#8b9aa6"></i>ideal grid</span></div>
   </div><div class="plotwrap"><canvas id="ds_cv" width="720" height="340"></canvas></div></div>
   <div class="try">💡 Try: k₁ &lt; 0 → barrel (lines bow outward, like a GoPro). k₁ &gt; 0 → pincushion. k₁ = 0 → perfect rectilinear grid. Calibration finds and undoes this.</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ r_{d}=r\,(1+k_1 r^2 + k_2 r^4 + \dots) \]</div>
-    <p>Radial distortion displaces each point along its radius from the optical centre by a polynomial in \(r\). The Brown–Conrady model (used by OpenCV's <code>calibrateCamera</code>) solves for \(k_1,k_2,k_3\) plus tangential terms, then <code>undistort</code> reverses it.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Real lenses bend straight lines. For measurement you must <b>model and remove</b> distortion via calibration, or every pixel-to-mm conversion is biased.</p>
+<h4>Types</h4><ul><li><b>Radial</b> — barrel (wide lenses bulge out) and pincushion (tele pinch in).</li><li><b>Tangential</b> — from lens/sensor misalignment.</li><li><b>Perspective</b> — from a tilted optical axis (keystone).</li></ul>
+<div class="eqn">\[ r_d = r\,(1+k_1 r^2 + k_2 r^4 + k_3 r^6), \qquad K=\begin{bmatrix}f_x&0&c_x\\0&f_y&c_y\\0&0&1\end{bmatrix} \]</div>
+<h4>Calibration</h4><p>Image a known target (checkerboard) from many poses; solve for the <b>intrinsics</b> \(K\), distortion coefficients, and per-view <b>extrinsics</b> (Zhang's method, OpenCV <code>calibrateCamera</code>). Quality is judged by <b>reprojection error</b> (aim &lt; 0.3 px). Then <code>undistort</code> rectifies images before measuring.</p>
+<h4>In practice</h4><p>Spread calibration views across the whole FOV and tilt angles; recalibrate if the lens/focus changes. Telecentric lenses still need calibration for residual distortion.</p>
+<h4>Pitfalls</h4><p>Skipping calibration before gauging; too few or poorly distributed target views; changing focus after calibrating.</p>
+<h4>Quick check</h4><p>(1) Sign of \(k_1\) for barrel. (2) What \(K\) contains. (3) What reprojection error tells you.</p></div></details>
 </div>
 
 <h2 class="section-head" id="sec3">SECTION 3 — Image Sensors</h2>
@@ -171,10 +218,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>selected</span><span><i class="dot" style="background:#8b9aa6"></i>other formats</span></div>
   </div><div class="plotwrap"><canvas id="sf_cv" width="720" height="320"></canvas></div></div>
   <div class="try">💡 Try: pick a tiny 1/2.3" sensor at 48 MP → minuscule pixels (noisy in low light). A full-frame at 24 MP → big pixels (clean). Same MP, very different image quality.</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ \text{crop factor}=\frac{43.27\text{ mm}}{\text{sensor diagonal}},\qquad \text{pixel pitch}=\frac{\text{sensor width}}{\text{horizontal pixels}} \]</div>
-    <p>The crop factor multiplies a lens's effective focal length (a 25 mm lens on a 2/3" sensor frames like a ~100 mm lens on full-frame). Larger pixels collect more photons → higher signal-to-noise and dynamic range, which is why sensor area, not megapixels, is the headline spec for low-light and metrology cameras.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Sensor "format" (optical size) and <b>pixel pitch</b> drive resolution, sensitivity and lens choice. Bigger pixels gather more light (better SNR/dynamic range); more/smaller pixels give finer sampling — you can't maximise both at a fixed sensor size.</p>
+<div class="eqn">\[ \text{crop factor}=\frac{43.27}{d_{diag}}, \quad p=\frac{w_{sensor}}{N_{px,horiz}}, \quad \text{full-well}\propto p^2 \]</div>
+<h4>Format ladder</h4><p>1/4″ → 1/3″ → 1/2.3″ → 2/3″ → 1″ → 4/3″ → APS‑C → full-frame (36×24). Crop factor scales an equivalent focal length and the diffraction-limited aperture.</p>
+<h4>Worked example</h4><p>5 MP on a 1/2″ (6.4 mm) sensor → ~2560 px wide → p ≈ 2.5 µm. The same 5 MP on 2/3″ (8.8 mm) → p ≈ 3.4 µm: bigger pixels, ~1.9× the area, better low-light SNR.</p>
+<h4>In practice</h4><p>Choose pixel size for the required SNR/light budget first, then resolution; confirm the lens covers the format and out-resolves the pitch.</p>
+<h4>Pitfalls</h4><p>Chasing megapixels at the cost of pixel size (and SNR); a lens whose image circle is too small.</p>
+<h4>Quick check</h4><p>(1) Crop factor of a 1″ sensor. (2) Pixel pitch from MP. (3) Bigger pixels → ?</p></div></details>
 </div>
 
 <!-- CCD vs CMOS -->
@@ -186,15 +237,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="cc_out"></div>
   </div><div class="plotwrap"><canvas id="cc_cv" width="720" height="320"></canvas></div></div>
   <div class="try">💡 Most machine-vision &amp; phone cameras today are CMOS (speed, cost, on-chip ADC, region-of-interest readout). CCDs survive in niches needing very uniform, low-noise, high-full-well imaging (some scientific/astro).</div>
-  <details class="theory"><summary>Theory &amp; comparison</summary><div class="tbody">
-    <h4>How they differ</h4>
-    <ul>
-      <li><b>CCD:</b> photo-charge is transferred pixel-to-pixel to a single output amplifier, then digitised off-chip. Very uniform (one amplifier → low fixed-pattern noise), high full-well, but slower, higher power, and prone to <i>blooming</i> and <i>smear</i>.</li>
-      <li><b>CMOS:</b> each pixel has its own amplifier; ADCs sit per-column on-chip. Massively parallel → high frame rate, low power, windowed (ROI) readout, cheaper. Historically noisier, but modern CMOS rivals CCD.</li>
-      <li><b>Shutter:</b> CCDs are typically global shutter; most CMOS are rolling shutter (see Module 5), though global-shutter CMOS exists.</li>
-    </ul>
-    <p>Key metrics either way: quantum efficiency (QE), full-well capacity, read noise, dark current, and dynamic range (Module 13).</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Two architectures move charge off the chip differently — which changes speed, noise, uniformity and cost.</p>
+<h4>CCD</h4><p>Charge is shifted <b>bucket-brigade</b> style through the array to a single output amplifier, then digitised off-chip. One amplifier → excellent <b>uniformity</b> (low fixed-pattern noise) and high full-well, but it's slow, power-hungry, and prone to <b>blooming</b> (overflow) and <b>smear</b>.</p>
+<h4>CMOS</h4><p>Each pixel has its own amplifier and ADCs sit <b>per column</b>, so the whole array reads out in parallel → high frame rate, low power, region-of-interest (windowed) readout and low cost. Modern CMOS (BSI, global-shutter Pregius) rivals CCD noise and dominates machine vision.</p>
+<div class="eqn">\[ \text{Read time}_{CCD}\propto N_{px}\ (\text{serial}), \qquad \text{Read time}_{CMOS}\propto N_{rows}\ (\text{parallel columns}) \]</div>
+<h4>In practice</h4><p>Pick CMOS for speed, ROI, cost and integration; CCD survives in niches needing extreme uniformity or very high full-well (some scientific/astronomy). Always note the <b>shutter</b> type (Module 10).</p>
+<h4>Pitfalls</h4><p>Assuming CCD is always lower noise today; ignoring rolling-vs-global shutter; forgetting host bandwidth for fast CMOS.</p>
+<h4>Quick check</h4><p>(1) Why is CMOS faster? (2) Cause of CCD smear. (3) Benefit of ROI readout.</p></div></details>
 </div>
 
 <!-- ROLLING SHUTTER -->
@@ -208,9 +258,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="legend"><span><i class="dot" style="background:#8b9aa6"></i>global (true)</span><span><i class="dot" style="background:#3fc4dc"></i>rolling capture</span></div>
   </div><div class="plotwrap"><canvas id="rs_cv" width="720" height="300"></canvas></div></div>
   <div class="try">💡 Try: fast object + long readout → the rectangle becomes a slanted parallelogram (the classic "jello" / skew). Zero speed or zero readout → no distortion (matches global shutter).</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <p>Row \(y\) is exposed at time \(t(y)=\dfrac{y}{H}T_{read}\). An object moving at velocity \(v\) shifts by \(v\,t(y)\) by the time that row is read, so a vertical edge tilts by \(\Delta x = v\,T_{read}\) over the full frame height — a shear, not a simple blur. Global shutters avoid it but cost more and can have lower full-well capacity.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>The shutter sets <b>when</b> each pixel integrates light. With motion this is critical.</p>
+<h4>Global vs rolling</h4><p><b>Global shutter:</b> every pixel starts and stops exposure simultaneously → moving objects are captured undistorted. <b>Rolling shutter:</b> rows are exposed/read sequentially top-to-bottom, so a fast object is at a different position per row → <b>skew/shear</b> ("jello"), and partial exposure with flash.</p>
+<div class="eqn">\[ t(\text{row }y)=\frac{y}{H}T_{read}, \qquad \Delta x_{skew}=v\cdot T_{read} \]</div>
+<h4>Worked example</h4><p>Object at 2 m/s, readout 10 ms → a vertical edge shifts 20 mm top-to-bottom of the frame: severe shear. A global shutter (or a very short strobe ≪ T_read with global reset) avoids it.</p>
+<h4>In practice</h4><p>Use <b>global shutter</b> for moving parts, robotics, drones and triggered inspection. Rolling shutter is fine for static scenes and is cheaper / sometimes lower-noise. A strobe alone doesn't fully fix rolling shutter unless the sensor supports global reset.</p>
+<h4>Pitfalls</h4><p>Rolling shutter on fast motion; expecting a flash to "freeze" rolling-shutter skew.</p>
+<h4>Quick check</h4><p>(1) Cause of skew. (2) When is global mandatory? (3) Strobe + rolling caveat.</p></div></details>
 </div>
 
 <!-- DYNAMIC RANGE / SNR -->
@@ -225,10 +280,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>SNR (dB)</span><span><i class="dot" style="background:#ef5350"></i>saturation</span></div>
   </div><div class="plotwrap"><canvas id="dr_cv" width="720" height="300"></canvas></div></div>
   <div class="try">💡 Try: bigger full-well + lower read noise → wider dynamic range (more stops). The SNR curve rises at √(signal) in the shot-noise region, then clips at full-well. Bit depth should be enough to not waste the range.</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ \text{DR}_{dB}=20\log_{10}\!\frac{N_{full}}{\sigma_{read}},\quad \text{DR}_{stops}=\log_2\!\frac{N_{full}}{\sigma_{read}},\quad \text{SNR}(S)=\frac{S}{\sqrt{S+\sigma_{read}^2}} \]</div>
-    <p>Noise sources: <b>shot noise</b> \(\sqrt{S}\) (fundamental, from photon statistics), <b>read noise</b> (electronics, sets the floor), <b>dark current</b> (thermal), and <b>fixed-pattern noise</b>. In bright light, SNR is shot-limited (\(\sqrt{S}\)); in shadows, read-noise-limited. Bit depth should at least resolve the noise floor — more bits than the DR warrants just stores noise.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p><b>Dynamic range (DR)</b> is the ratio of the largest signal a pixel can hold (full-well) to the noise floor (read noise). <b>SNR</b> describes how clean a given signal is. Together they tell you whether you'll see detail in both highlights and shadows.</p>
+<div class="eqn">\[ DR_{dB}=20\log_{10}\frac{N_{full}}{\sigma_{read}}, \quad DR_{stops}=\log_2\frac{N_{full}}{\sigma_{read}}, \quad SNR(S)=\frac{S}{\sqrt{S+\sigma_{read}^2+\sigma_{dark}^2}} \]</div>
+<h4>Noise sources</h4><ul><li><b>Shot noise</b> \(\sqrt{S}\): fundamental photon statistics — sets the ceiling in bright light.</li><li><b>Read noise:</b> electronics; sets the floor / shadow performance.</li><li><b>Dark current:</b> thermal, grows with exposure & temperature (cool for long exposures).</li><li><b>Fixed-pattern noise:</b> pixel-to-pixel offset/gain variation (PRNU/DSNU).</li></ul>
+<h4>Worked example</h4><p>Full-well 20 ke⁻, read noise 4 e⁻ → DR = 20·log₁₀(5000) ≈ <b>74 dB</b> ≈ 12.3 stops. Max SNR ≈ √20000 ≈ 141 (≈ 43 dB) at saturation.</p>
+<h4>In practice</h4><p>Bit depth should at least resolve the noise floor — more bits than the DR warrants just stores noise. Use EMVA 1288 numbers to compare sensors fairly.</p>
+<h4>Pitfalls</h4><p>Over-specifying bit depth; ignoring cooling for long exposures; comparing DR quoted with different methods.</p>
+<h4>Quick check</h4><p>(1) DR formula. (2) Shot- vs read-noise regimes. (3) Why \(\sqrt{S}\)?</p></div></details>
 </div>
 
 <h2 class="section-head" id="sec4">SECTION 4 — Image Science</h2>
@@ -243,13 +302,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="by_out"></div>
   </div><div class="plotwrap"><canvas id="by_cv" width="720" height="300"></canvas></div></div>
   <div class="try">💡 Untick "demosaiced" to see the raw RGGB mosaic — every pixel holds just one colour. Tick it to see the interpolated full-colour result. Notice green has twice as many pixels (the eye is most sensitive to green / luminance).</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <p>The <b>Bayer CFA</b> uses a 2×2 tile of <b>R, G, G, B</b> — 50% green, 25% red, 25% blue — because green carries most luminance detail. <b>Demosaicing</b> reconstructs the missing channels by interpolation (bilinear → edge-aware methods like Malvar or AHD).</p>
-    <ul>
-      <li>Trade-off: a colour sensor loses spatial resolution &amp; can show <b>moiré / false colour</b> at fine detail.</li>
-      <li>Alternatives: <b>3-CCD/prism</b> (full RGB per pixel), <b>Foveon</b> (stacked), or monochrome sensors (no CFA → maximum resolution &amp; sensitivity — often preferred in machine vision).</li>
-    </ul>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>A pixel only counts photons — it has no colour sense. A <b>colour filter array</b> (CFA) over the pixels plus <b>demosaicing</b> reconstructs colour, at a cost in resolution and sensitivity.</p>
+<h4>The Bayer mosaic</h4><p>A 2×2 tile of <b>R,G,G,B</b> — 50% green because the eye (and luminance detail) is most sensitive there. Demosaicing interpolates the two missing channels at every pixel; better algorithms (Malvar, AHD) are edge-aware to limit zippering.</p>
+<div class="eqn">\[ Y=0.299R+0.587G+0.114B, \qquad (R,G,B)\to(g_rR,\,G,\,g_bB)\ \text{(white balance)} \]</div>
+<h4>Mono vs colour for MV</h4><p>A <b>monochrome</b> sensor has no CFA → ~full spatial resolution, ~3× sensitivity, and no demosaic artifacts / false colour. For most inspection and all NIR/UV work, mono is the better engineering choice; use colour only when colour is the feature.</p>
+<h4>In practice</h4><p>Calibrate white balance to the illuminant; beware moiré/false colour on fine periodic detail; consider 3‑CCD/prism for full-RGB-per-pixel.</p>
+<h4>Pitfalls</h4><p>Using colour where mono is better; ignoring the illuminant; expecting full resolution from a Bayer sensor.</p>
+<h4>Quick check</h4><p>(1) Why twice as many green? (2) Mono advantages. (3) What demosaicing estimates.</p></div></details>
 </div>
 
 <!-- MTF / RESOLUTION -->
@@ -263,10 +323,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>system MTF</span><span><i class="dot" style="background:#8b9aa6"></i>lens</span><span><i class="dot" style="background:#ef5350"></i>Nyquist</span></div>
   </div><div class="plotwrap"><canvas id="mt_cv" width="720" height="300"></canvas></div></div>
   <div class="try">💡 Try: smaller pixels → higher Nyquist (more resolution) but only if the lens can deliver it. A soft lens (low MTF50) becomes the bottleneck — "the lens out-resolves the sensor, or vice-versa".</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ f_{Nyquist}=\frac{1}{2\,p}\ \text{(lp/mm, p in mm)},\qquad \text{MTF}_{sys}=\text{MTF}_{lens}\times\text{MTF}_{sensor} \]</div>
-    <p>The pixel aperture gives a sensor MTF of \(|\text{sinc}(f p)|\). Anything above \(f_{Nyquist}\) can't be sampled correctly and folds back as aliasing/moiré — which is why some cameras add an optical low-pass (anti-alias) filter. System MTF is the product of every element's MTF, so the weakest link dominates.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>"Megapixels" is sampling, not resolving power. The honest measure is the <b>MTF</b> — the contrast a system preserves at each spatial frequency (line pairs/mm). The system MTF is the product of lens and sensor MTFs.</p>
+<div class="eqn">\[ f_{Nyquist}=\frac{1}{2p}, \quad MTF_{sensor}=|\text{sinc}(f p)|, \quad MTF_{sys}=MTF_{lens}\times MTF_{sensor} \]</div>
+<h4>Nyquist & aliasing</h4><p>A sensor with pitch \(p\) can only sample frequencies up to \(f_{Nyquist}=1/2p\). Detail above it can't be represented and folds back as <b>aliasing / moiré</b> — irreversible. Some cameras add an optical low-pass (anti-alias) filter to suppress it at a small sharpness cost.</p>
+<h4>Worked example</h4><p>Pixel pitch 3.45 µm → \(f_{Nyquist}=1/(2\times0.00345)\approx 145\) lp/mm. To exploit it, the lens must still deliver useful contrast at ~145 lp/mm; a soft lens becomes the bottleneck.</p>
+<h4>In practice</h4><p>Match lens and sensor: a high-MP sensor behind a mediocre lens wastes pixels; a superb lens on a coarse sensor is sampling-limited. Spec lenses by MTF at the sensor's Nyquist.</p>
+<h4>Pitfalls</h4><p>Buying resolution the lens can't deliver; ignoring aliasing on periodic targets.</p>
+<h4>Quick check</h4><p>(1) Nyquist from pitch. (2) System-MTF rule. (3) What causes aliasing.</p></div></details>
 </div>
 
 <!-- iq -->
@@ -277,7 +341,18 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="iq_out"></div>
   </div><div class="plotwrap"><canvas id="iq_cv" width="720" height="260"></canvas></div></div>
   <div class="try">💡 Add noise → SNR drops. Add blur → MTF50 drops. These are the numbers spec sheets quote (EMVA 1288, ISO 12233).</div>
-  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> measure sharpness/SNR/contrast objectively.<div class="eqn">\[ SNR_{dB}=20\log_{10}(\mu/\sigma),\quad C=\frac{I_{max}-I_{min}}{I_{max}+I_{min}} \]</div><b>Common mistakes:</b> judging by eye; relying on a single metric.<br><b>Quiz:</b> (1) SNR in dB. (2) What MTF50 means. (3) ΔE measures?</div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>"Looks good" isn't a spec. Image quality is a set of <b>measurable</b> metrics you can put in a requirement and test against (EMVA 1288, ISO 12233).</p>
+<h4>Key metrics</h4><ul>
+<li><b>Sharpness:</b> MTF50 / acutance (from a slanted-edge test).</li>
+<li><b>SNR:</b> \(20\log_{10}(\mu/\sigma)\) on a flat patch.</li>
+<li><b>Contrast:</b> \((I_{max}-I_{min})/(I_{max}+I_{min})\).</li>
+<li><b>Dynamic range</b> (Module 11) and <b>colour accuracy</b> (ΔE).</li>
+<li><b>Uniformity</b> (shading), <b>defective pixels</b>.</li></ul>
+<div class="eqn">\[ SNR_{dB}=20\log_{10}\frac{\mu}{\sigma}, \qquad \Delta E=\sqrt{\Delta L^2+\Delta a^2+\Delta b^2} \]</div>
+<h4>In practice</h4><p>Define pass/fail on the metric that limits <i>your</i> task — e.g. MTF50 for fine-feature reading, SNR for low-contrast defect detection, ΔE for colour grading. Measure on standard targets under controlled light.</p>
+<h4>Pitfalls</h4><p>Judging by eye; using one metric for everything; testing under uncontrolled lighting.</p>
+<h4>Quick check</h4><p>(1) SNR in dB. (2) What MTF50 means. (3) What ΔE measures.</p></div></details>
 </div>
 
 <h2 class="section-head" id="sec5">SECTION 5 — 3D &amp; Advanced Imaging</h2>
@@ -294,10 +369,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>cameras</span><span><i class="dot" style="background:#f4b740"></i>measured point</span></div>
   </div><div class="plotwrap"><canvas id="st_cv" width="720" height="320"></canvas></div></div>
   <div class="try">💡 Try: small disparity → far object; large disparity → near. A wider baseline B improves depth precision (but shrinks the overlapping field of view).</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ Z=\frac{f\cdot B}{d} \]</div>
-    <p>Depth \(Z\) is inversely proportional to disparity \(d\): nearby points shift a lot between the two views, distant points barely move. Depth precision degrades with distance (\(\partial Z/\partial d \propto Z^2\)), which is why a larger baseline or longer focal length helps for far targets.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Two cameras a known <b>baseline</b> \(B\) apart see a point at slightly different image columns; that <b>disparity</b> \(d\) gives depth by triangulation.</p>
+<div class="eqn">\[ Z=\frac{f\,B}{d}, \qquad \Delta Z\approx\frac{Z^2}{f\,B}\,\Delta d \]</div>
+<h4>Geometry</h4><p>After <b>rectification</b>, corresponding points lie on the same row (epipolar line), so matching is a 1-D search. Nearby points have large disparity; far points almost none — so depth precision <b>degrades as \(Z^2\)</b>.</p>
+<h4>Worked example</h4><p>\(f=800\,px, B=120\,mm, d=40\,px\) → \(Z=800\times120/40=2400\,mm\). A ±0.5 px matching error gives \(\Delta Z\approx Z^2\Delta d/(fB)\approx 30\,mm\) at 2.4 m — improve it by widening \(B\) or using a longer \(f\).</p>
+<h4>In practice</h4><p>Textured surfaces are needed for correspondence (or add a projected pattern → structured light). Wider baseline = better far-range precision but smaller overlap and more occlusion.</p>
+<h4>Pitfalls</h4><p>Ignoring the \(Z^2\) error growth; textureless/shiny surfaces; poor rectification.</p>
+<h4>Quick check</h4><p>(1) \(Z=?\) (2) How does error scale with range? (3) Why is texture required?</p></div></details>
 </div>
 
 <!-- td -->
@@ -308,7 +387,18 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="td_out"></div>
   </div><div class="plotwrap"><canvas id="td_cv" width="720" height="240"></canvas></div></div>
   <div class="try">💡 Compare structured light vs ToF: high accuracy short range vs fast full-field at longer range.</div>
-  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> pick a 3D method per application.<div class="eqn">\[ \text{ToF: } Z=\tfrac{c\,\Delta t}{2},\quad \text{CW: } Z=\tfrac{c\,\phi}{4\pi f_{mod}} \]</div><b>Common mistakes:</b> ToF for sub-mm metrology; structured light in bright ambient.<br><b>Quiz:</b> (1) ToF equation. (2) Best for sub-mm? (3) LiDAR use case.</div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Several ways to capture 3D, each a different trade of range, accuracy, speed, cost and ambient-light robustness.</p>
+<h4>Methods</h4><ul>
+<li><b>Passive stereo:</b> two cameras + matching; cheap, needs texture.</li>
+<li><b>Structured light:</b> project known patterns (stripes/speckle), decode deformation → very accurate at short range; struggles in bright ambient.</li>
+<li><b>Time-of-Flight (ToF):</b> measure light's round-trip time/phase per pixel → fast, full-field, modest accuracy.</li>
+<li><b>Laser triangulation:</b> a laser line + angled camera → sub-mm profilometry, ideal for line-scan on conveyors.</li>
+<li><b>LiDAR:</b> scanning/flash ToF for long-range mapping (automotive, mobile robots).</li></ul>
+<div class="eqn">\[ \text{ToF pulse: } Z=\frac{c\,\Delta t}{2}, \qquad \text{ToF CW: } Z=\frac{c\,\phi}{4\pi f_{mod}} \]</div>
+<h4>In practice</h4><p>Sub-mm metrology on a conveyor → laser triangulation or structured light; fast obstacle sensing → ToF; large-area mapping → LiDAR; cheap depth with texture → stereo. Watch ambient light and specular/transparent surfaces.</p>
+<h4>Pitfalls</h4><p>ToF for sub-mm gauging; structured light outdoors; stereo on textureless parts.</p>
+<h4>Quick check</h4><p>(1) ToF equation. (2) Best for sub-mm? (3) LiDAR use case.</p></div></details>
 </div>
 
 <!-- ms -->
@@ -319,7 +409,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="ms_out"></div>
   </div><div class="plotwrap"><canvas id="ms_cv" width="720" height="240"></canvas></div></div>
   <div class="try">💡 Toggle to NIR → a bruise invisible in RGB appears as a dark patch (the basis of food sorting).</div>
-  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> use spectral signatures for material discrimination.<div class="eqn">\[ R(\lambda)=I_{sample}/I_{ref},\qquad NDVI=\frac{NIR-Red}{NIR+Red} \]</div><b>Common mistakes:</b> hyperspectral when 2–3 bands suffice; ignoring calibration/illuminant.<br><b>Quiz:</b> (1) NDVI formula. (2) Multi vs hyper. (3) Push-broom meaning.</div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Materials have spectral <b>signatures</b>. Capturing several bands (multispectral) or hundreds (hyperspectral) lets you classify materials and find defects invisible in RGB.</p>
+<div class="eqn">\[ R(\lambda)=\frac{I_{sample}(\lambda)}{I_{ref}(\lambda)}, \qquad NDVI=\frac{NIR-Red}{NIR+Red} \]</div>
+<h4>Multispectral vs hyperspectral</h4><p><b>Multispectral:</b> a few discrete bands (e.g. RGB+NIR) — cheap, fast, enough when you know the bands. <b>Hyperspectral:</b> hundreds of contiguous bands → a spectral "cube" (x, y, λ); usually acquired push-broom (line by line). Powerful but heavy on data and calibration.</p>
+<h4>Applications</h4><p>Agriculture (crop health via NDVI), food sorting (bruises, sugar/moisture), recycling/plastic ID, pharma, art & remote sensing.</p>
+<h4>In practice</h4><p>Use the fewest bands that separate your classes; always reference-calibrate against a white/dark standard and a known illuminant.</p>
+<h4>Pitfalls</h4><p>Hyperspectral when 2–3 bands suffice; ignoring illuminant/calibration; underestimating data volume.</p>
+<h4>Quick check</h4><p>(1) NDVI formula. (2) Multi vs hyper. (3) What is push-broom?</p></div></details>
 </div>
 
 <h2 class="section-head" id="sec6">SECTION 6 — Industrial Camera Systems</h2>
@@ -335,10 +432,20 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="if_out"></div>
   </div><div class="plotwrap"><canvas id="if_cv" width="720" height="300"></canvas></div></div>
   <div class="try">💡 Try: 5 MP @ 60 fps, 12-bit → a few hundred MB/s, needs USB3/GigE-Vision class. Crank to 25 MP @ 100 fps → only Camera Link / CoaXPress can keep up.</div>
-  <details class="theory"><summary>Theory</summary><div class="tbody">
-    <div class="eqn">\[ \text{data rate} = \text{pixels} \times \frac{\text{bits}}{8} \times \text{fps} \]</div>
-    <p><b>CCD vs CMOS:</b> CCD historically gave lower noise &amp; global shutter but is slower and power-hungry; modern <b>CMOS</b> dominates — fast, low-power, on-chip ADC, and now excellent noise (with global-shutter variants for motion). Interface ballpark throughput: USB2 ≈ 40, GigE ≈ 110, USB3 ≈ 380, Camera Link ≈ 850, 10-GigE ≈ 1100, CoaXPress (CXP-12 ×4) ≈ 5000 MB/s.</p>
-  </div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>The interface must carry the camera's sustained data rate at the needed cable length and CPU budget. Compute the rate first, then choose.</p>
+<div class="eqn">\[ \text{rate} = W\times H\times \text{bit depth}\times \text{fps}\ \ (\text{bits/s}) \]</div>
+<h4>The options</h4><ul>
+<li><b>USB3 Vision</b> ~350–400 MB/s, ≤ ~3–5 m, plug-and-play.</li>
+<li><b>GigE Vision</b> ~110 MB/s, ≤ 100 m, PoE, multi-camera friendly.</li>
+<li><b>10GigE</b> ~1.1 GB/s, long reach.</li>
+<li><b>Camera Link</b> ~850 MB/s (Full), short, needs a frame grabber.</li>
+<li><b>CoaXPress (CXP-12)</b> multi-GB/s over coax, long reach — high-end.</li>
+<li><b>MIPI CSI-2</b> for embedded/board-level (very short).</li></ul>
+<h4>Worked example</h4><p>5 MP × 8-bit × 60 fps = 5e6×8×60 ≈ 2.4 Gb/s ≈ <b>300 MB/s</b> → USB3 Vision works at short range; for 20 m you'd move to 10GigE or CoaXPress.</p>
+<h4>In practice</h4><p>Account for <b>cable length</b>, host bandwidth/CPU, number of cameras, and <b>sustained vs burst</b> rate. PoE simplifies GigE wiring.</p>
+<h4>Pitfalls</h4><p>Ignoring cable length; forgetting host/PCIe bandwidth; quoting burst not sustained.</p>
+<h4>Quick check</h4><p>(1) Data-rate formula. (2) GigE limit. (3) Longest-reach interface.</p></div></details>
 </div>
 
 <!-- lt -->
@@ -349,7 +456,20 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="lt_out"></div>
   </div><div class="plotwrap"><canvas id="lt_cv" width="720" height="240"></canvas></div></div>
   <div class="try">💡 Switch bright→dark field → surface scratches flip from invisible to bright. Backlight → perfect silhouette for gauging.</div>
-  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> choose lighting that maximises feature contrast.<div class="eqn">\[ E\propto 1/d^2,\qquad C=\frac{I_{feat}-I_{bg}}{I_{feat}+I_{bg}}\ \text{(maximise)} \]</div><b>Common mistakes:</b> fixing in software what lighting should solve; uncontrolled ambient; specular hotspots.<br><b>Quiz:</b> (1) Dark field reveals? (2) Polariser use. (3) Backlight is for?</div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Lighting is usually the <b>highest-leverage</b> decision in machine vision — "good lighting beats more pixels". The goal is to <b>maximise contrast of the feature</b> and suppress everything else, including ambient.</p>
+<h4>Geometries</h4><ul>
+<li><b>Backlight:</b> silhouette → edges, dimensions, presence/absence.</li>
+<li><b>Bright field</b> (frontal): general; flat features.</li>
+<li><b>Dark field</b> (low-angle): scratches, edges, engravings glow on a dark background.</li>
+<li><b>Dome / diffuse:</b> shadowless — tames specular and curved parts.</li>
+<li><b>Coaxial (on-axis):</b> flat shiny surfaces, mirror-like parts.</li>
+<li><b>Structured / line:</b> 3D profiling.</li></ul>
+<div class="eqn">\[ E\propto \frac{1}{d^2}, \qquad C=\frac{I_{feature}-I_{background}}{I_{feature}+I_{background}}\ \text{(maximise)} \]</div>
+<h4>Colour & polarisation</h4><p>Pick a wavelength that the part reflects/absorbs to boost contrast (and filter ambient). <b>Polarisers</b> kill specular glare. Strobing/over-driving freezes motion and overpowers ambient.</p>
+<h4>In practice</h4><p>Solve contrast with light, not software; control or exclude ambient; avoid specular hotspots with diffuse/dome.</p>
+<h4>Pitfalls</h4><p>Fixing in software what lighting should solve; uncontrolled ambient; specular blow-out.</p>
+<h4>Quick check</h4><p>(1) Dark field reveals? (2) Polariser use. (3) Backlight is for?</p></div></details>
 </div>
 
 <!-- sd -->
@@ -360,7 +480,14 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="sd_out"></div>
   </div><div class="plotwrap"><canvas id="sd_cv" width="720" height="220"></canvas></div></div>
   <div class="try">💡 Push processing past the cycle budget → the bar turns red: parts are missed. Use a hardware trigger &amp; strobe synced to exposure.</div>
-  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> budget acquisition→transfer→processing within the cycle.<div class="eqn">\[ t_{cycle}=t_{exp}+t_{read}+t_{proc},\quad \text{throughput}=1/t_{cycle} \]</div><b>Common mistakes:</b> no hardware trigger; ignoring transfer/processing latency; under-spec PC.<br><b>Quiz:</b> (1) Why encoder trigger for line-scan. (2) Cycle-time terms. (3) Strobe–exposure sync.</div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>A working system is a <b>synchronised pipeline</b>: trigger → strobe + exposure → readout/transfer → processing → result. Everything must fit inside the <b>cycle time</b> or parts are missed.</p>
+<div class="eqn">\[ t_{cycle}=t_{exposure}+t_{readout}+t_{processing}, \qquad \text{throughput}=\frac{1}{t_{cycle}}, \qquad \text{line rate}=\frac{v}{\Delta y} \]</div>
+<h4>Triggering & sync</h4><p>Use a <b>hardware trigger</b> (sensor/PLC) for deterministic timing; for line-scan, trigger from an <b>encoder</b> so line rate tracks conveyor speed. Strobe must fire within the exposure window.</p>
+<h4>Worked example</h4><p>30 parts/s → 33 ms cycle. If exposure 3 ms + transfer 8 ms + processing 12 ms = 23 ms, you fit (and have margin). Push processing to 25 ms → 36 ms total → you drop parts.</p>
+<h4>In practice</h4><p>Budget acquisition + transfer + processing with margin; consider edge/GPU processing for heavy algorithms; design for vibration, heat and IP rating.</p>
+<h4>Pitfalls</h4><p>No hardware trigger; ignoring transfer/processing latency; under-spec PC.</p>
+<h4>Quick check</h4><p>(1) Why encoder trigger for line-scan? (2) Cycle-time terms. (3) Strobe–exposure sync.</p></div></details>
 </div>
 
 <h2 class="section-head" id="sec7">SECTION 7 — Camera Selection Masterclass</h2>
@@ -373,7 +500,21 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="wz_out"></div>
   </div><div class="plotwrap"><div id="wz_panel" style="background:#0c1f2e;border-radius:10px;padding:18px;color:#cfe7ee;font-size:14px;line-height:1.9;min-height:240px"></div></div></div>
   <div class="try">💡 Tighten the smallest feature 2× → required resolution (and cost) jumps. Add object speed → it recommends a global shutter.</div>
-  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> derive a full camera+lens+interface spec from requirements.<div class="eqn">\[ \text{sensor px}=\frac{\text{object}}{\text{feature}}\times(\ge 3\ \text{px/feature}),\quad f\approx\frac{d_{sensor}\cdot WD}{\text{object}} \]</div><b>Common mistakes:</b> specifying the camera before defining the smallest feature &amp; accuracy; forgetting lighting/interface.<br><b>Quiz:</b> (1) Resolution from feature size. (2) When global shutter. (3) First step of the workflow.</div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Selection is a <b>workflow</b>, not a guess. Start from the application requirements and derive every component in order.</p>
+<h4>The workflow</h4><ol>
+<li><b>Resolution:</b> \(N_{px}=\dfrac{\text{object size}}{\text{smallest feature}}\times(\ge 3\ \text{px/feature})\).</li>
+<li><b>Sensor & pixel size:</b> from resolution + SNR/light budget.</li>
+<li><b>Lens:</b> from FOV, WD, required mm/px; check MTF & image circle.</li>
+<li><b>Frame/line rate:</b> from part speed/throughput.</li>
+<li><b>Shutter</b> (global if moving), <b>mono/colour</b>, <b>waveband</b>.</li>
+<li><b>Interface:</b> from data rate + cable length.</li>
+<li><b>Illumination:</b> to maximise feature contrast.</li>
+<li>Validate <b>DR/SNR</b>, environment, budget.</li></ol>
+<div class="eqn">\[ \text{mm/px}=\frac{\text{FOV}}{N_{px}}, \quad f\approx\frac{d_{sensor}\cdot WD}{\text{object}}, \quad \text{rate}=W H\,b\,\text{fps} \]</div>
+<h4>Worked example</h4><p>200 mm object, 0.2 mm smallest feature, 3 px/feature → ~3000 px across (~6–9 MP depending on aspect). Moving on a belt → global shutter; compute data rate → choose interface; pick lighting for the defect type.</p>
+<h4>Pitfalls</h4><p>Choosing the camera before defining the smallest feature & accuracy; forgetting lighting and interface in the budget.</p>
+<h4>Quick check</h4><p>(1) Resolution from feature size. (2) When global shutter. (3) First step of the workflow.</p></div></details>
 </div>
 
 <!-- cs -->
@@ -384,7 +525,18 @@ select{width:100%;padding:6px;border:1px solid var(--line);border-radius:7px;fon
     <div class="readout" id="cs_out"></div>
   </div><div class="plotwrap"><div id="cs_panel" style="background:#0c1f2e;border-radius:10px;padding:18px;color:#cfe7ee;font-size:14px;line-height:1.8;min-height:240px"></div></div></div>
   <div class="try">💡 Re-derive each spec with the Module 21 workflow — never copy a spec without re-checking feature size, motion and lighting.</div>
-  <details class="theory"><summary>Theory &amp; objectives</summary><div class="tbody"><b>Objectives:</b> connect requirements to a complete system choice.<br><b>Common mistakes:</b> reusing a spec across applications without re-checking the critical driver.<br><b>Quiz:</b> match each application to its single most critical camera decision.</div></details>
+  <details class="theory"><summary>📖 Theory class (detailed)</summary><div class="tbody">
+<h4>Concept</h4><p>Every application is driven by <b>one critical decision</b>; the rest follows from the Module 21 workflow. Find that driver first.</p>
+<h4>How to read each case</h4><p>For each: identify the <b>smallest feature & accuracy</b>, the <b>motion</b>, the <b>discriminating physics</b> (waveband/3D), then derive sensor → lens → lighting → interface.</p>
+<ul>
+<li><b>PCB / semiconductor:</b> tiny features + measurement → high-res, telecentric, sometimes UV; mono.</li>
+<li><b>ANPR:</b> motion + headlight glare → global shutter, NIR + NIR illumination, wide DR.</li>
+<li><b>Fruit sorting:</b> spectral signature + speed → colour/NIR/hyperspectral line-scan.</li>
+<li><b>Bin picking / robotics:</b> cluttered 3D → structured light/ToF, ambient robustness.</li>
+<li><b>Thermal inspection:</b> emissive heat → LWIR microbolometer + Ge optics.</li>
+<li><b>Medical:</b> fidelity & safety → high DR, colour accuracy, low noise, compliance.</li></ul>
+<h4>In practice</h4><p>Never copy a spec between applications without re-checking feature size, motion and lighting — the driver changes.</p>
+<h4>Quick check</h4><p>Match each application to its single most critical camera decision.</p></div></details>
 </div>
 </div></section>
 <footer>© Dr. S. Ramanathan · Camera Technology Interactive Lab · All simulations run in your browser</footer>
