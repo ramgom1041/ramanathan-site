@@ -118,6 +118,17 @@
   .clink b{display:block;font-size:14px}
   .clink small{color:#a9c4ce;font-size:12.5px}
 
+  /* SCHOLAR / CITED BY */
+  .sch-tab{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0 4px;max-width:420px}
+  .sch-tab th,.sch-tab td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--line)}
+  .sch-tab th:first-child,.sch-tab td:first-child{text-align:left;color:var(--grey);font-weight:500}
+  .sch-tab th{color:var(--grey);font-weight:600;font-size:13px}
+  .sch-tab .num{font-weight:800;color:var(--teal)}
+  .sch-bars{display:flex;gap:16px;align-items:flex-end;min-height:130px;margin-top:16px}
+  .sb{display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+  .sbar{width:36px;background:linear-gradient(180deg,var(--cyan),var(--teal));border-radius:5px 5px 0 0;transition:height .4s}
+  .sb .sy{font-size:12px;color:var(--grey);margin-top:6px}
+  .sb .sn{font-size:12px;color:var(--teal);font-weight:700;margin-bottom:4px}
   footer{background:var(--navy);color:#9fb4c0;text-align:center;padding:26px;font-size:13.5px}
 
   @media(max-width:860px){
@@ -223,7 +234,7 @@
           <p style="margin-top:10px"><b>M.Tech</b>, Instrumentation Engineering<br>
             <small style="color:var(--grey)">Pondicherry University · 2015–2017 · CGPA 8.19</small></p>
           <p style="margin-top:10px"><b>B.Tech</b>, Electronics &amp; Instrumentation Engg.<br>
-            <small style="color:var(--grey)">Pondicherry University · 2012–2015</small></p>
+            <small style="color:var(--grey)">Pondicherry University · 2012–2015 · CGPA 6.71</small></p>
           <p style="margin-top:10px"><b>Diploma</b>, Instrumentation &amp; Control Engg.<br>
             <small style="color:var(--grey)">MN Govt. Polytechnic · 2009–2012 · 83.21%</small></p>
         </div>
@@ -290,13 +301,28 @@
     <div class="accent"></div>
     <p class="section-sub" style="margin-top:18px">Peer-reviewed journal &amp; conference papers</p>
 
+    <div class="card" id="scholar-card" style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h3>Cited by <span style="font-weight:400;color:var(--grey);font-size:13px">· Google Scholar</span></h3>
+        <a href="https://scholar.google.com/citations?user=TmbVeDMAAAAJ" target="_blank" rel="noopener" style="font-size:13.5px;font-weight:600">View profile →</a>
+      </div>
+      <table class="sch-tab">
+        <tr><th></th><th>All</th><th>Since <span id="sc_since">2021</span></th></tr>
+        <tr><td>Citations</td><td class="num" id="sc_cit_all">—</td><td class="num" id="sc_cit_5y">—</td></tr>
+        <tr><td>h-index</td><td class="num" id="sc_h_all">—</td><td class="num" id="sc_h_5y">—</td></tr>
+        <tr><td>i10-index</td><td class="num" id="sc_i_all">—</td><td class="num" id="sc_i_5y">—</td></tr>
+      </table>
+      <div class="sch-bars" id="sch-bars"></div>
+      <p style="font-size:11.5px;color:var(--grey);margin-top:12px">Auto-updated weekly from Google Scholar · last update <span id="sch-upd">—</span></p>
+    </div>
+
     <div class="card">
       <div class="pub">
         <span class="tag j">Journal</span>
         <div>
           <p>S. Ramanathan, D. K. Sakthivel, A. N. Ramaiah, S. Ramalingam,
           “Nonlinear Control Strategy for DC-Link Voltage Control in a DFIG of WECS During 3φ Grid Faults.”</p>
-          <p class="meta"><i>IEEE Transactions on Industrial Electronics</i>, 2023 ·
+          <p class="meta"><i>IEEE Transactions on Industrial Electronics</i>, 2024 ·
           <a href="https://doi.org/10.1109/TIE.2023.3344815" target="_blank" rel="noopener">doi:10.1109/TIE.2023.3344815</a></p>
         </div>
       </div>
@@ -520,6 +546,20 @@
   document.querySelectorAll('#menu a').forEach(a=>a.addEventListener('click',()=>{
     document.getElementById('menu').classList.remove('show');
   }));
+  // ---- Google Scholar "Cited by" (auto-updated via scholar.json) ----
+  fetch('scholar.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
+    const set=(id,v)=>{const e=document.getElementById(id); if(e&&v!=null) e.textContent=v;};
+    set('sc_since', d.since_year);
+    set('sc_cit_all', d.citations); set('sc_cit_5y', d.citations_since);
+    set('sc_h_all', d.h_index);     set('sc_h_5y', d.h_index_since);
+    set('sc_i_all', d.i10_index);   set('sc_i_5y', d.i10_index_since);
+    set('sch-upd', d.updated);
+    const yrs=Object.keys(d.by_year||{}).sort();
+    const max=Math.max(1,...yrs.map(y=>d.by_year[y]));
+    const wrap=document.getElementById('sch-bars');
+    if(wrap) wrap.innerHTML=yrs.map(y=>
+      `<div class="sb"><div class="sn">${d.by_year[y]}</div><div class="sbar" style="height:${Math.round(d.by_year[y]/max*95)+6}px"></div><div class="sy">${y}</div></div>`).join('');
+  }).catch(()=>{});
 </script>
 </body>
 </html>
