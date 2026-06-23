@@ -620,7 +620,8 @@
   </div>
 </section>
 
-<footer>© <span id="yr"></span> Dr. S. Ramanathan · Control Systems · Power Electronics · Machine Vision</footer>
+<footer>© <span id="yr"></span> Dr. S. Ramanathan · Control Systems · Power Electronics · Machine Vision<br>
+<span id="visit-line" style="font-size:12px;opacity:.8;display:inline-block;margin-top:8px">👁 <span id="visits">…</span> site visits</span></footer>
 
 <script>
   document.getElementById('yr').textContent = new Date().getFullYear();
@@ -642,6 +643,12 @@
     if(wrap) wrap.innerHTML=yrs.map(y=>
       `<div class="sb"><div class="sn">${d.by_year[y]}</div><div class="sbar" style="height:${Math.round(d.by_year[y]/max*95)+6}px"></div><div class="sy">${y}</div></div>`).join('');
   }).catch(()=>{});
+  // ---- site visit counter (Abacus — free, no signup, CORS-enabled) ----
+  fetch('https://abacus.jasoncameron.dev/hit/ramgom1041-ramanathan-site/home')
+    .then(r=>r.json()).then(d=>{
+      const e=document.getElementById('visits');
+      if(e && d && d.value!=null) e.textContent=Number(d.value).toLocaleString();
+    }).catch(()=>{ const l=document.getElementById('visit-line'); if(l) l.style.display='none'; });
 </script>
 </body>
 </html>
