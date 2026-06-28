@@ -68,7 +68,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#disc">Discretization</a><a href="#dpid">Discrete PID</a><a href="#alias">Sampling / Aliasing</a>
 <a href="#pend">Pendulum Phase Plane</a><a href="#aw">Anti-Windup</a><a href="#df">Limit Cycle</a><a href="#sm">Sliding Mode</a>
 <a href="#casc">Cascade Control</a><a href="#ff">Feedforward</a><a href="#smith">Smith Predictor</a><a href="#dr">Disturbance Rejection</a>
-<a href="#lyap">Lyapunov Stability</a><a href="#bw">Bandwidth / Crossover</a>
+<a href="#lyap">Lyapunov Stability</a><a href="#bw">Bandwidth / Crossover</a><a href="#mpc">★ Model Predictive Control</a>
 </div>
 </div></div>
 
@@ -946,6 +946,42 @@ padding:6px 12px;border-radius:30px;font-size:13px}
   </div></details>
 </div>
 
+<!-- MPC -->
+<div class="sim" id="mpc">
+  <span class="tag">MODULE 42 · NEW</span><h2>Model Predictive Control (MPC)</h2>
+  <p class="exp">MPC is control that <b>plans ahead</b>. At every instant it uses a model to <b>predict</b> the next N steps, solves an optimization for the best control sequence that tracks the setpoint while <b>respecting limits</b>, applies only the <b>first</b> move, then re-plans one step later — the <b>receding horizon</b>. Here a mass (double integrator) is driven to a target with a hard <b>force limit</b>. Drag the <b>time</b> slider to watch the plan (light blue) being made and the receding window slide forward.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Prediction horizon N <span class="v" id="mpc_N_v">12</span> steps</label><input type="range" id="mpc_N" min="3" max="30" value="12" step="1"></div>
+    <div class="ctl"><label>Force limit |u| ≤ <span class="v" id="mpc_u_v">1.5</span></label><input type="range" id="mpc_u" min="0.4" max="4" value="1.5" step="0.1"></div>
+    <div class="ctl"><label>Move penalty λ = 10^<span class="v" id="mpc_R_v">-1.5</span></label><input type="range" id="mpc_R" min="-3" max="1" value="-1.5" step="0.1"></div>
+    <div class="ctl"><label>Target position <span class="v" id="mpc_r_v">1.0</span></label><input type="range" id="mpc_r" min="0.4" max="1.6" value="1.0" step="0.1"></div>
+    <div class="ctl"><label>▶ Time (scrub) t = <span class="v" id="mpc_k_v">0.0</span> s</label><input type="range" id="mpc_k" min="0" max="44" value="0" step="1"></div>
+    <div class="readout" id="mpc_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>actual (past)</span><span><i class="dot" style="background:#9fdce8"></i>MPC plan (future)</span><span><i class="dot" style="background:#f4b740"></i>setpoint</span><span><i class="dot" style="background:#ef5350"></i>now / limit</span></div>
+  </div><div class="plotwrap">
+    <canvas id="mpc_cv" width="720" height="230"></canvas>
+    <canvas id="mpc_cu" width="720" height="150" style="margin-top:8px"></canvas>
+  </div></div>
+  <div class="try">💡 Try: (1) Scrub <b>time</b> from 0 — early on MPC plans the <i>whole</i> approach, hits the force limit, then plans to brake before arrival. (2) Shrink <b>horizon N</b> to ~4 — it's now myopic, can't see the stop coming, and overshoots. (3) Tighten the <b>force limit</b> — watch the plan start braking earlier. (4) Raise <b>λ</b> — control gets "expensive", so the move is gentler and slower.</div>
+  <details class="theory"><summary>Theory — how MPC works (and why it's different)</summary><div class="tbody">
+    <p><b>The idea.</b> Unlike PID (which reacts to <i>present</i> error) MPC optimizes over a <b>future window</b>. With a model \(x_{k+1}=Ax_k+Bu_k\), \(y_k=Cx_k\), at each step it solves a constrained optimization:</p>
+    <div class="eqn">\[ \min_{u_0,\dots,u_{N-1}} \ \sum_{j=1}^{N}\big(y_j-r\big)^2 \;+\; \lambda\sum_{j=0}^{N-1} u_j^{\,2} \quad\text{s.t.}\quad x_{j+1}=Ax_j+Bu_j,\ \ |u_j|\le u_{\max}. \]</div>
+    <p>This is a <b>quadratic program (QP)</b>: a convex cost with linear constraints. Stacking the predictions \( \mathbf{Y}=\mathbf{f}(x_k)+S_u\,\mathbf{U}\) (free response + forced response) turns the cost into \(\|\mathbf{Y}-r\|^2+\lambda\|\mathbf{U}\|^2\), solved here by projected-gradient iteration each step.</p>
+    <h4>Receding horizon</h4>
+    <p>Only \(u_0\) is applied. At the next sample the window shifts forward one step and the whole QP is re-solved with the new measured state — closing the loop and rejecting disturbances/model error. That "predict → optimize → apply first move → shift" cycle is the entire algorithm.</p>
+    <h4>Why engineers reach for it</h4>
+    <ul>
+      <li><b>Constraints are first-class.</b> Actuator saturation, rate limits, safety bounds enter the optimization directly — no ad-hoc anti-windup needed.</li>
+      <li><b>Preview.</b> If the future setpoint/disturbance is known (robotics trajectories, batch processes), MPC acts <i>before</i> the change arrives.</li>
+      <li><b>MIMO.</b> One framework handles many coupled inputs/outputs with one cost — exactly the setting of advanced motor & process control.</li>
+    </ul>
+    <h4>Relation to LQR</h4>
+    <p>Drop the constraints and let \(N\to\infty\): the MPC law collapses to the <a href="#lqr">LQR</a> gain \(u=-Kx\). So <b>MPC ≈ constrained, finite-horizon LQR re-solved online</b>. The cost <b>tells you</b> what "good" means; the optimizer finds it — even up against hard limits.</p>
+    <h4>The cost of the power</h4>
+    <p>You must solve a QP every sample (so you need compute + a trustworthy model), and stability/feasibility need care (terminal cost/constraints). That's the price for handling constraints optimally.</p>
+  </div></details>
+</div>
+
 </div></section>
 <footer>© Dr. S. Ramanathan · Control Systems Interactive Lab · All simulations run in your browser</footer>
 
@@ -1803,6 +1839,89 @@ function bandwidth(){
 }
 wire(['ly_z'],lyapunov);
 wire(['bw_k','bw_a'],bandwidth);
+
+// ============ MODULE 42: MODEL PREDICTIVE CONTROL ============
+let MPC={};
+function mpcRun(){
+  const N=+$('mpc_N').value, umax=+$('mpc_u').value, pR=+$('mpc_R').value, lam=Math.pow(10,pR), r=+$('mpc_r').value;
+  $('mpc_N_v').textContent=N; $('mpc_u_v').textContent=fmt(umax,1); $('mpc_R_v').textContent=fmt(pR,1); $('mpc_r_v').textContent=fmt(r,1);
+  const dt=0.2, steps=45;
+  const h=m=>dt*dt*(m+0.5);                      // C·Aᵐ·B for a double integrator
+  // forced-response matrix Su (N×N, lower-triangular):  y_j = f_j + Σ_i Su[j][i]·u_i
+  const Su=[]; for(let j=1;j<=N;j++){const row=new Array(N).fill(0); for(let i=0;i<j;i++) row[i]=h(j-1-i); Su.push(row);}
+  // top eigenvalue of SuᵀSu via power iteration → Lipschitz step size
+  let z=new Array(N).fill(1/Math.sqrt(N));
+  for(let it=0;it<35;it++){
+    const w=Su.map(row=>row.reduce((s,a,i)=>s+a*z[i],0));
+    const g=new Array(N).fill(0);
+    for(let j=0;j<N;j++)for(let i=0;i<N;i++) g[i]+=Su[j][i]*w[j];
+    const nrm=Math.hypot.apply(null,g)||1; z=g.map(x=>x/nrm);
+  }
+  const wz=Su.map(row=>row.reduce((s,a,i)=>s+a*z[i],0));
+  const L=wz.reduce((s,x)=>s+x*x,0)+lam+1e-6, alpha=1/L;
+  // receding-horizon closed-loop simulation
+  let p=0, v=0, U=new Array(N).fill(0);
+  const Phist=[], Uhist=[], Ypred=[], Upred=[];
+  for(let k=0;k<steps;k++){
+    const f=[]; for(let j=1;j<=N;j++) f.push(p+j*dt*v);     // free response (zero input)
+    // solve the box-constrained QP by projected FISTA (warm-started from last step)
+    let Uy=U.slice(), Up=U.slice(), tp=1;
+    for(let it=0; it<150; it++){
+      const e=Su.map((row,jj)=>{let s=f[jj]; for(let i=0;i<N;i++) s+=row[i]*Uy[i]; return s-r;});
+      const g=new Array(N).fill(0);
+      for(let j=0;j<N;j++){const Sj=Su[j],ej=e[j]; for(let i=0;i<=j;i++) g[i]+=Sj[i]*ej;}
+      const Un=new Array(N);
+      for(let i=0;i<N;i++){let ui=Uy[i]-alpha*(g[i]+lam*Uy[i]); Un[i]=ui>umax?umax:(ui<-umax?-umax:ui);}
+      const tn=(1+Math.sqrt(1+4*tp*tp))/2, mom=(tp-1)/tn;
+      for(let i=0;i<N;i++) Uy[i]=Un[i]+mom*(Un[i]-Up[i]);
+      Up=Un; tp=tn;
+    }
+    U=Up.slice();
+    const Yp=Su.map((row,jj)=>{let s=f[jj]; for(let i=0;i<N;i++) s+=row[i]*U[i]; return s;});
+    Ypred.push(Yp); Upred.push(U.slice());
+    Phist.push(p); Uhist.push(U[0]);
+    const u0=U[0]; const pn=p+dt*v+0.5*dt*dt*u0, vn=v+dt*u0; p=pn; v=vn;   // advance plant
+    U=U.slice(1).concat([U[N-1]]);                                          // warm-start shift
+  }
+  Phist.push(p);
+  MPC={N,umax,r,dt,steps,Phist,Uhist,Ypred,Upred};
+  const ks=$('mpc_k'); ks.max=steps-1; if(+ks.value>steps-1) ks.value=0;
+  mpcDraw();
+}
+function mpcDraw(){
+  if(!MPC.Phist) return;
+  const {N,umax,r,dt,steps,Phist,Uhist,Ypred,Upred}=MPC;
+  let k=+$('mpc_k').value; if(k>steps-1)k=steps-1;
+  $('mpc_k_v').textContent=fmt(k*dt,1);
+  const Tend=steps*dt, now=[{x1:k*dt,y1:-1e3,x2:k*dt,y2:1e3}];
+  // position
+  const realP=[]; for(let i=0;i<=k;i++) realP.push({x:i*dt,y:Phist[i]});
+  const Yp=Ypred[k], predP=[{x:k*dt,y:Phist[k]}]; for(let j=0;j<N;j++) predP.push({x:(k+1+j)*dt,y:Yp[j]});
+  Plot($('mpc_cv'),{xmin:0,xmax:Tend,ymin:-0.2,ymax:Math.max(1.5,r*1.45),xlabel:'time (s)',ylabel:'position',
+    series:[
+      {points:[{x:0,y:r},{x:Tend,y:r}],color:C.gold,w:1.5},
+      {segs:now,color:C.red,w:1},
+      {points:predP,color:'#9fdce8',w:1.6},
+      {marks:predP.slice(1),color:'#9fdce8',r:2},
+      {points:realP,color:C.cyan,w:2.6},
+      {marks:[{x:k*dt,y:Phist[k]}],color:'#ffffff',r:3.5}
+    ]});
+  // input
+  const realU=[]; for(let i=0;i<k;i++){realU.push({x:i*dt,y:Uhist[i]});realU.push({x:(i+1)*dt,y:Uhist[i]});}
+  const Up=Upred[k], planU=[]; for(let j=0;j<N;j++){planU.push({x:(k+j)*dt,y:Up[j]});planU.push({x:(k+j+1)*dt,y:Up[j]});}
+  Plot($('mpc_cu'),{xmin:0,xmax:Tend,ymin:-umax*1.35,ymax:umax*1.35,xlabel:'time (s)',ylabel:'force u',
+    series:[
+      {points:[{x:0,y:umax},{x:Tend,y:umax}],color:C.red,w:1.2},
+      {points:[{x:0,y:-umax},{x:Tend,y:-umax}],color:C.red,w:1.2},
+      {segs:now,color:C.red,w:1},
+      {points:planU,color:'#9fdce8',w:1.6},
+      {points:realU,color:C.cyan,w:2.2}
+    ]});
+  const settled=Math.abs(Phist[k]-r)<0.03;
+  $('mpc_out').innerHTML=`Now t=<b>${fmt(k*dt,1)}s</b> · position=<b>${fmt(Phist[k],2)}</b>${settled?' ✅ at target':''}<br>Applied force u₀=<b>${fmt(k<steps?Uhist[k]:0,2)}</b> (limit ±${fmt(umax,1)})<br>Horizon = <b>${N}</b> steps = <b>${fmt(N*dt,1)} s</b> look-ahead`;
+}
+wire(['mpc_N','mpc_u','mpc_R','mpc_r'],mpcRun);
+$('mpc_k').addEventListener('input',mpcDraw);
 </script>
 <script src="feedback.js"></script>
 <script data-goatcounter="https://ramgom1041.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
