@@ -68,7 +68,7 @@ padding:6px 12px;border-radius:30px;font-size:13px}
 <a href="#disc">Discretization</a><a href="#dpid">Discrete PID</a><a href="#alias">Sampling / Aliasing</a>
 <a href="#pend">Pendulum Phase Plane</a><a href="#aw">Anti-Windup</a><a href="#df">Limit Cycle</a><a href="#sm">Sliding Mode</a>
 <a href="#casc">Cascade Control</a><a href="#ff">Feedforward</a><a href="#smith">Smith Predictor</a><a href="#dr">Disturbance Rejection</a>
-<a href="#lyap">Lyapunov Stability</a><a href="#bw">Bandwidth / Crossover</a><a href="#mpc">★ Model Predictive Control</a>
+<a href="#lyap">Lyapunov Stability</a><a href="#bw">Bandwidth / Crossover</a><a href="#mpc">★ Model Predictive Control</a><a href="#ptc">★ Predictive Torque Control</a>
 </div>
 </div></div>
 
@@ -979,6 +979,40 @@ padding:6px 12px;border-radius:30px;font-size:13px}
     <p>Drop the constraints and let \(N\to\infty\): the MPC law collapses to the <a href="#lqr">LQR</a> gain \(u=-Kx\). So <b>MPC ≈ constrained, finite-horizon LQR re-solved online</b>. The cost <b>tells you</b> what "good" means; the optimizer finds it — even up against hard limits.</p>
     <h4>The cost of the power</h4>
     <p>You must solve a QP every sample (so you need compute + a trustworthy model), and stability/feasibility need care (terminal cost/constraints). That's the price for handling constraints optimally.</p>
+  </div></details>
+</div>
+
+<!-- PREDICTIVE TORQUE CONTROL (FCS-MPC) -->
+<div class="sim" id="ptc">
+  <span class="tag">MODULE 43 · NEW</span><h2>Predictive Torque Control of a Motor (FCS-MPC)</h2>
+  <p class="exp">The same predict-and-pick idea — now on an AC motor drive. This is <b>Finite-Control-Set MPC</b> (predictive torque control). A 2-level inverter can output only <b>8 voltage vectors</b> (6 active + 2 zero) — the space-vector hexagon. Each sample the controller <b>predicts the torque &amp; stator flux</b> that <i>every</i> vector would produce next step, then fires the one that best tracks the torque setpoint while holding flux on its circle. No PWM/modulator — it chooses the switching state directly. Scrub <b>time</b> and watch which vector (red) it fires and how it pushes the stator flux ψ<sub>s</sub> ahead of the rotor flux ψ<sub>r</sub>.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Torque reference T* <span class="v" id="ptc_T_v">0.80</span></label><input type="range" id="ptc_T" min="0.2" max="1.2" value="0.8" step="0.05"></div>
+    <div class="ctl"><label><span>Flux weight λ<sub>ψ</sub></span><span class="v" id="ptc_l_v">1.0</span></label><input type="range" id="ptc_l" min="0.2" max="5" value="1" step="0.1"></div>
+    <div class="ctl"><label>Rotor speed ω <span class="v" id="ptc_w_v">0.070</span> rad/smp</label><input type="range" id="ptc_w" min="0.03" max="0.12" value="0.07" step="0.005"></div>
+    <div class="ctl"><label>▶ Time (scrub) sample <span class="v" id="ptc_k_v">40</span></label><input type="range" id="ptc_k" min="0" max="139" value="40" step="1"></div>
+    <div class="readout" id="ptc_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>stator flux ψ<sub>s</sub></span><span><i class="dot" style="background:#f4b740"></i>rotor flux ψ<sub>r</sub></span><span><i class="dot" style="background:#ef5350"></i>chosen vector</span></div>
+  </div><div class="plotwrap">
+    <canvas id="ptc_ab" width="460" height="320"></canvas>
+    <canvas id="ptc_t" width="460" height="170" style="margin-top:8px"></canvas>
+  </div></div>
+  <div class="try">💡 Try: (1) Scrub time — the fired vector (red) hops around the hexagon to keep ψ<sub>s</sub> ahead of ψ<sub>r</sub>; that lead angle <i>is</i> the torque. (2) Raise T* — it drives ψ<sub>s</sub> further ahead. (3) Drop λ<sub>ψ</sub> — torque tracks tighter but the flux circle gets ragged; raise it — flux stays round but torque ripples more. That weight is the classic FCS-MPC tuning knob.</div>
+  <details class="theory"><summary>Theory — predictive torque control &amp; the space-vector hexagon</summary><div class="tbody">
+    <p><b>The inverter's alphabet.</b> A 3-phase 2-level inverter has \(2^3=8\) switching states → <b>8 stator-voltage vectors</b>: six active ones 60° apart (\(V_1\dots V_6\)) plus two zero vectors (\(V_0,V_7\)). That finite set <i>is</i> the control choices — hence "finite-control-set" MPC.</p>
+    <h4>How a voltage vector moves the flux</h4>
+    <p>From the stator equation \( \boldsymbol{v}_s = R_s\boldsymbol{i}_s + \dfrac{d\boldsymbol{\psi}_s}{dt}\), neglecting the small \(R_s\boldsymbol{i}_s\) drop, \( \boldsymbol{\psi}_s(k{+}1)\approx \boldsymbol{\psi}_s(k)+T_s\,\boldsymbol{v}_s\). So <b>the stator-flux tip slides in the direction of the applied voltage vector</b>; a zero vector freezes it in place.</p>
+    <h4>Torque from the two fluxes</h4>
+    <div class="eqn">\[ T_e=\tfrac{3}{2}\,\tfrac{p}{2}\,\frac{L_m}{\sigma L_s L_r}\,\big(\boldsymbol{\psi}_s\times\boldsymbol{\psi}_r\big)=k_T\,|\boldsymbol{\psi}_s|\,|\boldsymbol{\psi}_r|\sin\delta \]</div>
+    <p>Torque grows with the angle \(\delta\) between stator and rotor flux. The rotor flux rotates slowly and steadily; the stator flux we can yank around fast. So to <b>raise torque</b>, fire a vector that advances ψ<sub>s</sub> ahead of ψ<sub>r</sub>; to <b>lower it</b>, fire a zero vector so ψ<sub>s</sub> waits and the rotor catches up.</p>
+    <h4>The MPC step (horizon = 1)</h4>
+    <p>Each sample, for every candidate vector \(\boldsymbol{v}_j\), predict \(\boldsymbol{\psi}_s(k{+}1)\), then \(T_e\) and \(|\boldsymbol{\psi}_s|\), and score:</p>
+    <div class="eqn">\[ g_j=\big(T^*-\hat T_e^{\,j}\big)^2+\lambda_\psi\big(|\boldsymbol{\psi}_s|^*-|\hat{\boldsymbol{\psi}}_s^{\,j}|\big)^2 \]</div>
+    <p>Apply the vector with the smallest \(g_j\), wait one sample, re-measure, repeat. Same receding-horizon spirit as <a href="#mpc">Module 42</a> — but the decision set is the inverter's 8 states instead of a continuous QP, so there's <b>no modulator</b> and the torque response is extremely fast (at the cost of a variable switching frequency and characteristic <b>ripple</b>).</p>
+    <h4>The one tuning knob</h4>
+    <p>\(\lambda_\psi\) sets the torque-vs-flux priority. Too small → flux drifts off its circle; too large → torque ripples. Picking it (or removing it via separate cost terms) is the central design question in FCS-MPC research.</p>
+    <h4>Where you meet it</h4>
+    <p>This is the backbone of modern <b>predictive torque / predictive current control</b> in motor drives — the data-sheet cousin of classic <b>Direct Torque Control</b>, and exactly the space-vector picture used to reason about torque production.</p>
   </div></details>
 </div>
 
@@ -1922,6 +1956,74 @@ function mpcDraw(){
 }
 wire(['mpc_N','mpc_u','mpc_R','mpc_r'],mpcRun);
 $('mpc_k').addEventListener('input',mpcDraw);
+
+// ============ MODULE 43: PREDICTIVE TORQUE CONTROL (FCS-MPC) ============
+function ptcArrow(x,x0,y0,x1,y1,col,w){
+  x.strokeStyle=col;x.fillStyle=col;x.lineWidth=w;
+  x.beginPath();x.moveTo(x0,y0);x.lineTo(x1,y1);x.stroke();
+  const a=Math.atan2(y1-y0,x1-x0),h=7+w*1.5;
+  x.beginPath();x.moveTo(x1,y1);
+  x.lineTo(x1-h*Math.cos(a-0.42),y1-h*Math.sin(a-0.42));
+  x.lineTo(x1-h*Math.cos(a+0.42),y1-h*Math.sin(a+0.42));
+  x.closePath();x.fill();
+}
+function ptcAB(cv,S){
+  const x=cv.getContext('2d'),W=cv.width,H=cv.height;
+  x.fillStyle='#0c1f2e';x.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,R=Math.min(W,H)*0.40;
+  x.strokeStyle='rgba(255,255,255,.12)';x.lineWidth=1;
+  x.beginPath();x.moveTo(12,cy);x.lineTo(W-12,cy);x.moveTo(cx,12);x.lineTo(cx,H-12);x.stroke();
+  x.fillStyle='#7e93a1';x.font='11px sans-serif';x.fillText('α',W-22,cy-6);x.fillText('β',cx+6,20);
+  x.strokeStyle='rgba(244,183,64,.30)';x.setLineDash([4,4]);x.beginPath();x.arc(cx,cy,R*S.psiRef,0,7);x.stroke();x.setLineDash([]);
+  for(let k=1;k<=6;k++){const ang=(k-1)*Math.PI/3,vx=Math.cos(ang),vy=Math.sin(ang),ch=(S.vsel===k);
+    ptcArrow(x,cx,cy,cx+vx*R*0.92,cy-vy*R*0.92,ch?'#ef5350':'rgba(255,255,255,.20)',ch?3:1.4);
+    x.fillStyle=ch?'#ef5350':'#5c6b78';x.font='11px monospace';x.fillText('V'+k,cx+vx*R-7,cy-vy*R+(vy<-0.1?16:(vy>0.1?-6:4)));}
+  if(S.vsel===0){x.fillStyle='#ef5350';x.beginPath();x.arc(cx,cy,6,0,7);x.fill();x.font='11px monospace';x.fillText('V0/V7',cx+9,cy+16);}
+  if(S.trace&&S.trace.length>1){x.strokeStyle='rgba(63,196,220,.28)';x.lineWidth=1;x.beginPath();
+    S.trace.forEach((p,i)=>{const px=cx+p.a*R,py=cy-p.b*R;i?x.lineTo(px,py):x.moveTo(px,py);});x.stroke();}
+  ptcArrow(x,cx,cy,cx+S.pr.a*R,cy-S.pr.b*R,'#f4b740',2.5);
+  ptcArrow(x,cx,cy,cx+S.ps.a*R,cy-S.ps.b*R,'#3fc4dc',3);
+}
+let PTC={};
+function ptcRun(){
+  const Tref=+$('ptc_T').value,lam=+$('ptc_l').value,dth=+$('ptc_w').value;
+  $('ptc_T_v').textContent=fmt(Tref,2);$('ptc_l_v').textContent=fmt(lam,1);$('ptc_w_v').textContent=fmt(dth,3);
+  const psiRef=1.0,psr=0.9,kT=1.4,vstep=0.12,steps=140;
+  const Vs=[[0,0]];for(let k=1;k<=6;k++){const a=(k-1)*Math.PI/3;Vs.push([vstep*Math.cos(a),vstep*Math.sin(a)]);}
+  let psa=psiRef,psb=0,thr=-0.3;
+  const T=[],PS=[],PR=[],VSEL=[],PSMAG=[],trace=[];
+  for(let k=0;k<steps;k++){
+    const pra=psr*Math.cos(thr),prb=psr*Math.sin(thr);
+    const thrn=thr+dth,pran=psr*Math.cos(thrn),prbn=psr*Math.sin(thrn);
+    let best=0,bg=1e18,ba=psa,bb=psb;
+    for(let c=0;c<Vs.length;c++){
+      const na=psa+Vs[c][0],nb=psb+Vs[c][1],mag=Math.hypot(na,nb);
+      const Tp=kT*(nb*pran-na*prbn);
+      const g=(Tref-Tp)*(Tref-Tp)+lam*(psiRef-mag)*(psiRef-mag);
+      if(g<bg){bg=g;best=c;ba=na;bb=nb;}
+    }
+    PS.push({a:psa,b:psb});PR.push({a:pra,b:prb});VSEL.push(best);
+    T.push(kT*(psb*pra-psa*prb));PSMAG.push(Math.hypot(psa,psb));trace.push({a:psa,b:psb});
+    psa=ba;psb=bb;thr=thrn;
+  }
+  PTC={steps,Tref,psiRef,T,PS,PR,VSEL,PSMAG,trace};
+  const ks=$('ptc_k');ks.max=steps-1;if(+ks.value>steps-1)ks.value=0;
+  ptcDraw();
+}
+function ptcDraw(){
+  if(!PTC.T)return;
+  const {steps,Tref,psiRef,T,PS,PR,VSEL,PSMAG,trace}=PTC;
+  let k=+$('ptc_k').value;if(k>steps-1)k=steps-1;$('ptc_k_v').textContent=k;
+  ptcAB($('ptc_ab'),{ps:PS[k],pr:PR[k],vsel:VSEL[k],psiRef,trace:trace.slice(0,k+1)});
+  const tp=[];for(let i=0;i<=k;i++)tp.push({x:i,y:T[i]});
+  const now=[{x1:k,y1:-1e3,x2:k,y2:1e3}];
+  Plot($('ptc_t'),{xmin:0,xmax:steps-1,ymin:-0.3,ymax:Math.max(1.4,Tref*1.5),xlabel:'sample k',ylabel:'torque (pu)',
+    series:[{points:[{x:0,y:Tref},{x:steps-1,y:Tref}],color:C.gold,w:1.5},{segs:now,color:C.red,w:1},{points:tp,color:C.cyan,w:2}]});
+  const vl=VSEL[k]===0?'V0/V7 (zero)':'V'+VSEL[k];
+  $('ptc_out').innerHTML=`Sample <b>${k}</b> · fires <b>${vl}</b><br>Torque T=<b>${fmt(T[k],2)}</b> (ref ${fmt(Tref,2)})<br>|ψs|=<b>${fmt(PSMAG[k],2)}</b> (ref ${fmt(psiRef,2)})`;
+}
+wire(['ptc_T','ptc_l','ptc_w'],ptcRun);
+$('ptc_k').addEventListener('input',ptcDraw);
 </script>
 <script src="feedback.js"></script>
 <script data-goatcounter="https://ramgom1041.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
