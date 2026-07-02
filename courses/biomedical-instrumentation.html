@@ -1,0 +1,648 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Biomedical Instrumentation — Interactive Simulation Lab | Dr. S. Ramanathan</title>
+<meta name="description" content="A hands-on, interactive Biomedical Instrumentation lab — ECG/EEG/EMG, action potentials, instrumentation amplifiers & CMRR, mains rejection, sensors, pulse oximetry, blood pressure, sampling, R-peak/HRV, defibrillators and patient safety. Every simulation runs in your browser.">
+<link rel="stylesheet" href="course.css">
+<link rel="icon" href="../favicon.ico?v=2">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png?v=2">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{--navy:#0a1930;--teal:#0f5c70;--cyan:#3fc4dc;--ink:#1b2733;--grey:#5c6b78;--line:#e3e9ee;}
+.lab{max-width:980px;margin:0 auto;padding:0 22px}
+.sim{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin:22px 0;
+box-shadow:0 1px 3px rgba(16,42,67,.05)}
+.sim h2{font-size:21px;color:var(--navy);margin-bottom:4px}
+.sim .tag{display:inline-block;background:#eaf3f6;color:#0d4d5e;font-size:12px;font-weight:600;
+padding:3px 10px;border-radius:6px;margin-bottom:8px}
+.sim p.exp{color:#374a57;font-size:14.5px;margin:6px 0 14px}
+.sim p.exp b{color:var(--navy)}
+.try{background:#f3f9fb;border-left:3px solid var(--cyan);padding:8px 12px;border-radius:0 8px 8px 0;
+font-size:13.5px;color:#0d4d5e;margin-top:12px}
+.row{display:flex;gap:20px;flex-wrap:wrap}
+.controls{flex:1 1 240px;min-width:230px}
+.plotwrap{flex:2 1 460px;min-width:300px}
+canvas{width:100%;height:auto;background:#0c1f2e;border-radius:10px;display:block}
+.ctl{margin-bottom:12px}
+.ctl label{display:flex;justify-content:space-between;font-size:13px;color:var(--navy);font-weight:600;margin-bottom:3px}
+.ctl label .v{color:var(--teal);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--teal)}
+select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-size:14px}
+.readout{font-size:13px;color:#374a57;margin-top:10px;line-height:1.7}
+.readout b{color:var(--navy)}
+.legend{font-size:12px;color:var(--grey);margin-top:6px}
+.legend span{display:inline-block;margin-right:14px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
+.sec{max-width:980px;margin:34px auto 2px;padding:0 22px;color:var(--teal);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
+.toc a{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#eaf4f7;
+padding:6px 12px;border-radius:30px;font-size:13px}
+.toc a:hover{background:rgba(255,255,255,.22);color:#fff}
+.theory{margin-top:16px;border-top:1px dashed var(--line);padding-top:4px}
+.theory summary{cursor:pointer;font-weight:700;color:var(--teal);font-size:14px;padding:8px 0;list-style:none}
+.theory summary::-webkit-details-marker{display:none}
+.theory summary:before{content:'▸  ';font-size:12px}
+.theory[open] summary:before{content:'▾  '}
+.theory .tbody{font-size:14.5px;color:#2a3b46;line-height:1.75;padding:4px 2px 6px}
+.theory .tbody ul{margin:8px 0 8px 20px}.theory .tbody li{margin:5px 0}
+.theory .tbody h4{color:var(--navy);font-size:14.5px;margin:14px 0 4px}
+.eqn{background:#f3f9fb;border:1px solid #e0eef2;border-radius:8px;padding:6px 14px;margin:10px 0;overflow-x:auto}
+</style></head><body>
+
+<div class="top"><div class="wrap">
+<a class="back" href="index.html">← All Courses</a>
+<h1>Biomedical Instrumentation — Interactive Simulation Lab</h1>
+<p>The engineering behind medical devices, made tangible. Every module is a <b>live simulation</b> — move a slider and watch the biosignal, sensor, or safety limit respond instantly. Built by Dr. S. Ramanathan (Ph.D.; biosignal &amp; virtual-instrumentation research).</p>
+<div class="toc">
+<a href="#ecg">ECG / PQRST</a><a href="#ap">Action Potential</a><a href="#eeg">EEG Rhythms</a><a href="#emg">EMG</a>
+<a href="#elec">Electrodes &amp; Artifact</a><a href="#inamp">In-Amp &amp; CMRR</a><a href="#notch">Mains Notch</a><a href="#filt">Biosignal Filtering</a>
+<a href="#bridge">Wheatstone Bridge</a><a href="#temp">Thermistor / RTD</a><a href="#ppg">Pulse Oximetry</a><a href="#bp">Blood Pressure</a>
+<a href="#samp">Sampling &amp; ADC</a><a href="#rpeak">R-peak &amp; HRV</a><a href="#defib">Defibrillator</a><a href="#safety">Patient Safety</a>
+</div>
+</div></div>
+
+<div class="sec">Section 1 · Biopotential signals</div>
+<section><div class="lab">
+
+<!-- ECG -->
+<div class="sim" id="ecg">
+  <span class="tag">MODULE 1</span><h2>The ECG &amp; the PQRST Complex</h2>
+  <p class="exp">The electrocardiogram is the summed electrical activity of the heart. Each beat is a fixed sequence — <b>P</b> (atrial depolarisation), the sharp <b>QRS</b> (ventricular depolarisation) and <b>T</b> (ventricular repolarisation). The gap between R-peaks (the <b>RR interval</b>) sets the heart rate. The true ECG is only ~1 mV, so any mains pickup is significant.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Heart rate <span class="v" id="ecg_hr_v">72</span> bpm</label><input type="range" id="ecg_hr" min="40" max="180" value="72" step="1"></div>
+    <div class="ctl"><label>50 Hz mains pickup <span class="v" id="ecg_n_v">0.08</span> mV</label><input type="range" id="ecg_n" min="0" max="0.4" value="0.08" step="0.01"></div>
+    <div class="readout" id="ecg_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>measured ECG</span><span><i class="dot" style="background:#f4b740"></i>ideal (clean)</span></div>
+  </div><div class="plotwrap"><canvas id="ecg_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: raise the heart rate — the RR intervals bunch up. Add mains pickup — the fine 50 Hz ripple contaminates the trace, motivating the amplifier &amp; filters in later modules.</div>
+  <details class="theory"><summary>Theory — the cardiac cycle &amp; lead voltages</summary><div class="tbody">
+    <p>Depolarisation fronts sweeping across the heart create a time-varying dipole; a lead measures its projection. The waves map to events: P = atria, QRS = ventricles (fast, hence tall &amp; narrow), T = ventricular recovery.</p>
+    <div class="eqn">\[ \text{Heart rate}=\frac{60}{RR}\ \text{bpm}, \qquad V_{ECG}\sim 0.5\text{–}2\ \text{mV},\ \ f_{content}\approx 0.5\text{–}40\ \text{Hz} \]</div>
+    <p>Because the signal is tiny and its band overlaps mains harmonics, ECG front-ends need high gain, high input impedance, strong common-mode rejection and careful filtering — the rest of Section 2.</p>
+  </div></details>
+</div>
+
+<!-- ACTION POTENTIAL -->
+<div class="sim" id="ap">
+  <span class="tag">MODULE 2</span><h2>The Action Potential &amp; "All-or-None"</h2>
+  <p class="exp">Every biopotential begins at the cell membrane. A stimulus that depolarises the membrane past its <b>threshold</b> (≈ −55 mV) triggers a full, stereotyped spike — regardless of how much you exceed it. Below threshold, nothing propagates. Sweep the stimulus through threshold and watch the all-or-none law appear.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Stimulus strength <span class="v" id="ap_i_v">0.8</span> (norm.)</label><input type="range" id="ap_i" min="0" max="2.5" value="0.8" step="0.1"></div>
+    <div class="readout" id="ap_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>membrane V<sub>m</sub></span><span><i class="dot" style="background:#f4b740"></i>threshold −55 mV</span></div>
+  </div><div class="plotwrap"><canvas id="ap_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: increase the stimulus just past the gold threshold line — the response jumps from a small graded bump to a full ~110 mV spike. Bigger stimulus → identical spike. That's "all-or-none".</div>
+  <details class="theory"><summary>Theory — Hodgkin–Huxley in one breath</summary><div class="tbody">
+    <p>At rest the membrane sits near −70 mV (K⁺-dominated). Depolarisation to threshold opens voltage-gated <b>Na⁺</b> channels → explosive influx → upstroke to ≈ +40 mV. Na⁺ channels inactivate and <b>K⁺</b> channels open → repolarisation, then a brief hyperpolarisation before recovery.</p>
+    <div class="eqn">\[ C_m\frac{dV}{dt}= -\big[\,g_{Na}(V-E_{Na})+g_K(V-E_K)+g_L(V-E_L)\,\big]+I_{stim} \]</div>
+    <p>The regenerative Na⁺ feedback is why the spike is all-or-none, and the refractory period is why signals travel one way and can't tetanise the nerve.</p>
+  </div></details>
+</div>
+
+<!-- EEG -->
+<div class="sim" id="eeg">
+  <span class="tag">MODULE 3</span><h2>EEG Rhythms &amp; Frequency Bands</h2>
+  <p class="exp">The EEG (~10–100 µV at the scalp) is dominated by rhythmic bands whose mix reflects brain state: <b>δ</b> (0.5–4 Hz, deep sleep), <b>θ</b> (4–8 Hz, drowsy), <b>α</b> (8–13 Hz, relaxed, eyes-closed) and <b>β</b> (13–30 Hz, alert). Slide "arousal" from sleep to alert and watch the rhythm change.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Arousal / vigilance <span class="v" id="eeg_a_v">0.60</span></label><input type="range" id="eeg_a" min="0" max="1" value="0.6" step="0.02"></div>
+    <div class="readout" id="eeg_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>EEG (composite)</span></div>
+  </div><div class="plotwrap"><canvas id="eeg_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: at low arousal the trace is slow, large δ waves (deep sleep). Around 0.6 the classic ~10 Hz α rhythm dominates. Near 1.0 it becomes fast, low-amplitude β — an alert brain.</div>
+  <details class="theory"><summary>Theory — why bands, and why they matter</summary><div class="tbody">
+    <p>Cortical neurons synchronise into population oscillations; the dominant frequency drops as large ensembles synchronise (sleep) and rises as processing desynchronises them (alertness).</p>
+    <div class="eqn">\[ x_{EEG}(t)=\sum_{b\in\{\delta,\theta,\alpha,\beta\}} A_b\,\sin(2\pi f_b t+\phi_b) \]</div>
+    <p>Clinically the <b>band power ratios</b> (e.g. from an FFT — Module 13) drive sleep staging, depth-of-anaesthesia indices and BCI. Amplitudes are tiny, so EEG amps need the highest CMRR and input impedance of any biopotential front-end.</p>
+  </div></details>
+</div>
+
+<!-- EMG -->
+<div class="sim" id="emg">
+  <span class="tag">MODULE 4</span><h2>EMG &amp; the Interference Pattern</h2>
+  <p class="exp">Electromyography records the electrical activity of contracting muscle. As you contract harder, the body <b>recruits</b> more motor units and fires them faster, so the summed signal becomes a denser, larger "interference pattern". Its <b>RMS</b> amplitude is the usual measure of effort (used in prosthetics &amp; ergonomics).</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Contraction <span class="v" id="emg_c_v">40</span> % MVC</label><input type="range" id="emg_c" min="0" max="100" value="40" step="1"></div>
+    <div class="readout" id="emg_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>surface EMG</span></div>
+  </div><div class="plotwrap"><canvas id="emg_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: at low %MVC the EMG is sparse and small. Push toward 100% — the amplitude and density climb together. That monotonic RMS-vs-force relation is what a myoelectric prosthesis reads.</div>
+  <details class="theory"><summary>Theory — motor units &amp; the RMS envelope</summary><div class="tbody">
+    <p>A motor unit = one motor neuron + the muscle fibres it drives. Voluntary force rises by <b>recruitment</b> (more units) and <b>rate coding</b> (faster firing). Surface electrodes sum many overlapping motor-unit action potentials into a stochastic, ±few-mV signal (20–500 Hz).</p>
+    <div class="eqn">\[ \text{EMG}_{RMS}=\sqrt{\frac{1}{N}\sum_{i} x_i^2}\ \uparrow \ \text{with force} \]</div>
+    <p>Processing = band-pass (20–450 Hz), rectify, then a moving-average/RMS envelope → a smooth "effort" signal for control.</p>
+  </div></details>
+</div>
+
+</div></section>
+<div class="sec">Section 2 · The acquisition chain</div>
+<section><div class="lab">
+
+<!-- ELECTRODES -->
+<div class="sim" id="elec">
+  <span class="tag">MODULE 5</span><h2>Electrode–Skin Interface &amp; Motion Artifact</h2>
+  <p class="exp">Between metal electrode and tissue sits an electrochemical <b>half-cell</b> that adds a large DC offset (up to hundreds of mV), while movement modulates it into slow <b>baseline wander</b>. The precious ~1 mV ECG rides on top of this. See why the raw electrode signal is unusable without AC-coupling.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Half-cell DC offset <span class="v" id="el_o_v">1</span> mV</label><input type="range" id="el_o" min="0" max="3" value="1" step="0.1"></div>
+    <div class="ctl"><label>Motion baseline wander <span class="v" id="el_d_v">0.60</span></label><input type="range" id="el_d" min="0" max="1.5" value="0.6" step="0.05"></div>
+    <div class="readout" id="el_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>raw electrode signal</span></div>
+  </div><div class="plotwrap"><canvas id="el_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: add offset and motion — the ECG disappears into a slow, wandering baseline. That's why front-ends high-pass at ~0.05–0.5 Hz to strip the DC/wander while keeping the ECG (Module 8).</div>
+  <details class="theory"><summary>Theory — the half-cell &amp; the electrode model</summary><div class="tbody">
+    <p>An electrode is modelled as a half-cell potential \(E_{hc}\) in series with a parallel R–C (double-layer) and a series resistance. Two electrodes rarely match, so their offsets don't cancel; motion changes the double layer and shifts the baseline.</p>
+    <div class="eqn">\[ v_{electrode}(t)=E_{hc}+v_{motion}(t)+v_{bio}(t),\qquad v_{bio}\ll E_{hc} \]</div>
+    <p>Fixes: Ag/AgCl (non-polarisable, stable), gel to lower impedance, and a high-pass to remove \(E_{hc}\)+wander. But high-pass too aggressively and you distort the low-frequency ST segment — a real clinical trade-off.</p>
+  </div></details>
+</div>
+
+<!-- IN-AMP -->
+<div class="sim" id="inamp">
+  <span class="tag">MODULE 6</span><h2>Instrumentation Amplifier &amp; CMRR</h2>
+  <p class="exp">Both electrodes pick up the <b>same</b> huge mains field (common-mode, ~1 V) plus a tiny <b>difference</b> (the biosignal). The instrumentation amplifier gives large differential gain but rejects the common-mode by its <b>CMRR</b>. Watch the mains leak into the output collapse as CMRR rises.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Gain resistor R<sub>G</sub> <span class="v" id="ia_rg_v">1.0</span> kΩ</label><input type="range" id="ia_rg" min="0.5" max="50" value="1" step="0.5"></div>
+    <div class="ctl"><label>CMRR <span class="v" id="ia_c_v">90</span> dB</label><input type="range" id="ia_c" min="40" max="120" value="90" step="1"></div>
+    <div class="readout" id="ia_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>amplifier output (input-referred)</span><span><i class="dot" style="background:#f4b740"></i>true ECG</span></div>
+  </div><div class="plotwrap"><canvas id="ia_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: drop CMRR to 40 dB — 1 V of mains leaks through as a huge 50 Hz ripple that swamps the ECG. Raise it to 100+ dB (real ECG amps) and the ECG comes out clean. That single number is why in-amps exist.</div>
+  <details class="theory"><summary>Theory — the 3-op-amp in-amp</summary><div class="tbody">
+    <p>The classic topology: two buffer amps set the differential gain with one resistor, a difference amp removes the common-mode. Output = differential gain × signal + a leaked fraction of the common-mode set by CMRR.</p>
+    <div class="eqn">\[ G=1+\frac{2R}{R_G},\qquad v_{out}=G\!\left(v_{diff}+\frac{v_{cm}}{\text{CMRR}}\right),\qquad \text{CMRR}_{dB}=20\log_{10}\!\frac{A_{diff}}{A_{cm}} \]</div>
+    <p>90 dB means the common-mode is attenuated ~31 600×. Matched resistors and a right-leg drive (Module 7) push effective CMRR past 100 dB.</p>
+  </div></details>
+</div>
+
+<!-- NOTCH -->
+<div class="sim" id="notch">
+  <span class="tag">MODULE 7</span><h2>Mains Interference: Notch Filter &amp; Right-Leg Drive</h2>
+  <p class="exp">Whatever the amplifier can't reject, a digital <b>notch filter</b> removes — a narrow band-stop at exactly the mains frequency (50 or 60 Hz). A <b>right-leg-drive</b> circuit actively cancels common-mode at the body, shrinking the interference before it's even filtered.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Mains frequency <span class="v" id="nf_f_v">50</span> Hz</label><input type="range" id="nf_f" min="50" max="60" value="50" step="10"></div>
+    <div class="ctl"><label>Notch filter <span class="v" id="nf_on_v">ON</span></label><input type="range" id="nf_on" min="0" max="1" value="1" step="1"></div>
+    <div class="ctl"><label style="justify-content:flex-start;gap:8px"><input type="checkbox" id="nf_rld" style="width:auto;accent-color:var(--teal)" checked> Right-leg drive (reduce common-mode)</label></div>
+    <div class="readout" id="nf_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#8b9aa6"></i>noisy input</span><span><i class="dot" style="background:#3fc4dc"></i>after notch</span></div>
+  </div><div class="plotwrap"><canvas id="nf_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: turn the notch OFF with RLD off — the ECG drowns in mains. Turn RLD on (smaller interference) then the notch on (removes the rest) → clean ECG. Switch 50↔60 Hz to see the notch must match your grid.</div>
+  <details class="theory"><summary>Theory — the band-stop biquad</summary><div class="tbody">
+    <p>A second-order notch places transmission <b>zeros</b> on the unit circle at ±ω₀ and poles just inside at radius \(r\!\to\!1\), giving a deep, narrow null with everything else passing.</p>
+    <div class="eqn">\[ H(z)=\frac{1-2\cos\omega_0\,z^{-1}+z^{-2}}{1-2r\cos\omega_0\,z^{-1}+r^2 z^{-2}},\qquad \omega_0=2\pi f_0/f_s \]</div>
+    <p>Closer poles (\(r\) near 1) → narrower notch, less ECG distortion, but longer ringing. Note: it only kills the fundamental — harmonics need extra notches, which is why suppressing interference at the source (RLD, shielding) is preferred.</p>
+  </div></details>
+</div>
+
+<!-- FILTERING -->
+<div class="sim" id="filt">
+  <span class="tag">MODULE 8</span><h2>Biosignal Filtering — the Monitoring Band</h2>
+  <p class="exp">The clean-up chain is a <b>band-pass</b>: a high-pass removes electrode drift/baseline wander, a low-pass removes muscle &amp; RF noise. Tune both cutoffs and recover the ECG buried in drift + high-frequency noise.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>High-pass cutoff <span class="v" id="fl_hp_v">0.50</span> Hz</label><input type="range" id="fl_hp" min="0.05" max="2" value="0.5" step="0.05"></div>
+    <div class="ctl"><label>Low-pass cutoff <span class="v" id="fl_lp_v">40</span> Hz</label><input type="range" id="fl_lp" min="15" max="150" value="40" step="5"></div>
+    <div class="readout" id="fl_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#8b9aa6"></i>raw (drift + noise)</span><span><i class="dot" style="background:#3fc4dc"></i>band-pass output</span></div>
+  </div><div class="plotwrap"><canvas id="fl_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: lower the high-pass to 0.05 Hz — baseline wander creeps back. Raise it to 2 Hz — wander is gone but the ST segment/T wave distort. Lower the low-pass to 15 Hz — noise vanishes but the QRS softens. Every cutoff is a trade-off.</div>
+  <details class="theory"><summary>Theory — why a band, and the diagnostic standard</summary><div class="tbody">
+    <p>ECG energy lives ≈ 0.5–40 Hz (monitoring) or 0.05–150 Hz (diagnostic). A first-order RC high-pass and low-pass in series give the band; steeper (higher-order) filters trade sharper edges for phase distortion.</p>
+    <div class="eqn">\[ f_c=\frac{1}{2\pi RC},\qquad \text{band-pass}=\text{HP}(f_{hp})\;*\;\text{LP}(f_{lp}) \]</div>
+    <p>Too-high a high-pass distorts slow features clinicians read (ST elevation); too-low a low-pass smears the QRS. Standards (e.g. AAMI/IEC) fix these limits so diagnoses transfer between machines.</p>
+  </div></details>
+</div>
+
+</div></section>
+<div class="sec">Section 3 · Sensors &amp; transducers</div>
+<section><div class="lab">
+
+<!-- WHEATSTONE BRIDGE -->
+<div class="sim" id="bridge">
+  <span class="tag">MODULE 9</span><h2>Wheatstone Bridge — the Pressure Transducer</h2>
+  <p class="exp">Most clinical pressures (invasive arterial/venous lines) are sensed by a <b>strain-gauge Wheatstone bridge</b>: pressure flexes a diaphragm, changing gauge resistance by a tiny fraction, which the bridge converts to a proportional voltage. Sweep pressure and read the linear bridge output.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Excitation voltage <span class="v" id="wb_v_v">5.0</span> V</label><input type="range" id="wb_v" min="1" max="10" value="5" step="0.5"></div>
+    <div class="ctl"><label>Applied pressure <span class="v" id="wb_p_v">120</span> mmHg</label><input type="range" id="wb_p" min="0" max="300" value="120" step="5"></div>
+    <div class="readout" id="wb_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>output vs pressure</span><span><i class="dot" style="background:#f4b740"></i>operating point</span></div>
+  </div><div class="plotwrap"><canvas id="wb_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: the output is a straight line through zero — that linearity is the bridge's gift. Raise excitation for more sensitivity (bigger mV/mmHg) — but real excitation is capped by self-heating &amp; safety.</div>
+  <details class="theory"><summary>Theory — bridge balance &amp; gauge factor</summary><div class="tbody">
+    <p>A balanced bridge outputs zero. A resistance change \(\Delta R\) unbalances it in proportion. With one active gauge (quarter-bridge):</p>
+    <div class="eqn">\[ \frac{\Delta R}{R}=GF\cdot\varepsilon,\qquad V_{out}\approx \frac{V_{ex}}{4}\cdot\frac{\Delta R}{R}\ \ (\propto \text{pressure}) \]</div>
+    <p>Output is only millivolts, so it feeds an instrumentation amp (Module 6). Using 2 or 4 active gauges multiplies sensitivity and cancels temperature drift.</p>
+  </div></details>
+</div>
+
+<!-- THERMISTOR / RTD -->
+<div class="sim" id="temp">
+  <span class="tag">MODULE 10</span><h2>Temperature: Thermistor vs RTD</h2>
+  <p class="exp">Body/skin temperature is sensed by resistance. An <b>NTC thermistor</b> is very sensitive but exponential (nonlinear); a <b>Pt100 RTD</b> is nearly linear and stable but less sensitive. Pick the sensor and move temperature along its resistance curve.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Sensor type</label><select id="tp_t"><option value="ntc">NTC thermistor (10 kΩ, β=3950)</option><option value="rtd">Pt100 RTD (α=0.00385)</option></select></div>
+    <div class="ctl"><label>Temperature <span class="v" id="tp_T_v">37</span> °C</label><input type="range" id="tp_T" min="0" max="100" value="37" step="1"></div>
+    <div class="readout" id="tp_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>R–T curve</span><span><i class="dot" style="background:#f4b740"></i>operating point</span></div>
+  </div><div class="plotwrap"><canvas id="tp_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: on the NTC, resistance plunges with temperature — huge sensitivity but curved. Switch to Pt100 — a gentle straight line: easy to condition, which is why RTDs win where accuracy matters.</div>
+  <details class="theory"><summary>Theory — the two resistance laws</summary><div class="tbody">
+    <p>NTC follows the β (Steinhart–Hart simplified) law; RTD is a near-linear metal law:</p>
+    <div class="eqn">\[ R_{NTC}=R_0\,e^{\beta\left(\frac{1}{T}-\frac{1}{T_0}\right)},\qquad R_{RTD}=R_0\,(1+\alpha\,T) \]</div>
+    <p>Both are read with a bridge or a reference-current + ADC. Thermistors self-linearise over a narrow clinical range (35–42 °C); RTDs are the lab/reference choice.</p>
+  </div></details>
+</div>
+
+<!-- PULSE OXIMETRY -->
+<div class="sim" id="ppg">
+  <span class="tag">MODULE 11</span><h2>Photoplethysmography &amp; Pulse Oximetry (SpO₂)</h2>
+  <p class="exp">A pulse oximeter shines <b>red (660 nm)</b> and <b>infrared (940 nm)</b> light through tissue. Oxygenated and deoxygenated haemoglobin absorb the two colours differently, so the ratio of their pulsatile (AC) signals reveals oxygen saturation — completely non-invasively.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>True SpO₂ <span class="v" id="po_s_v">98</span> %</label><input type="range" id="po_s" min="70" max="100" value="98" step="1"></div>
+    <div class="ctl"><label>Perfusion (pulse strength) <span class="v" id="po_p_v">1.0</span></label><input type="range" id="po_p" min="0.3" max="2" value="1" step="0.1"></div>
+    <div class="readout" id="po_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#ef5350"></i>red 660 nm</span><span><i class="dot" style="background:#9fdce8"></i>infrared 940 nm</span></div>
+  </div><div class="plotwrap"><canvas id="po_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: drop SpO₂ toward 80% — the red pulsatile signal grows relative to IR (deoxy-Hb absorbs more red), so the ratio R rises. Lower perfusion — both pulses shrink and the estimate gets noisier (why cold fingers read poorly).</div>
+  <details class="theory"><summary>Theory — the ratio-of-ratios</summary><div class="tbody">
+    <p>Each wavelength's signal has a steady <b>DC</b> (tissue, venous) part and a pulsatile <b>AC</b> (arterial) part. Normalising AC by DC removes path-length; the ratio of the two normalised signals maps to SpO₂ via a calibration curve.</p>
+    <div class="eqn">\[ R=\frac{(AC/DC)_{660}}{(AC/DC)_{940}},\qquad \text{SpO}_2 \approx 110-25\,R \]</div>
+    <p>Because only the <b>pulsatile</b> arterial blood is used, motion and low perfusion are the main error sources — the core signal-processing challenge in oximetry.</p>
+  </div></details>
+</div>
+
+<!-- BLOOD PRESSURE -->
+<div class="sim" id="bp">
+  <span class="tag">MODULE 12</span><h2>Non-invasive Blood Pressure (Oscillometric)</h2>
+  <p class="exp">Automatic cuffs use the <b>oscillometric</b> method: inflate above systolic, then slowly deflate while measuring the tiny pressure oscillations the artery imprints on the cuff. Their amplitude <b>envelope peaks at the mean arterial pressure (MAP)</b>; systolic and diastolic are found from fixed fractions of that peak.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Systolic (true) <span class="v" id="bp_s_v">120</span> mmHg</label><input type="range" id="bp_s" min="90" max="180" value="120" step="1"></div>
+    <div class="ctl"><label>Diastolic (true) <span class="v" id="bp_d_v">80</span> mmHg</label><input type="range" id="bp_d" min="50" max="110" value="80" step="1"></div>
+    <div class="readout" id="bp_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#8b9aa6"></i>cuff pressure</span><span><i class="dot" style="background:#3fc4dc"></i>oscillations</span></div>
+  </div><div class="plotwrap"><canvas id="bp_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: widen the systolic–diastolic gap — the oscillation "swell" broadens. The oscillations are biggest as the cuff passes MAP; that peak is what the algorithm locks onto first, then estimates SBP/DBP around it.</div>
+  <details class="theory"><summary>Theory — envelope detection &amp; the fixed ratios</summary><div class="tbody">
+    <p>As cuff pressure falls through the arterial range, each heartbeat produces an oscillation. The peak-to-peak amplitude vs cuff-pressure forms a bell-shaped <b>envelope</b>.</p>
+    <div class="eqn">\[ P_{cuff}\!\to\! MAP:\ \text{max oscillation};\quad SBP\approx 0.55\,A_{max}\ (\text{rising}),\ \ DBP\approx 0.85\,A_{max}\ (\text{falling}) \]</div>
+    <p>Only MAP is measured directly; SBP/DBP come from empirical ratios — which is why oscillometric and auscultatory (Korotkoff) readings can differ, and why cuff size matters.</p>
+  </div></details>
+</div>
+
+</div></section>
+<div class="sec">Section 4 · Processing &amp; safety</div>
+<section><div class="lab">
+
+<!-- SAMPLING / ADC -->
+<div class="sim" id="samp">
+  <span class="tag">MODULE 13</span><h2>Sampling, Nyquist &amp; ADC Resolution</h2>
+  <p class="exp">Digitising a biosignal has two limits. The <b>sample rate</b> must exceed twice the highest frequency (Nyquist) or the signal <b>aliases</b> to a false low frequency; the <b>bit depth</b> sets how finely amplitude is quantised. Break either and the digital record lies.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Sample rate f<sub>s</sub> <span class="v" id="sm_fs_v">40</span> Hz</label><input type="range" id="sm_fs" min="5" max="80" value="40" step="1"></div>
+    <div class="ctl"><label>ADC resolution <span class="v" id="sm_b_v">8</span> bits</label><input type="range" id="sm_b" min="2" max="12" value="8" step="1"></div>
+    <div class="readout" id="sm_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#f4b740"></i>true signal (8 Hz)</span><span><i class="dot" style="background:#3fc4dc"></i>sampled &amp; quantised</span></div>
+  </div><div class="plotwrap"><canvas id="sm_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: drop f<sub>s</sub> below 16 Hz — the 8 Hz signal aliases into a slow wave that isn't there. Drop bits to 3 — the trace turns into coarse steps (quantisation). Both corrupt the record irreversibly.</div>
+  <details class="theory"><summary>Theory — Nyquist &amp; quantisation noise</summary><div class="tbody">
+    <p>To represent frequencies up to \(f_{max}\) you need \(f_s>2f_{max}\); otherwise energy folds back to \(|f-kf_s|\). An anti-alias analog filter must precede the ADC. Bit depth sets the quantisation step and the noise floor.</p>
+    <div class="eqn">\[ f_s>2f_{max},\qquad \Delta=\frac{V_{FS}}{2^{N}},\qquad \text{SNR}_{dB}\approx 6.02\,N+1.76 \]</div>
+    <p>Typical rates: ECG 250–1000 Hz, EEG 250–512 Hz, EMG 1–2 kHz; resolution 12–24 bits so the small AC signal survives on top of large offsets.</p>
+  </div></details>
+</div>
+
+<!-- R-PEAK / HRV -->
+<div class="sim" id="rpeak">
+  <span class="tag">MODULE 14</span><h2>R-peak Detection, Heart Rate &amp; HRV</h2>
+  <p class="exp">Automatic monitors find each heartbeat by detecting the <b>R-peak</b>. A Pan–Tompkins-style chain (differentiate → square → threshold, with a refractory period) marks the beats; the R-to-R intervals give heart rate and its beat-to-beat variation (<b>HRV</b>). Add noise and see false detections appear.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Detection threshold <span class="v" id="rp_t_v">0.20</span></label><input type="range" id="rp_t" min="0.05" max="0.6" value="0.2" step="0.01"></div>
+    <div class="ctl"><label>Signal noise <span class="v" id="rp_n_v">0.05</span></label><input type="range" id="rp_n" min="0" max="0.3" value="0.05" step="0.01"></div>
+    <div class="readout" id="rp_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>ECG</span><span><i class="dot" style="background:#ef5350"></i>detected R-peaks</span></div>
+  </div><div class="plotwrap"><canvas id="rp_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: raise noise with a low threshold — spurious red dots appear (false beats), corrupting HR/HRV. Raise the threshold to reject them — but too high and real beats are missed. That's the detector's tuning dilemma.</div>
+  <details class="theory"><summary>Theory — the QRS detector &amp; SDNN</summary><div class="tbody">
+    <p>The QRS has the steepest slope in the ECG, so differentiating then squaring emphasises it over P/T waves and noise. A threshold + refractory window (~200–300 ms, since beats can't be faster) picks the peaks.</p>
+    <div class="eqn">\[ y[n]=\big(x[n]-x[n-2]\big)^2,\qquad HR=\frac{60}{\overline{RR}},\qquad SDNN=\text{std}(RR) \]</div>
+    <p>HRV (e.g. SDNN) reflects autonomic balance and is used in stress, fitness and cardiac-risk assessment — but it's only as good as the R-peak detector's robustness to noise &amp; ectopics.</p>
+  </div></details>
+</div>
+
+<!-- DEFIBRILLATOR -->
+<div class="sim" id="defib">
+  <span class="tag">MODULE 15</span><h2>Defibrillator — Capacitive Discharge</h2>
+  <p class="exp">A defibrillator charges a capacitor to a high voltage, then discharges it through the chest to depolarise the whole myocardium at once. The delivered energy, peak current and pulse shape are set by the stored charge and the <b>patient's transthoracic impedance</b>.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Selected energy <span class="v" id="df_e_v">200</span> J</label><input type="range" id="df_e" min="50" max="360" value="200" step="10"></div>
+    <div class="ctl"><label>Patient impedance <span class="v" id="df_z_v">75</span> Ω</label><input type="range" id="df_z" min="25" max="150" value="75" step="5"></div>
+    <div class="readout" id="df_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#3fc4dc"></i>output voltage</span></div>
+  </div><div class="plotwrap"><canvas id="df_cv" width="720" height="300"></canvas></div></div>
+  <div class="try">💡 Try: raise the energy — peak voltage/current climb. Increase impedance (a large or dry-skinned patient) — the same energy gives a lower, longer pulse, which is why modern units measure impedance and compensate.</div>
+  <details class="theory"><summary>Theory — RC discharge &amp; delivered energy</summary><div class="tbody">
+    <p>With capacitor \(C\) charged to \(V_0\) discharging through patient impedance \(Z\), the (monophasic) voltage decays exponentially:</p>
+    <div class="eqn">\[ v(t)=V_0e^{-t/\tau},\ \ \tau=ZC,\qquad E=\tfrac12 C V_0^2,\qquad I_{peak}=\frac{V_0}{Z} \]</div>
+    <p>Biphasic waveforms reverse polarity mid-pulse and defibrillate at lower energy (less myocardial damage). Impedance compensation adjusts voltage/duration so the <i>current</i> — what actually defibrillates — stays effective.</p>
+  </div></details>
+</div>
+
+<!-- PATIENT SAFETY -->
+<div class="sim" id="safety">
+  <span class="tag">MODULE 16</span><h2>Patient Safety — Leakage Current &amp; Isolation</h2>
+  <p class="exp">The most important number in medical-device design is <b>leakage current</b> — stray current that could flow through the patient. Intact skin tolerates milliamps (<b>macroshock</b>), but a catheter or pacing lead delivers current straight to the heart, where just <b>~10 µA</b> can trigger fibrillation (<b>microshock</b>). Slide the current and see where it lands.</p>
+  <div class="row"><div class="controls">
+    <div class="ctl"><label>Leakage current <span class="v" id="sf_i_v">100 µA</span></label><input type="range" id="sf_i" min="0" max="6" value="2" step="0.05"></div>
+    <div class="ctl"><label>Current path</label><select id="sf_p"><option value="skin">Skin contact (macroshock)</option><option value="cath">Catheter to heart (microshock)</option></select></div>
+    <div class="readout" id="sf_out"></div>
+    <div class="legend"><span><i class="dot" style="background:#f4b740"></i>hazard thresholds</span><span><i class="dot" style="background:#ef5350"></i>your leakage</span></div>
+  </div><div class="plotwrap"><canvas id="sf_cv" width="720" height="260"></canvas></div></div>
+  <div class="try">💡 Try: on "skin", ~1 mA is just perceptible and ~100 mA fibrillates. Switch to "catheter to heart" — the whole scale shifts: the danger line drops to ~10 µA. That 10,000× difference is why isolated (floating, type CF) inputs exist.</div>
+  <details class="theory"><summary>Theory — macroshock, microshock &amp; isolation</summary><div class="tbody">
+    <p>Effect depends on current, path and duration. Through skin: ~1 mA perception, ~10–16 mA "let-go" (can't release), ~100 mA ventricular fibrillation. Directly to the heart, current density is enormous, so the fibrillation threshold collapses to ~10–100 µA.</p>
+    <div class="eqn">\[ I=\frac{V}{Z_{body}},\qquad \text{isolation} \Rightarrow Z\uparrow,\ I\downarrow;\qquad \text{limits: IEC 60601 (µA range)} \]</div>
+    <p>Defences: galvanic <b>isolation</b> of patient-connected circuits, low leakage design, protective earthing, equipotential bonding, and type <b>CF</b> (cardiac-floating) applied parts for direct-to-heart connections.</p>
+  </div></details>
+</div>
+
+</div></section>
+<footer>© Dr. S. Ramanathan · Biomedical Instrumentation Interactive Lab · All simulations run in your browser</footer>
+
+<script>
+const C={navy:'#0a1930',teal:'#0f5c70',cyan:'#3fc4dc',gold:'#f4b740',grey:'#8b9aa6',red:'#ef5350'};
+function $(id){return document.getElementById(id);}
+function fmt(x,d){d=d==null?2:d;return (Math.abs(x)<1e-9?0:x).toFixed(d);}
+
+function Plot(cv,o){
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.fillStyle='#0c1f2e';ctx.fillRect(0,0,W,H);
+  const m={l:58,r:16,t:18,b:34};const pw=W-m.l-m.r,ph=H-m.t-m.b;
+  let {xmin,xmax,ymin,ymax,xlog}=o;
+  const lg=Math.log10;
+  function X(x){let t=xlog?(lg(x)-lg(xmin))/(lg(xmax)-lg(xmin)):(x-xmin)/(xmax-xmin);return m.l+t*pw;}
+  function Y(y){return m.t+(1-(y-ymin)/(ymax-ymin))*ph;}
+  ctx.strokeStyle='rgba(255,255,255,.09)';ctx.fillStyle='#7e93a1';ctx.font='11px monospace';ctx.lineWidth=1;
+  ctx.textAlign='center';ctx.textBaseline='top';
+  if(xlog){
+    for(let d=Math.ceil(lg(xmin));d<=Math.floor(lg(xmax));d++){
+      const xv=Math.pow(10,d),px=X(xv);
+      ctx.beginPath();ctx.moveTo(px,m.t);ctx.lineTo(px,m.t+ph);ctx.stroke();
+      ctx.fillText('10'+sup(d),px,m.t+ph+5);
+    }
+  } else {
+    for(let i=0;i<=5;i++){const xv=xmin+i*(xmax-xmin)/5,px=X(xv);
+      ctx.beginPath();ctx.moveTo(px,m.t);ctx.lineTo(px,m.t+ph);ctx.stroke();
+      ctx.fillText(niceN(xv),px,m.t+ph+5);}
+  }
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let i=0;i<=4;i++){const yv=ymin+i*(ymax-ymin)/4,py=Y(yv);
+    ctx.beginPath();ctx.moveTo(m.l,py);ctx.lineTo(m.l+pw,py);ctx.stroke();
+    ctx.fillText(niceN(yv),m.l-6,py);}
+  ctx.strokeStyle='rgba(255,255,255,.28)';
+  if(ymin<0&&ymax>0){const p=Y(0);ctx.beginPath();ctx.moveTo(m.l,p);ctx.lineTo(m.l+pw,p);ctx.stroke();}
+  ctx.fillStyle='#9fb4c0';ctx.font='11px sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  if(o.xlabel)ctx.fillText(o.xlabel,m.l+pw/2,H-4);
+  ctx.save();ctx.translate(12,m.t+ph/2);ctx.rotate(-Math.PI/2);
+  if(o.ylabel)ctx.fillText(o.ylabel,0,0);ctx.restore();
+  ctx.save();ctx.beginPath();ctx.rect(m.l,m.t,pw,ph);ctx.clip();
+  (o.series||[]).forEach(s=>{
+    if(s.points&&s.points.length){
+      ctx.strokeStyle=s.color;ctx.lineWidth=s.w||2;ctx.beginPath();
+      s.points.forEach((p,i)=>{const px=X(p.x),py=Y(p.y);i?ctx.lineTo(px,py):ctx.moveTo(px,py);});
+      ctx.stroke();
+    }
+    if(s.marks){ctx.fillStyle=s.color;s.marks.forEach(p=>{ctx.beginPath();ctx.arc(X(p.x),Y(p.y),s.r||4,0,7);ctx.fill();});}
+    if(s.segs){ctx.strokeStyle=s.color;ctx.lineWidth=s.w||1;s.segs.forEach(g=>{ctx.beginPath();ctx.moveTo(X(g.x1),Y(g.y1));ctx.lineTo(X(g.x2),Y(g.y2));ctx.stroke();});}
+  });
+  ctx.restore();
+  return {X,Y};
+}
+function sup(n){const m={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};return (''+n).split('').map(c=>m[c]||c).join('');}
+function niceN(x){if(Math.abs(x)>=1000||(Math.abs(x)<0.01&&x!==0))return x.toExponential(0);return (Math.round(x*100)/100).toString();}
+function wire(ids,fn){ids.forEach(id=>{const e=$(id);if(e){e.addEventListener('input',fn);}});fn();}
+
+// shared waveform templates
+function ecgBeat(ph){
+  const g=[[0.16,0.10,0.022],[0.34,-0.10,0.010],[0.37,1.00,0.011],[0.40,-0.28,0.011],[0.62,0.30,0.045]];
+  let v=0;for(let i=0;i<g.length;i++){const d=ph-g[i][0];v+=g[i][1]*Math.exp(-d*d/(2*g[i][2]*g[i][2]));}
+  return v;
+}
+function ppgBeat(ph){return Math.exp(-Math.pow((ph-0.18)/0.09,2))+0.4*Math.exp(-Math.pow((ph-0.45)/0.12,2));}
+
+// ===== M1 ECG =====
+function ecg(){
+  const hr=+$('ecg_hr').value,nz=+$('ecg_n').value;
+  $('ecg_hr_v').textContent=hr;$('ecg_n_v').textContent=fmt(nz,2);
+  const dt=0.004,T=3,rr=60/hr,clean=[],noisy=[];
+  for(let t=0;t<=T;t+=dt){const c=ecgBeat((t%rr)/rr);clean.push({x:t,y:c});noisy.push({x:t,y:c+nz*Math.sin(2*Math.PI*50*t)});}
+  Plot($('ecg_cv'),{xmin:0,xmax:T,ymin:-0.6,ymax:1.2,xlabel:'time (s)',ylabel:'ECG (mV)',
+    series:[{points:clean,color:'rgba(244,183,64,.5)',w:1.3},{points:noisy,color:C.cyan,w:1.6}]});
+  $('ecg_out').innerHTML=`Heart rate: <b>${hr} bpm</b><br>RR interval: <b>${fmt(rr,2)} s</b><br>Signal ~1 mV; the tall spike is the R wave (QRS).`;
+}
+
+// ===== M2 ACTION POTENTIAL =====
+function apx(){
+  const s=+$('ap_i').value;$('ap_i_v').textContent=fmt(s,1);
+  const peak=-70+s*12,fired=peak>=-55,dt=0.05,T=14,t0=2,pts=[];
+  for(let t=0;t<=T;t+=dt){const td=t-t0;let v=-70;
+    if(td>0){
+      if(fired){
+        if(td<1)v=-70+110*td;
+        else if(td<3)v=40-115*((td-1)/2);
+        else v=-75+5*(1-Math.exp(-(td-3)/1.5));
+      } else { v=-70+(peak+70)*td*Math.exp(1-td); }
+    }
+    pts.push({x:t,y:v});
+  }
+  Plot($('ap_cv'),{xmin:0,xmax:T,ymin:-90,ymax:50,xlabel:'time (ms)',ylabel:'Vm (mV)',
+    series:[{points:[{x:0,y:-55},{x:T,y:-55}],color:'rgba(244,183,64,.7)',w:1.2},{points:pts,color:C.cyan,w:2}]});
+  $('ap_out').innerHTML=`Peak depolarisation: <b>${fmt(fired?40:peak,0)} mV</b><br>Threshold: <b>−55 mV</b><br>${fired?'⚡ <b>Action potential fires</b> (full spike)':'subthreshold — no spike'}<br><i>All-or-none</i>`;
+}
+
+// ===== M3 EEG =====
+function eeg(){
+  const a=+$('eeg_a').value;$('eeg_a_v').textContent=fmt(a,2);
+  const clamp=x=>Math.max(0,Math.min(1,x));
+  const w={delta:clamp(1-1.4*a),theta:clamp(1-Math.abs(a-0.35)/0.3),alpha:Math.exp(-Math.pow((a-0.6)/0.16,2)),beta:clamp((a-0.4)/0.6)};
+  const fr={delta:2.5,theta:6,alpha:10,beta:20},ph={delta:0.5,theta:1.7,alpha:2.9,beta:0.9};
+  const dt=0.004,T=3,pts=[];
+  for(let t=0;t<=T;t+=dt){let v=0;for(const k in fr)v+=w[k]*Math.sin(2*Math.PI*fr[k]*t+ph[k]);pts.push({x:t,y:v});}
+  Plot($('eeg_cv'),{xmin:0,xmax:T,ymin:-3,ymax:3,xlabel:'time (s)',ylabel:'EEG (µV, norm.)',series:[{points:pts,color:C.cyan,w:1.6}]});
+  let dom='delta',mx=0;for(const k in w)if(w[k]>mx){mx=w[k];dom=k;}
+  const names={delta:'Delta (deep sleep)',theta:'Theta (drowsy)',alpha:'Alpha (relaxed)',beta:'Beta (alert/active)'};
+  $('eeg_out').innerHTML=`Dominant rhythm: <b>${names[dom]}</b> ≈ <b>${fr[dom]} Hz</b><br>δ ${fmt(w.delta,2)} · θ ${fmt(w.theta,2)} · α ${fmt(w.alpha,2)} · β ${fmt(w.beta,2)}`;
+}
+
+// ===== M4 EMG =====
+function emg(){
+  const mvc=+$('emg_c').value;$('emg_c_v').textContent=mvc;
+  const dt=0.002,T=1.5,pts=[];let s=0;
+  for(let t=0;t<=T;t+=dt){const target=(Math.random()*2-1)*(0.1+mvc/100);s=0.6*s+0.4*target*3;pts.push({x:t,y:s});}
+  let sum=0;pts.forEach(p=>sum+=p.y*p.y);const rms=Math.sqrt(sum/pts.length);
+  Plot($('emg_cv'),{xmin:0,xmax:T,ymin:-1.5,ymax:1.5,xlabel:'time (s)',ylabel:'EMG (mV)',series:[{points:pts,color:C.cyan,w:1.1}]});
+  $('emg_out').innerHTML=`Contraction: <b>${mvc}% MVC</b><br>RMS amplitude: <b>${fmt(rms,3)} mV</b><br>More force → more &amp; faster motor units → bigger interference pattern.`;
+}
+
+// ===== M5 ELECTRODES =====
+function elec(){
+  const drift=+$('el_d').value,dc=+$('el_o').value;$('el_d_v').textContent=fmt(drift,2);$('el_o_v').textContent=fmt(dc,1);
+  const dt=0.004,T=4,raw=[];
+  for(let t=0;t<=T;t+=dt){const y=ecgBeat((t%0.8)/0.8)+dc+drift*(Math.sin(2*Math.PI*0.2*t)+0.4*Math.sin(2*Math.PI*0.05*t));raw.push({x:t,y});}
+  Plot($('el_cv'),{xmin:0,xmax:T,ymin:-2,ymax:4,xlabel:'time (s)',ylabel:'electrode (mV)',series:[{points:raw,color:C.cyan,w:1.5}]});
+  $('el_out').innerHTML=`Half-cell DC offset: <b>${fmt(dc,1)} mV</b><br>Motion baseline wander: <b>${fmt(drift,2)}</b><br>The ~1 mV ECG rides on a big wandering offset → we must AC-couple / high-pass (Module 8).`;
+}
+
+// ===== M6 IN-AMP =====
+function inamp(){
+  const rg=+$('ia_rg').value,cmrr=+$('ia_c').value,R=25,G=1+2*R/rg,cm=Math.pow(10,-cmrr/20);
+  $('ia_rg_v').textContent=fmt(rg,1);$('ia_c_v').textContent=cmrr;
+  const dt=0.002,T=1.5,sig=[],out=[];
+  for(let t=0;t<=T;t+=dt){const e=ecgBeat((t%0.8)/0.8);sig.push({x:t,y:e});out.push({x:t,y:e+1000*cm*Math.sin(2*Math.PI*50*t)});}
+  Plot($('ia_cv'),{xmin:0,xmax:T,ymin:-1.5,ymax:2.5,xlabel:'time (s)',ylabel:'signal (mV, input-referred)',
+    series:[{points:sig,color:'rgba(244,183,64,.7)',w:1.4},{points:out,color:C.cyan,w:1.5}]});
+  $('ia_out').innerHTML=`Gain G = 1 + 2R/R<sub>G</sub> = <b>${fmt(G,0)}×</b><br>CMRR = <b>${cmrr} dB</b><br>1 V mains common-mode → output ripple <b>${fmt(1000*cm,3)} mV</b> (vs ~1 mV ECG).`;
+}
+
+// ===== M7 NOTCH =====
+function notch(){
+  const f0=+$('nf_f').value,on=+$('nf_on').value,rld=$('nf_rld').checked;
+  const amp=rld?0.06:0.35;
+  $('nf_f_v').textContent=f0;$('nf_on_v').textContent=on?'ON':'OFF';
+  const dt=0.002,T=2,raw=[];
+  for(let t=0;t<=T;t+=dt){raw.push(ecgBeat((t%0.8)/0.8)+amp*Math.sin(2*Math.PI*f0*t));}
+  const w0=2*Math.PI*f0*dt,r=0.96,g0=(1-2*r*Math.cos(w0)+r*r)/(2-2*Math.cos(w0));
+  const b0=g0,b1=-2*Math.cos(w0)*g0,b2=g0,a1=-2*r*Math.cos(w0),a2=r*r;
+  let x1=0,x2=0,y1=0,y2=0;const noisy=[],filt=[];
+  for(let i=0;i<raw.length;i++){const x0=raw[i];const y0=b0*x0+b1*x1+b2*x2-a1*y1-a2*y2;x2=x1;x1=x0;y2=y1;y1=y0;
+    noisy.push({x:i*dt,y:raw[i]});filt.push({x:i*dt,y:on?y0:raw[i]});}
+  Plot($('nf_cv'),{xmin:0,xmax:T,ymin:-1,ymax:1.6,xlabel:'time (s)',ylabel:'ECG (mV)',
+    series:[{points:noisy,color:'rgba(139,154,166,.55)',w:1},{points:filt,color:C.cyan,w:1.6}]});
+  $('nf_out').innerHTML=`Mains: <b>${f0} Hz</b> · Notch: <b>${on?'ON':'OFF'}</b> · RLD: <b>${rld?'ON':'OFF'}</b><br>Interference at electrodes: <b>${amp} mV</b>${rld?' (RLD suppresses common-mode)':''}`;
+}
+
+// ===== M8 FILTERING =====
+function filt(){
+  const hp=+$('fl_hp').value,lp=+$('fl_lp').value;$('fl_hp_v').textContent=fmt(hp,2);$('fl_lp_v').textContent=fmt(lp,0);
+  const dt=0.002,T=4,raw=[];
+  for(let t=0;t<=T;t+=dt){const e=ecgBeat((t%0.8)/0.8),drift=0.6*Math.sin(2*Math.PI*0.15*t),hf=0.08*Math.sin(2*Math.PI*45*t)+0.05*(Math.random()*2-1);raw.push(e+drift+hf);}
+  const ahp=Math.exp(-2*Math.PI*hp*dt),alp=1-Math.exp(-2*Math.PI*lp*dt);
+  let yhp=0,xp=0,ylp=0;const out=[],rawpts=[];
+  for(let i=0;i<raw.length;i++){const x=raw[i];yhp=ahp*(yhp+x-xp);xp=x;ylp=ylp+alp*(yhp-ylp);rawpts.push({x:i*dt,y:raw[i]});out.push({x:i*dt,y:ylp});}
+  Plot($('fl_cv'),{xmin:0,xmax:T,ymin:-1.2,ymax:2,xlabel:'time (s)',ylabel:'ECG (mV)',
+    series:[{points:rawpts,color:'rgba(139,154,166,.5)',w:1},{points:out,color:C.cyan,w:1.6}]});
+  $('fl_out').innerHTML=`High-pass: <b>${fmt(hp,2)} Hz</b> (removes baseline wander)<br>Low-pass: <b>${fmt(lp,0)} Hz</b> (removes muscle/EMI noise)<br>Band-pass ≈ <b>${fmt(hp,2)}–${fmt(lp,0)} Hz</b> — the ECG monitoring band.`;
+}
+
+// ===== M9 WHEATSTONE BRIDGE =====
+function bridge(){
+  const vex=+$('wb_v').value,p=+$('wb_p').value;$('wb_v_v').textContent=fmt(vex,1);$('wb_p_v').textContent=p;
+  const sens=0.02/300;
+  const line=[];for(let pp=0;pp<=300;pp+=5)line.push({x:pp,y:vex*(sens*pp)/2*1000});
+  const vout=vex*(sens*p)/2*1000;
+  Plot($('wb_cv'),{xmin:0,xmax:300,ymin:0,ymax:vex*(sens*300)/2*1000*1.12,xlabel:'pressure (mmHg)',ylabel:'bridge output (mV)',
+    series:[{points:line,color:C.cyan,w:2},{segs:[{x1:p,y1:0,x2:p,y2:vout}],color:'rgba(244,183,64,.4)',w:1},{marks:[{x:p,y:vout}],color:C.gold,r:5}]});
+  $('wb_out').innerHTML=`Excitation: <b>${fmt(vex,1)} V</b> · Pressure: <b>${p} mmHg</b><br>Bridge output: <b>${fmt(vout,2)} mV</b><br>V<sub>out</sub> ≈ V<sub>ex</sub>·(ΔR/R)/2 — linear; needs an in-amp (Module 6).`;
+}
+
+// ===== M10 THERMISTOR / RTD =====
+function temp(){
+  const type=$('tp_t').value,Tc=+$('tp_T').value;$('tp_T_v').textContent=Tc;
+  const T0=298.15,beta=3950,R0=10000,rtdR0=100,alpha=0.00385,Tk=Tc+273.15;
+  const curve=[];for(let c=0;c<=100;c+=2){const K=c+273.15;const R=type==='ntc'?R0*Math.exp(beta*(1/K-1/T0)):rtdR0*(1+alpha*c);curve.push({x:c,y:R});}
+  const Rnow=type==='ntc'?R0*Math.exp(beta*(1/Tk-1/T0)):rtdR0*(1+alpha*Tc);
+  Plot($('tp_cv'),{xmin:0,xmax:100,ymin:0,ymax:type==='ntc'?60000:170,xlabel:'temperature (°C)',ylabel:'resistance (Ω)',
+    series:[{points:curve,color:C.cyan,w:2},{marks:[{x:Tc,y:Rnow}],color:C.gold,r:5}]});
+  $('tp_out').innerHTML=`Sensor: <b>${type==='ntc'?'NTC thermistor':'Pt100 RTD'}</b><br>At ${Tc} °C → R = <b>${fmt(Rnow,0)} Ω</b><br>${type==='ntc'?'Exponential — very sensitive but nonlinear.':'Nearly linear &amp; stable — less sensitive.'}`;
+}
+
+// ===== M11 PULSE OXIMETRY =====
+function ppg(){
+  const spo2=+$('po_s').value,perf=+$('po_p').value;$('po_s_v').textContent=spo2;$('po_p_v').textContent=fmt(perf,1);
+  const R=(110-spo2)/25,dt=0.005,T=3,red=[],ir=[],acdc_ir=0.03*perf,acdc_red=R*acdc_ir;
+  for(let t=0;t<=T;t+=dt){const pulse=ppgBeat((t%0.85)/0.85);red.push({x:t,y:0.78-acdc_red*pulse});ir.push({x:t,y:0.80-acdc_ir*pulse});}
+  Plot($('po_cv'),{xmin:0,xmax:T,ymin:0.5,ymax:0.9,xlabel:'time (s)',ylabel:'detected light (norm.)',
+    series:[{points:red,color:C.red,w:1.6},{points:ir,color:'rgba(159,220,232,.95)',w:1.6}]});
+  $('po_out').innerHTML=`SpO₂ = <b>${spo2}%</b><br>Ratio-of-ratios R = <b>${fmt(R,2)}</b><br>SpO₂ ≈ 110 − 25R. Red (660 nm) + IR (940 nm) separate HbO₂ from Hb.`;
+}
+
+// ===== M12 BLOOD PRESSURE =====
+function bp(){
+  let sbp=+$('bp_s').value,dbp=+$('bp_d').value;if(dbp>sbp-10)dbp=sbp-10;
+  $('bp_s_v').textContent=sbp;$('bp_d_v').textContent=dbp;
+  const map=Math.round(dbp+(sbp-dbp)/3),dt=0.02,T=20,P0=180,rate=(180-40)/T,sig=(sbp-dbp)*0.55+10,cuff=[],osc=[];
+  for(let t=0;t<=T;t+=dt){const P=P0-rate*t,env=Math.exp(-Math.pow((P-map)/sig,2)),o=env*4*Math.sin(2*Math.PI*1.2*t);cuff.push({x:t,y:P});osc.push({x:t,y:P+o});}
+  const tmap=(P0-map)/rate,tsys=(P0-sbp)/rate,tdia=(P0-dbp)/rate;
+  Plot($('bp_cv'),{xmin:0,xmax:T,ymin:30,ymax:190,xlabel:'time (s)',ylabel:'cuff pressure (mmHg)',
+    series:[{points:cuff,color:'rgba(139,154,166,.6)',w:1.2},{points:osc,color:C.cyan,w:1},
+      {marks:[{x:tsys,y:sbp}],color:C.gold,r:4},{marks:[{x:tmap,y:map}],color:C.red,r:5},{marks:[{x:tdia,y:dbp}],color:C.gold,r:4}]});
+  $('bp_out').innerHTML=`Systolic <b>${sbp}</b> · <span style="color:#b42020">MAP <b>${map}</b></span> · Diastolic <b>${dbp}</b> mmHg<br>Oscillations peak at <b>MAP</b> (red); SBP/DBP from the 55%/85% envelope points.`;
+}
+
+// ===== M13 SAMPLING / ADC =====
+function samp(){
+  const fs=+$('sm_fs').value,bits=+$('sm_b').value;$('sm_fs_v').textContent=fs;$('sm_b_v').textContent=bits;
+  const f=8,dt=0.001,T=1,cont=[];for(let t=0;t<=T;t+=dt)cont.push({x:t,y:Math.sin(2*Math.PI*f*t)});
+  const Ts=1/fs,levels=Math.pow(2,bits),q=2/levels,samples=[];
+  for(let t=0;t<=T+1e-9;t+=Ts){let y=Math.sin(2*Math.PI*f*t);y=Math.round(y/q)*q;samples.push({x:t,y});}
+  Plot($('sm_cv'),{xmin:0,xmax:T,ymin:-1.3,ymax:1.3,xlabel:'time (s)',ylabel:'amplitude',
+    series:[{points:cont,color:'rgba(244,183,64,.6)',w:1.3},{points:samples,color:C.cyan,w:1.5},{marks:samples,color:C.cyan,r:2.5}]});
+  const alias=fs<2*f,af=Math.abs(f-fs*Math.round(f/fs));
+  $('sm_out').innerHTML=`Signal <b>${f} Hz</b> · f<sub>s</sub> <b>${fs} Hz</b> (Nyquist ${fmt(fs/2,0)} Hz)<br>ADC <b>${bits}-bit</b> → ${levels} levels, step ${fmt(q,3)}<br>${alias?`⚠ <b>Aliasing!</b> appears as ~${fmt(af,1)} Hz`:'✅ f<sub>s</sub> ≥ 2f — faithfully sampled'}`;
+}
+
+// ===== M14 R-PEAK / HRV =====
+function rpeak(){
+  const thr=+$('rp_t').value,nz=+$('rp_n').value;$('rp_t_v').textContent=fmt(thr,2);$('rp_n_v').textContent=fmt(nz,2);
+  const dt=0.004,T=6,rr=60/72,raw=[],ecgp=[];
+  for(let t=0;t<=T;t+=dt){const e=ecgBeat((t%rr)/rr)+nz*(Math.random()*2-1);raw.push(e);ecgp.push({x:t,y:e});}
+  const proc=[];let mx=0;for(let i=2;i<raw.length;i++){const d=raw[i]-raw[i-2];proc[i]=d*d;if(proc[i]>mx)mx=proc[i];}
+  const th=thr*mx,peaks=[],rrInt=[];let last=-9,prev=null;
+  for(let i=3;i<proc.length;i++){const t=i*dt;if(proc[i]>th&&(t-last)>0.25){peaks.push({x:t,y:raw[i]});if(prev!=null)rrInt.push(t-prev);prev=t;last=t;}}
+  Plot($('rp_cv'),{xmin:0,xmax:T,ymin:-0.8,ymax:1.6,xlabel:'time (s)',ylabel:'ECG (mV)',
+    series:[{points:ecgp,color:C.cyan,w:1.3},{marks:peaks,color:C.red,r:4}]});
+  const n=rrInt.length,mean=n?rrInt.reduce((a,b)=>a+b,0)/n:0,hrDet=mean?60/mean:0;
+  let sd=0;rrInt.forEach(x=>sd+=(x-mean)*(x-mean));sd=n>1?Math.sqrt(sd/(n-1))*1000:0;
+  $('rp_out').innerHTML=`Detected beats: <b>${peaks.length}</b><br>Heart rate: <b>${fmt(hrDet,0)} bpm</b><br>HRV (SDNN): <b>${fmt(sd,0)} ms</b>${peaks.length>15?' — false detections; raise threshold':''}`;
+}
+
+// ===== M15 DEFIBRILLATOR =====
+function defib(){
+  const E=+$('df_e').value,Z=+$('df_z').value;$('df_e_v').textContent=E;$('df_z_v').textContent=Z;
+  const Cf=100e-6,V0=Math.sqrt(2*E/Cf),tau=Z*Cf,dt=0.0002,T=0.02,volt=[];
+  for(let t=0;t<=T;t+=dt)volt.push({x:t*1000,y:V0*Math.exp(-t/tau)});
+  Plot($('df_cv'),{xmin:0,xmax:T*1000,ymin:0,ymax:V0*1.1,xlabel:'time (ms)',ylabel:'voltage (V)',series:[{points:volt,color:C.cyan,w:2}]});
+  $('df_out').innerHTML=`Stored energy: <b>${E} J</b> (C = 100 µF)<br>Peak voltage: <b>${fmt(V0,0)} V</b> · Peak current: <b>${fmt(V0/Z,0)} A</b><br>Impedance <b>${Z} Ω</b> → τ = ZC = <b>${fmt(tau*1000,1)} ms</b>`;
+}
+
+// ===== M16 PATIENT SAFETY =====
+function safety(){
+  const lI=+$('sf_i').value,path=$('sf_p').value,I=Math.pow(10,lI),micro=(path==='cath');
+  $('sf_i_v').textContent=I>=1000?fmt(I/1000,2)+' mA':fmt(I,0)+' µA';
+  const thr=micro?[10,100]:[1000,10000,100000];
+  const segs=thr.map(t=>({x1:t,y1:0,x2:t,y2:1}));
+  Plot($('sf_cv'),{xmin:1,xmax:1e6,ymin:0,ymax:1,xlog:true,xlabel:'leakage current (µA)',ylabel:'',
+    series:[{segs:segs,color:'rgba(244,183,64,.6)',w:1.5},{marks:[{x:I,y:0.5}],color:C.red,r:7}]});
+  let risk;
+  if(micro){risk=I<10?'✅ Safe (microshock limit ≈ 10 µA)':I<100?'⚠ Hazardous — approaching fibrillation':'⛔ Ventricular-fibrillation risk';}
+  else{risk=I<1000?'✅ Below perception':I<10000?'⚠ Perceptible / painful':I<100000?"⛔ Can't let go — muscle tetany":'⛔ Ventricular fibrillation';}
+  $('sf_out').innerHTML=`Path: <b>${micro?'Catheter to heart (microshock)':'Skin (macroshock)'}</b><br>Leakage: <b>${I>=1000?fmt(I/1000,2)+' mA':fmt(I,0)+' µA'}</b><br>${risk}<br><i>${micro?'~10 µA to the heart can fibrillate — hence isolation (type CF).':'Skin resistance protects; ~100 mA fibrillates.'}</i>`;
+}
+
+wire(['ecg_hr','ecg_n'],ecg);
+wire(['ap_i'],apx);
+wire(['eeg_a'],eeg);
+wire(['emg_c'],emg);
+wire(['el_d','el_o'],elec);
+wire(['ia_rg','ia_c'],inamp);
+wire(['nf_f','nf_on','nf_rld'],notch);
+wire(['fl_hp','fl_lp'],filt);
+wire(['wb_v','wb_p'],bridge);
+wire(['tp_t','tp_T'],temp); $('tp_t').addEventListener('change',temp);
+wire(['po_s','po_p'],ppg);
+wire(['bp_s','bp_d'],bp);
+wire(['sm_fs','sm_b'],samp);
+wire(['rp_t','rp_n'],rpeak);
+wire(['df_e','df_z'],defib);
+wire(['sf_i','sf_p'],safety); $('sf_p').addEventListener('change',safety);
+</script>
+<script src="feedback.js"></script>
+<script data-goatcounter="https://ramgom1041.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body></html>
