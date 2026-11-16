@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dr. S. Ramanathan — Control Systems · Power Electronics · Machine Vision</title>
-<meta name="description" content="Dr. S. Ramanathan — Ph.D. in Electrical Engineering (Control Systems). Team Lead, Machine Vision at Manatec Electronics. Researcher in power electronics & renewable energy. IEEE author.">
+<meta name="description" content="Dr. S. Ramanathan — Ph.D. in Electrical Engineering (Control Systems). Assistant Manager, New Product Development at Manatec Electronics. Researcher in power electronics & renewable energy. IEEE author.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Dr. S. Ramanathan — Control Systems · Power Electronics · Machine Vision">
 <meta property="og:description" content="Ph.D. engineer & IEEE author. Free interactive engineering courses, research & publications.">
@@ -26,7 +26,7 @@
   "@type": "Person",
   "name": "Dr. S. Ramanathan",
   "honorificPrefix": "Dr.",
-  "jobTitle": "Team Lead – Machine Vision",
+  "jobTitle": "Assistant Manager – New Product Development",
   "worksFor": {
     "@type": "Organization",
     "name": "Manatec Electronics Pvt. Ltd."
@@ -48,8 +48,8 @@
     "Machine Vision",
     "Instrumentation",
     "Renewable Energy",
-    "Wind Energy Conversion Systems",
-    "DFIG Control"
+    "Renewable Energy Systems",
+    "Power Electronics Fault Ride-Through"
   ],
   "url": "https://ramgom1041.github.io/ramanathan-site/",
   "image": "https://ramgom1041.github.io/ramanathan-site/profile.jpg",
@@ -193,6 +193,103 @@
     .nav-toggle{display:block}
     .hero h1{font-size:36px}
   }
+
+  /* Portfolio refresh */
+  :root{
+    --navy:#142321; --navy2:#1d302c; --teal:#286c59; --teal2:#35826b;
+    --cyan:#d3f36b; --ink:#202b27; --grey:#68746e; --line:#dce2d8;
+    --bg:#f4f5ef; --white:#fffefa; --radius:18px; --maxw:1160px;
+  }
+  body{background:var(--bg);font-size:16px;line-height:1.7}
+  a{transition:color .2s ease,background .2s ease,border-color .2s ease,transform .2s ease}
+  .wrap{max-width:var(--maxw);padding-left:28px;padding-right:28px}
+  section{padding:92px 0;scroll-margin-top:70px}
+  h2.section-title{font-size:clamp(30px,4vw,42px);letter-spacing:-1.6px;line-height:1.12}
+  .section-sub{font-size:16px;margin-bottom:38px}
+  .accent{width:48px;height:5px;background:var(--teal);margin-top:15px}
+  header.nav{background:rgba(20,35,33,.96);border-bottom:1px solid rgba(255,255,255,.12)}
+  .nav .wrap{height:72px}
+  .brand{font-size:16px;letter-spacing:.1px}
+  nav ul{gap:22px}
+  nav a{font-size:13px;color:#d8e2db}
+  nav a:hover{color:var(--cyan)}
+  .hero{background:var(--navy);min-height:610px}
+  .hero::before{content:"";position:absolute;width:560px;height:560px;right:-140px;top:-170px;border:1px solid rgba(211,243,107,.16);border-radius:50%;box-shadow:0 0 0 50px rgba(211,243,107,.035),0 0 0 100px rgba(211,243,107,.025)}
+  .hero::after{background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:56px 56px;mask-image:linear-gradient(90deg,#000,transparent 92%)}
+  .hero .wrap{max-width:var(--maxw);min-height:610px;padding:90px 28px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,.65fr);align-items:center;gap:72px}
+  .hero-text{min-width:0}
+  .hero-photo{width:100%;height:370px;border-radius:20px;object-fit:cover;object-position:center 36%;border:1px solid rgba(211,243,107,.55);box-shadow:18px 18px 0 rgba(211,243,107,.14);filter:saturate(.82)}
+  .eyebrow{display:flex;align-items:center;gap:11px;color:var(--cyan);font-size:11px;letter-spacing:2.2px;margin-bottom:22px}
+  .eyebrow::before{content:"";width:28px;height:1px;background:var(--cyan)}
+  .hero h1{font-size:clamp(48px,7vw,78px);letter-spacing:-4px;line-height:.98;margin-bottom:22px}
+  .hero .role{font-size:17px;color:#e1e9df;line-height:1.5}
+  .hero p.lead{max-width:620px;font-size:16px;line-height:1.8;color:#bdcbc2;margin:20px 0 25px}
+  .badges{gap:8px;margin-bottom:28px}
+  .badge{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.16);padding:7px 11px;border-radius:6px;font-size:12px}
+  .btn{border-radius:7px;padding:12px 17px;font-size:13px}
+  .btn-primary{background:var(--cyan);color:var(--navy)}
+  .btn-primary:hover{background:#e2ff94;color:var(--navy);transform:translateY(-2px)}
+  .btn-ghost{border-color:rgba(255,255,255,.28)}
+  .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+  #about,#publications,#courses,#contact{background:var(--bg)}
+  #research,#development,#teaching{background:#e9ede5!important}
+  .grid{gap:18px}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g2{grid-template-columns:minmax(0,1.3fr) minmax(280px,.7fr)}
+  .card{background:var(--white);border-color:var(--line);border-radius:14px;padding:26px;box-shadow:0 5px 20px rgba(20,35,33,.035)}
+  .card h3{font-size:18px;letter-spacing:-.3px}
+  .card p{line-height:1.75}
+  .card.stat{padding:20px}
+  .stat .num{color:var(--teal);letter-spacing:-1px}
+  .tl{border-color:#ced8ce}
+  .tl-item::before{background:var(--teal);box-shadow:0 0 0 3px #e9ede5}
+  .tl-item .when{color:var(--teal);font-size:12px;letter-spacing:.3px}
+  .tl-item .what{color:var(--navy)}
+  .chips{gap:8px}
+  .chip{background:#edf2e7;color:#365447;border:1px solid #dce5d7;border-radius:6px;padding:6px 10px;font-size:12px}
+  .pub{gap:16px;padding:19px 0;border-color:var(--line)}
+  .pub .tag{background:#354b43;border-radius:4px;font-size:10px;text-transform:uppercase;letter-spacing:.6px}
+  .pub .tag.j{background:var(--teal)}
+  #scholar-card{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:30px}
+  #scholar-card>div:first-child{grid-column:1/-1}
+  #scholar-card .sch-tab{grid-column:1;align-self:start;margin-top:14px}
+  #scholar-card .sch-bars{grid-column:2;grid-row:2;min-width:200px;justify-content:flex-end}
+  #scholar-card>p{grid-column:1/-1}
+  .sch-tab th,.sch-tab td{border-color:var(--line)}
+  .sch-tab .num,.sb .sn{color:var(--teal)}
+  .sbar{background:linear-gradient(180deg,#b5d744,var(--teal))}
+  .course-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:26px 0 18px}
+  .course-feature-grid>.card{min-width:0;margin:0!important;border:1px solid var(--line)!important;border-top:3px solid var(--teal)!important;background:var(--white)!important;padding:24px}
+  .course-feature-grid>.card h3{font-size:20px!important}
+  .course-feature-grid .btn{white-space:normal}
+  #courses .wrap>.card{margin-bottom:18px;border-color:var(--line)!important;background:var(--white)!important}
+  .course-feature-grid+.card{border-top:3px solid #354b43!important}
+  #courses .wrap>.card h3{font-size:21px!important}
+  #courses .wrap>.card .card.stat{background:#f1f3ec;border:1px solid var(--line)}
+  #courses .wrap>.card .card.stat .num{font-size:27px}
+  .contact{background:var(--navy)}
+  .contact .section-sub{color:#bfcbc2}
+  .clinks{grid-template-columns:repeat(3,minmax(0,1fr));max-width:none}
+  .clink{border-radius:9px;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.13);padding:15px}
+  .clink:hover{background:rgba(211,243,107,.1);border-color:rgba(211,243,107,.5);transform:translateY(-2px)}
+  .clink .ic{font-size:18px}
+  .clink small{overflow-wrap:anywhere}
+  footer{background:#101c1a;color:#aebbb2;padding:25px}
+  @media(max-width:900px){
+    nav ul{gap:13px}.hero .wrap{gap:40px}.hero-photo{height:310px}
+    .clinks{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:760px){
+    section{padding:68px 0}.wrap{padding-left:21px;padding-right:21px}
+    .nav .wrap{height:64px}.nav-toggle{font-size:22px}
+    nav ul{top:64px}.hero{min-height:0}.hero .wrap{min-height:0;padding:68px 21px 76px;grid-template-columns:1fr;gap:36px}
+    .hero-photo{width:min(72%,340px);height:300px;justify-self:start;grid-row:1;box-shadow:10px 10px 0 rgba(211,243,107,.14)}
+    .hero-text{grid-row:2}.hero h1{font-size:clamp(46px,12vw,66px);letter-spacing:-2.5px}
+    .g3,.g2,.course-feature-grid{grid-template-columns:1fr}.clinks{grid-template-columns:1fr}
+    #scholar-card{display:block}#scholar-card .sch-bars{justify-content:flex-start;min-width:0}
+  }
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -221,7 +318,7 @@
     <div class="hero-text">
     <div class="eyebrow">Control Systems · Power Electronics · Machine Vision</div>
     <h1>Dr. S. Ramanathan</h1>
-    <div class="role">Team Lead – Machine Vision @ Manatec Electronics · Ph.D. in Control Systems</div>
+    <div class="role">Assistant Manager – NPD @ Manatec Electronics · Ph.D. in Control Systems</div>
     <p class="lead">Engineering professional and researcher turning rigorous research into reliable,
       production-ready solutions across control systems, power electronics, instrumentation, and machine vision.
       Published in IEEE Transactions on Industrial Electronics.</p>
@@ -246,23 +343,21 @@
   <div class="wrap">
     <h2 class="section-title">About Me</h2>
     <div class="accent"></div>
-    <p class="section-sub" style="margin-top:18px">Engineer · Researcher · Team Lead</p>
+    <p class="section-sub" style="margin-top:18px">Engineer · Researcher · Product Development Leader</p>
 
     <div class="grid g2">
       <div class="card">
         <p>I am a Ph.D.-qualified engineer with 8+ years of combined industry, research, and academic
         experience spanning machine vision, control systems, power electronics, instrumentation, and
         renewable energy.</p>
-        <p style="margin-top:12px">As <b>Team Lead – Machine Vision</b> at Manatec Electronics Pvt. Ltd., I lead a team
-        developing vision-based inspection and measurement solutions. Earlier, as
-        <b>Lead – Product Development</b> at Lectronic Solutions, I designed instrumentation hardware including
-        a tank water-level controller and a pressure transmitter with a Windows calibration application. My
-        doctoral research developed a nonlinear controller for DC-link voltage stabilization in DFIG-based
-        wind turbines, validated from 0.75&nbsp;kW hardware to 2&nbsp;MW simulation.</p>
+        <p style="margin-top:12px">I currently serve as <b>Assistant Manager – New Product Development (NPD)</b> at Manatec Electronics Pvt. Ltd. Previously, I led the Machine Vision team, developing vision-based inspection and measurement solutions. Earlier, as <b>Lead – Product Development</b> at Lectronic Solutions, I designed instrumentation hardware and calibration tools. My doctoral research focused on nonlinear control and power electronics. I enjoy turning engineering ideas into practical, reliable products.</p>
 
         <h3 style="margin:22px 0 14px">Experience</h3>
         <div class="tl">
-          <div class="tl-item"><div class="when">Sep 2025 – Present</div>
+          <div class="tl-item"><div class="when">01 Sep 2026 – Present</div>
+            <div class="what">Assistant Manager – New Product Development (NPD)</div>
+            <div class="where">Manatec Electronics Pvt. Ltd., Puducherry</div></div>
+          <div class="tl-item"><div class="when">Sep 2025 – Aug 2026</div>
             <div class="what">Team Lead – Machine Vision</div>
             <div class="where">Manatec Electronics Pvt. Ltd., Puducherry</div></div>
           <div class="tl-item"><div class="when">Oct 2024 – Aug 2025</div>
@@ -310,7 +405,7 @@
     <div class="grid g3" style="margin-top:24px">
       <div class="card stat"><div class="num">8+</div><div class="lbl">Years experience</div></div>
       <div class="card stat"><div class="num">6</div><div class="lbl">Publications</div></div>
-      <div class="card stat"><div class="num">2 MW</div><div class="lbl">Validated control system</div></div>
+      <div class="card stat"><div class="num">1</div><div class="lbl">IEEE journal article</div></div>
     </div>
   </div>
 </section>
@@ -325,15 +420,11 @@
     <div class="grid g3">
       <div class="card">
         <h3>Research Interests</h3>
-        <p style="margin-top:10px;font-size:15px">Control of doubly-fed induction generators (DFIG); wind energy
-        conversion systems (WECS); power-electronics fault ride-through; nonlinear & closed-loop control; and
-        machine vision &amp; inspection.</p>
+        <p style="margin-top:10px;font-size:15px">Advanced control; power-electronics fault ride-through; renewable energy systems; nonlinear and closed-loop control; machine vision and inspection.</p>
       </div>
       <div class="card">
         <h3>Doctoral Research</h3>
-        <p style="margin-top:10px;font-size:15px"><i>Control of DFIG in Wind Energy Systems</i> — a nonlinear controller
-        to stabilize DC-link voltage and protect power electronics during grid faults; validated through 2&nbsp;MW
-        simulation and 0.75&nbsp;kW hardware.</p>
+        <p style="margin-top:10px;font-size:15px"><i>Nonlinear Control for Power-Electronics Systems</i> — research on DC-link stability and power-electronics protection, validated through simulation and hardware.</p>
       </div>
       <div class="card">
         <h3>Selected Projects</h3>
@@ -376,7 +467,7 @@
         <span class="tag j">Journal</span>
         <div>
           <p>S. Ramanathan, D. K. Sakthivel, A. N. Ramaiah, S. Ramalingam,
-          “Nonlinear Control Strategy for DC-Link Voltage Control in a DFIG of WECS During 3φ Grid Faults.”</p>
+          “Nonlinear Control Strategy for DC-Link Voltage Regulation During Three-Phase Grid Faults.”</p>
           <p class="meta"><i>IEEE Transactions on Industrial Electronics</i>, 2024 ·
           <a href="https://doi.org/10.1109/TIE.2023.3344815" target="_blank" rel="noopener noreferrer">doi:10.1109/TIE.2023.3344815</a></p>
         </div>
@@ -384,16 +475,14 @@
       <div class="pub">
         <span class="tag">Conf.</span>
         <div>
-          <p>S. Ramanathan et al., “Indirect Power Control MPPT Techniques for DFIG-based WEGS under Step and
-          Variable Speed Wind Characteristics: A Comparative Study.”</p>
+          <p>S. Ramanathan et al., “Comparative Study of Indirect Power Control and MPPT Techniques for Renewable Energy Systems.”</p>
           <p class="meta">ICSECT-2022, Pandit Deendayal Energy University, Gandhinagar · Sep 2022</p>
         </div>
       </div>
       <div class="pub">
         <span class="tag">Conf.</span>
         <div>
-          <p>S. Ramanathan et al., “Operation of DFIG-based Wind Energy Conversion System under Symmetrical
-          Voltage Dip using Crowbar.”</p>
+          <p>S. Ramanathan et al., “Power-Electronics Protection During Symmetrical Voltage Dips.”</p>
           <p class="meta">ICEEMR-2022, Chennai Institute of Technology · Jun 2022 · pp. 250–259 (ISBN 9789391930066)</p>
         </div>
       </div>
@@ -494,76 +583,78 @@
     <div class="accent"></div>
     <p class="section-sub" style="margin-top:18px">Technical courses developed by Dr. S. Ramanathan · <a href="courses/index.html" style="color:var(--teal);font-weight:600">Browse all courses →</a></p>
 
-    <div class="card" style="border:1px solid var(--cyan);background:linear-gradient(180deg,#f3fbfd,#fff)">
-      <span style="display:inline-block;background:linear-gradient(120deg,#0f5c70,#f4b740);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;margin-bottom:10px">⚡ INTERACTIVE LAB</span>
-      <h3 style="font-size:21px">Control Systems — Interactive Simulation Lab</h3>
-      <p style="margin-top:8px">Learn the hard parts of control theory by <b>playing with them</b> — live, in-browser simulations you tune with sliders and watch respond instantly. No installs, runs in your browser.</p>
-      <p style="font-weight:600;color:var(--navy);margin:14px 0 8px">43 interactive modules — beginner to advanced</p>
-      <div class="chips">
-        <span class="chip">PID &amp; On-Off</span><span class="chip">Bode / Nyquist / Nichols</span>
-        <span class="chip">Root Locus</span><span class="chip">Routh &amp; Margins</span>
-        <span class="chip">Steady-State Error</span><span class="chip">Lead/Lag &amp; Z–N Tuning</span>
-        <span class="chip">Pole Placement &amp; LQR</span><span class="chip">Observer &amp; Kalman</span>
-        <span class="chip">Z-Plane &amp; Sampling</span><span class="chip">Phase Portrait</span>
-        <span class="chip">Pendulum &amp; Sliding Mode</span><span class="chip">Anti-Windup</span>
-        <span class="chip">Cascade / Feedforward</span><span class="chip">Smith Predictor</span>
-        <span class="chip">Lyapunov &amp; Bandwidth</span><span class="chip">Model Predictive Control</span><span class="chip">Predictive Torque Control</span><span class="chip">+ more</span>
+    <div class="course-feature-grid">
+      <div class="card" style="border:1px solid var(--cyan);background:linear-gradient(180deg,#f3fbfd,#fff)">
+        <span style="display:inline-block;background:linear-gradient(120deg,#0f5c70,#f4b740);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;margin-bottom:10px">⚡ INTERACTIVE LAB</span>
+        <h3 style="font-size:21px">Control Systems — Interactive Simulation Lab</h3>
+        <p style="margin-top:8px">Learn the hard parts of control theory by <b>playing with them</b> — live, in-browser simulations you tune with sliders and watch respond instantly. No installs, runs in your browser.</p>
+        <p style="font-weight:600;color:var(--navy);margin:14px 0 8px">43 interactive modules — beginner to advanced</p>
+        <div class="chips">
+          <span class="chip">PID &amp; On-Off</span><span class="chip">Bode / Nyquist / Nichols</span>
+          <span class="chip">Root Locus</span><span class="chip">Routh &amp; Margins</span>
+          <span class="chip">Steady-State Error</span><span class="chip">Lead/Lag &amp; Z–N Tuning</span>
+          <span class="chip">Pole Placement &amp; LQR</span><span class="chip">Observer &amp; Kalman</span>
+          <span class="chip">Z-Plane &amp; Sampling</span><span class="chip">Phase Portrait</span>
+          <span class="chip">Pendulum &amp; Sliding Mode</span><span class="chip">Anti-Windup</span>
+          <span class="chip">Cascade / Feedforward</span><span class="chip">Smith Predictor</span>
+          <span class="chip">Lyapunov &amp; Bandwidth</span><span class="chip">Model Predictive Control</span><span class="chip">Predictive Torque Control</span><span class="chip">+ more</span>
+        </div>
+        <div class="cta" style="margin-top:20px">
+          <a class="btn btn-primary" href="courses/control-systems.html">⚡ Open Interactive Lab</a>
+        </div>
       </div>
-      <div class="cta" style="margin-top:20px">
-        <a class="btn btn-primary" href="courses/control-systems.html">⚡ Open Interactive Lab</a>
-      </div>
-    </div>
 
-    <div class="card" style="border:1px solid var(--cyan);background:linear-gradient(180deg,#f3fbfd,#fff)">
-      <span style="display:inline-block;background:linear-gradient(120deg,#0f5c70,#f4b740);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;margin-bottom:10px">⚡ INTERACTIVE LAB</span>
-      <h3 style="font-size:21px">Embedded Systems &amp; Microcontrollers — Interactive Lab</h3>
-      <p style="margin-top:8px">The core microcontroller peripherals made tangible — tune duty cycle, prescaler, ADC bits, and baud rate and watch the waveforms respond live. Runs entirely in your browser.</p>
-      <p style="font-weight:600;color:var(--navy);margin:14px 0 8px">6 interactive modules</p>
-      <div class="chips">
-        <span class="chip">GPIO / Blink</span><span class="chip">PWM</span>
-        <span class="chip">Timer / Prescaler</span><span class="chip">ADC</span>
-        <span class="chip">UART Frame</span><span class="chip">Switch Debounce</span>
+      <div class="card" style="border:1px solid var(--cyan);background:linear-gradient(180deg,#f3fbfd,#fff)">
+        <span style="display:inline-block;background:linear-gradient(120deg,#0f5c70,#f4b740);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;margin-bottom:10px">⚡ INTERACTIVE LAB</span>
+        <h3 style="font-size:21px">Embedded Systems &amp; Microcontrollers — Interactive Lab</h3>
+        <p style="margin-top:8px">The core microcontroller peripherals made tangible — tune duty cycle, prescaler, ADC bits, and baud rate and watch the waveforms respond live. Runs entirely in your browser.</p>
+        <p style="font-weight:600;color:var(--navy);margin:14px 0 8px">6 interactive modules</p>
+        <div class="chips">
+          <span class="chip">GPIO / Blink</span><span class="chip">PWM</span>
+          <span class="chip">Timer / Prescaler</span><span class="chip">ADC</span>
+          <span class="chip">UART Frame</span><span class="chip">Switch Debounce</span>
+        </div>
+        <div class="cta" style="margin-top:20px">
+          <a class="btn btn-primary" href="courses/embedded-systems.html">⚡ Open Interactive Lab</a>
+        </div>
       </div>
-      <div class="cta" style="margin-top:20px">
-        <a class="btn btn-primary" href="courses/embedded-systems.html">⚡ Open Interactive Lab</a>
-      </div>
-    </div>
 
-    <div class="card" style="border:1px solid var(--cyan);background:linear-gradient(180deg,#f3fbfd,#fff)">
-      <span style="display:inline-block;background:linear-gradient(120deg,#0f5c70,#f4b740);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;margin-bottom:10px">⚡ INTERACTIVE LAB</span>
-      <h3 style="font-size:21px">Camera Technology — Interactive Lab</h3>
-      <p style="margin-top:8px">A professional, industry-oriented course on camera technology &amp; imaging-system selection for machine vision — from photons to production. 22 modules across 7 sections, every concept interactive.</p>
-      <p style="font-weight:600;color:var(--navy);margin:14px 0 8px">22 modules · 7 sections</p>
-      <div class="chips">
-        <span class="chip">Photon→Pixel Pipeline</span><span class="chip">EM Spectrum (UV→LWIR)</span>
-        <span class="chip">Optics &amp; Lenses</span><span class="chip">CCD vs CMOS</span>
-        <span class="chip">MTF / Resolution</span><span class="chip">Dynamic Range &amp; SNR</span>
-        <span class="chip">Bayer &amp; Colour</span><span class="chip">Stereo &amp; 3D Imaging</span>
-        <span class="chip">Multispectral</span><span class="chip">Illumination</span>
-        <span class="chip">Interfaces</span><span class="chip">System Design</span>
-        <span class="chip">Selection Wizard</span><span class="chip">Case Studies</span>
+      <div class="card" style="border:1px solid var(--cyan);background:linear-gradient(180deg,#f3fbfd,#fff)">
+        <span style="display:inline-block;background:linear-gradient(120deg,#0f5c70,#f4b740);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;margin-bottom:10px">⚡ INTERACTIVE LAB</span>
+        <h3 style="font-size:21px">Camera Technology — Interactive Lab</h3>
+        <p style="margin-top:8px">A professional, industry-oriented course on camera technology &amp; imaging-system selection for machine vision — from photons to production. 22 modules across 7 sections, every concept interactive.</p>
+        <p style="font-weight:600;color:var(--navy);margin:14px 0 8px">22 modules · 7 sections</p>
+        <div class="chips">
+          <span class="chip">Photon→Pixel Pipeline</span><span class="chip">EM Spectrum (UV→LWIR)</span>
+          <span class="chip">Optics &amp; Lenses</span><span class="chip">CCD vs CMOS</span>
+          <span class="chip">MTF / Resolution</span><span class="chip">Dynamic Range &amp; SNR</span>
+          <span class="chip">Bayer &amp; Colour</span><span class="chip">Stereo &amp; 3D Imaging</span>
+          <span class="chip">Multispectral</span><span class="chip">Illumination</span>
+          <span class="chip">Interfaces</span><span class="chip">System Design</span>
+          <span class="chip">Selection Wizard</span><span class="chip">Case Studies</span>
+        </div>
+        <div class="cta" style="margin-top:20px">
+          <a class="btn btn-primary" href="courses/camera-technology.html">⚡ Open Interactive Lab</a>
+        </div>
       </div>
-      <div class="cta" style="margin-top:20px">
-        <a class="btn btn-primary" href="courses/camera-technology.html">⚡ Open Interactive Lab</a>
-      </div>
-    </div>
 
-    <div class="card" style="border:1px solid var(--cyan);background:linear-gradient(180deg,#f3fbfd,#fff)">
-      <span style="display:inline-block;background:linear-gradient(120deg,#0f5c70,#f4b740);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;margin-bottom:10px">⚡ INTERACTIVE LAB</span>
-      <h3 style="font-size:21px">Biomedical Instrumentation — Interactive Lab</h3>
-      <p style="margin-top:8px">The engineering behind medical devices, made tangible — biopotentials, the acquisition chain, sensors, and patient safety. 16 modules across 4 sections, every concept a live in-browser simulation with theory.</p>
-      <p style="font-weight:600;color:var(--navy);margin:14px 0 8px">16 modules · 4 sections</p>
-      <div class="chips">
-        <span class="chip">ECG / PQRST</span><span class="chip">Action Potential</span>
-        <span class="chip">EEG / EMG</span><span class="chip">In-Amp &amp; CMRR</span>
-        <span class="chip">Mains Rejection</span><span class="chip">Biosignal Filtering</span>
-        <span class="chip">Wheatstone Bridge</span><span class="chip">Pulse Oximetry (SpO₂)</span>
-        <span class="chip">Blood Pressure</span><span class="chip">Sampling &amp; ADC</span>
-        <span class="chip">R-peak &amp; HRV</span><span class="chip">Defibrillator</span>
-        <span class="chip">Patient Safety</span>
-      </div>
-      <div class="cta" style="margin-top:20px">
-        <a class="btn btn-primary" href="courses/biomedical-instrumentation.html">⚡ Open Interactive Lab</a>
+      <div class="card" style="border:1px solid var(--cyan);background:linear-gradient(180deg,#f3fbfd,#fff)">
+        <span style="display:inline-block;background:linear-gradient(120deg,#0f5c70,#f4b740);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;margin-bottom:10px">⚡ INTERACTIVE LAB</span>
+        <h3 style="font-size:21px">Biomedical Instrumentation — Interactive Lab</h3>
+        <p style="margin-top:8px">The engineering behind medical devices, made tangible — biopotentials, the acquisition chain, sensors, and patient safety. 16 modules across 4 sections, every concept a live in-browser simulation with theory.</p>
+        <p style="font-weight:600;color:var(--navy);margin:14px 0 8px">16 modules · 4 sections</p>
+        <div class="chips">
+          <span class="chip">ECG / PQRST</span><span class="chip">Action Potential</span>
+          <span class="chip">EEG / EMG</span><span class="chip">In-Amp &amp; CMRR</span>
+          <span class="chip">Mains Rejection</span><span class="chip">Biosignal Filtering</span>
+          <span class="chip">Wheatstone Bridge</span><span class="chip">Pulse Oximetry (SpO₂)</span>
+          <span class="chip">Blood Pressure</span><span class="chip">Sampling &amp; ADC</span>
+          <span class="chip">R-peak &amp; HRV</span><span class="chip">Defibrillator</span>
+          <span class="chip">Patient Safety</span>
+        </div>
+        <div class="cta" style="margin-top:20px">
+          <a class="btn btn-primary" href="courses/biomedical-instrumentation.html">⚡ Open Interactive Lab</a>
+        </div>
       </div>
     </div>
 
